@@ -33,15 +33,17 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 | ID | Task | Depends on | Done when | Status |
 |----|------|-----------|-----------|--------|
 | T1 | Set up Next.js + Supabase project, auth, base schema | — | Rep can log in; empty dashboard loads | ✅ Done — verified with a live magic-link request against the real project |
-| T2 | Asset library CRUD (video/audio/image/document, personal+company scope) | T1 | Rep can upload/list/delete assets in each category | Not started |
-| T3 | Desk-scene template artwork + slot coordinate mapping | — | Background image exists with documented pixel positions for each slot | Not started |
-| T4 | Create-package form (all slots) + slug generation | T2 | Submitting the form creates a `packages` row and a working URL | Not started |
-| T5 | Public renderer at `/s/[slug]` | T3, T4 | Visiting the URL shows the personalized desk scene with real content playable | Placeholder route exists, not wired to real data |
-| T6 | Tracking events (page view + per-slot open/play) | T5 | Events appear in `tracking_events`; visible in a "My Sites" list | Table exists, no event-writing code yet |
-| T7 | HubSpot sync on package creation | T4 | Creating a package upserts a HubSpot contact + logs a timeline event | Not started |
-| T8 | Multi-rep permissions (admin vs rep, company library edit rights) | T2 | Reps see company assets read-only; admins can add/edit them | RLS policies in place; no admin UI yet |
+| T2 | Asset library CRUD (video/audio/image/document, personal+company scope) | T1 | Rep can upload/list/delete assets in each category | ✅ Done — video/audio as Vimeo links, everything else to Supabase Storage |
+| T3 | Desk-scene template artwork + slot coordinate mapping | — | Background image exists with documented pixel positions for each slot | Not started — public renderer currently uses a clean functional layout, not the photoreal desk scene |
+| T4 | Create-package form (all slots) + slug generation | T2 | Submitting the form creates a `packages` row and a working URL | ✅ Done |
+| T5 | Public renderer at `/s/[slug]` | T3, T4 | Visiting the URL shows the personalized desk scene with real content playable | ✅ Functional layout done and verified live (real Vimeo embed, letter, tracking); desk-scene visual (T3) still pending |
+| T6 | Tracking events (page view + per-slot open/play) | T5 | Events appear in `tracking_events`; visible in a "My Sites" list | ✅ Done — verified real events landing in the live database from a real browser session |
+| T7 | HubSpot sync on package creation | T4 | Creating a package upserts a HubSpot contact + logs a timeline event | Not started — blocked on a HubSpot private app token (manual step in HubSpot's UI) |
+| T8 | Multi-rep permissions (admin vs rep, company library edit rights) | T2 | Reps see company assets read-only; admins can add/edit them | RLS policies in place and verified (including a recursion bug found and fixed — see below); no dedicated admin UI yet |
 
-**Live infrastructure**: Supabase project `shock-and-awe` (ref `fywmrqbxjlocjsdopjep`, `us-east-1`, in the Securafy org) — schema + RLS policies applied. Real URL/anon key are in the gitignored `.env.local`, not in this repo.
+**Live infrastructure**: Supabase project `shock-and-awe` (ref `fywmrqbxjlocjsdopjep`, `us-east-1`, in the Securafy org) — schema + RLS policies applied. Real URL/anon key are in the gitignored `.env.local`, not in this repo. Storage bucket `assets` (private) holds uploaded images/documents/business cards/logos; video/audio stay Vimeo links.
+
+**RLS recursion bug (found and fixed)**: `profiles`' own SELECT policy queried `profiles` again to check admin status, which Postgres re-applies RLS to — recursing infinitely the moment any real query touched it (a rep's own dashboard included). Static analysis (the Supabase security advisor) never caught this; it only surfaced by actually running queries as each role against the live database. Fixed with a `SECURITY DEFINER` `is_org_admin()` helper (migrations 0005–0007) that breaks the cycle. Lesson for future migrations: verify RLS by actually querying as `anon`/`authenticated` (`set local role ...`), not just by reading the advisor's output.
 
 ## 6. Testing
 - Unit: slug generation/uniqueness, asset-scope permission checks, HubSpot payload construction
