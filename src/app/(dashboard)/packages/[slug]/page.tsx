@@ -1,0 +1,79 @@
+import { notFound, redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/profile";
+import { CopyLinkButton } from "./CopyLinkButton";
+
+export default async function PackageDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
+
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: pkg, error } = await supabase
+    .from("packages")
+    .select(
+      "id, slug, prospect_name, prospect_company, prospect_email, private_note, created_at",
+    )
+    .eq("slug", slug)
+    .single();
+
+  if (error || !pkg) notFound();
+
+  const { data: events } = await supabase
+    .from("tracking_events")
+    .select("event_type, slot_name, occurred_at")
+    .eq("package_id", pkg.id)
+    .order("occurred_at", { ascending: false });
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const publicUrl = `${siteUrl}/s/${pkg.slug}`;
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-neutral-900">
+          {pkg.prospect_name}
+        </h2>
+        {pkg.prospect_company && (
+          <p className="text-sm text-neutral-500">{pkg.prospect_company}</p>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 rounded-md border border-neutral-200 bg-white p-3">
+        <code className="flex-1 truncate text-sm text-neutral-700">
+          {publicUrl}
+        </code>
+        <CopyLinkButton url={publicUrl} />
+      </div>
+
+      {pkg.private_note && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <strong>Private note:</strong> {pkg.private_note}
+        </div>
+      )}
+
+      <div>
+        <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          Activity
+        </h3>
+        {(events ?? []).length === 0 ? (
+          <p className="text-sm text-neutral-400">Not opened yet.</p>
+        ) : (
+          <ul className="space-y-1 text-sm text-neutral-600">
+            {(events ?? []).map((e, i) => (
+              <li key={i}>
+                {new Date(e.occurred_at).toLocaleString()} — {e.event_type}
+                {e.slot_name ? ` (${e.slot_name})` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}

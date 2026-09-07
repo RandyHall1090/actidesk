@@ -1,0 +1,12 @@
+-- is_org_admin() is an internal helper for RLS policies (profiles, assets),
+-- not something anon should be able to call directly as a public RPC — it
+-- would let an anonymous caller probe whether a guessed org_id has any
+-- admin. `authenticated` must keep EXECUTE: unlike a trigger function,
+-- a function referenced inside a USING clause is still subject to a normal
+-- EXECUTE check for the role running the query, so revoking it from
+-- authenticated would break every policy that calls it for every rep, not
+-- just admins.
+--
+-- NOTE: this migration turned out to be incomplete — see 0007. Left as-is
+-- for an honest history rather than squashed away.
+revoke execute on function public.is_org_admin(uuid) from anon;
