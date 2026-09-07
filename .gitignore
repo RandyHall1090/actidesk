@@ -45,3 +45,8 @@ Thumbs.db
 .idea/
 .vscode/
 *.pem
+
+# Local verification artifacts
+.playwright-mcp/
+*.png
+!public/**/*.png
