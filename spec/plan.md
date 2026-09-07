@@ -30,16 +30,18 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 - [ ] M6: Multi-rep permissions polish (company library admin controls)
 
 ## 5. Tasks
-| ID | Task | Depends on | Done when |
-|----|------|-----------|-----------|
-| T1 | Set up Next.js + Supabase project, auth, base schema | — | Rep can log in; empty dashboard loads |
-| T2 | Asset library CRUD (video/audio/image/document, personal+company scope) | T1 | Rep can upload/list/delete assets in each category |
-| T3 | Desk-scene template artwork + slot coordinate mapping | — | Background image exists with documented pixel positions for each slot |
-| T4 | Create-package form (all slots) + slug generation | T2 | Submitting the form creates a `packages` row and a working URL |
-| T5 | Public renderer at `/s/[slug]` | T3, T4 | Visiting the URL shows the personalized desk scene with real content playable |
-| T6 | Tracking events (page view + per-slot open/play) | T5 | Events appear in `tracking_events`; visible in a "My Sites" list |
-| T7 | HubSpot sync on package creation | T4 | Creating a package upserts a HubSpot contact + logs a timeline event |
-| T8 | Multi-rep permissions (admin vs rep, company library edit rights) | T2 | Reps see company assets read-only; admins can add/edit them |
+| ID | Task | Depends on | Done when | Status |
+|----|------|-----------|-----------|--------|
+| T1 | Set up Next.js + Supabase project, auth, base schema | — | Rep can log in; empty dashboard loads | ✅ Done — verified with a live magic-link request against the real project |
+| T2 | Asset library CRUD (video/audio/image/document, personal+company scope) | T1 | Rep can upload/list/delete assets in each category | Not started |
+| T3 | Desk-scene template artwork + slot coordinate mapping | — | Background image exists with documented pixel positions for each slot | Not started |
+| T4 | Create-package form (all slots) + slug generation | T2 | Submitting the form creates a `packages` row and a working URL | Not started |
+| T5 | Public renderer at `/s/[slug]` | T3, T4 | Visiting the URL shows the personalized desk scene with real content playable | Placeholder route exists, not wired to real data |
+| T6 | Tracking events (page view + per-slot open/play) | T5 | Events appear in `tracking_events`; visible in a "My Sites" list | Table exists, no event-writing code yet |
+| T7 | HubSpot sync on package creation | T4 | Creating a package upserts a HubSpot contact + logs a timeline event | Not started |
+| T8 | Multi-rep permissions (admin vs rep, company library edit rights) | T2 | Reps see company assets read-only; admins can add/edit them | RLS policies in place; no admin UI yet |
+
+**Live infrastructure**: Supabase project `shock-and-awe` (ref `fywmrqbxjlocjsdopjep`, `us-east-1`, in the Securafy org) — schema + RLS policies applied. Real URL/anon key are in the gitignored `.env.local`, not in this repo.
 
 ## 6. Testing
 - Unit: slug generation/uniqueness, asset-scope permission checks, HubSpot payload construction
@@ -48,5 +50,4 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 
 ## 7. Open questions
 - Exact subdomain name under securafy.com to use (e.g. `shockandawe`, `meet`, `premeeting`) — decided to use a securafy.com subdomain, name still TBD
-- Which Supabase project to provision this in — Securafy's Supabase org already has several unrelated projects (atrium, ShareSync, ai-university, etc.); this needs its own new project
-- Expected volume (packages/month) — informs whether Supabase's free/starter tier is sufficient
+- Expected volume (packages/month) — mostly moot now that the Supabase project exists ($10/mo flat), but still informs storage/Vimeo plan choices later
