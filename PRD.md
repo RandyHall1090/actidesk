@@ -54,9 +54,9 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 ## 9. Risks & open questions
 - Risk: the desk-scene template art needs to be pixel-accurate across screen sizes (video/audio overlays must align with the tablet/phone graphics) → mitigate with careful responsive design and early mobile testing
 - Risk: fully-custom-per-send personalization means a longer create-package form → mitigate with sensible library defaults so reps aren't forced to upload something new every time
-- Open question: exact domain/URL strategy — assuming path-based URLs (`securafy-domain.com/s/[slug]`) for v1; revisit wildcard subdomains later if wanted
+- Decided: public URLs live on a subdomain of securafy.com (e.g. `shockandawe.securafy.com/s/[slug]`), not a separate purchased domain — exact subdomain name to be finalized at deploy time
+- Decided: no asset import/migration needed — Randy will seed the Company Library by uploading marketing assets directly through the app once the library UI exists
 - Open question: video/audio hosting — assuming Vimeo (unlisted) links rather than self-hosted files; confirm before building the upload flow
-- Open question: where existing marketing assets (videos, brochures) currently live, to seed the initial Company Library
 
 ## 10. Milestones
 - [ ] M1: Asset library (upload/list video, audio, images, documents) working for one user

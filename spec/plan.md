@@ -17,7 +17,7 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 - **Next.js + Supabase** — matches workspace default stack, fastest path to auth + Postgres + storage without standing up separate services
 - **One fixed template for v1** — avoids building a template/layout engine before proving the core workflow; hardcode slot positions for the single desk-scene layout
 - **Vimeo for video/audio** — avoids self-hosting large media, re-encoding, and bandwidth costs; Vimeo tooling is already available
-- **Path-based URLs, not wildcard subdomains** — avoids wildcard DNS/SSL setup for v1
+- **Path-based URLs on a dedicated subdomain of securafy.com** (e.g. `shockandawe.securafy.com/s/[slug]`) — keeps it on Securafy's own domain per Randy's request, while avoiding wildcard-per-rep DNS/SSL setup for v1; exact subdomain name TBD at deploy time
 - **Rep sends the link themselves, app doesn't email prospects** — avoids transactional email deliverability/domain setup for v1
 - **HubSpot sync on create** — keeps the CRM as source of truth for prospect activity, matching the rest of Securafy's marketing/sales tooling
 
@@ -47,6 +47,6 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 - Manual check: create a real package as a test prospect, open the link on desktop and mobile, confirm every slot renders and tracking fires
 
 ## 7. Open questions
-- Exact domain to use for public URLs (a new branded domain vs. a subdirectory of an existing Securafy domain)
-- Where existing marketing assets (videos, brochures) currently live, to seed the initial Company Library
+- Exact subdomain name under securafy.com to use (e.g. `shockandawe`, `meet`, `premeeting`) — decided to use a securafy.com subdomain, name still TBD
+- Which Supabase project to provision this in — Securafy's Supabase org already has several unrelated projects (atrium, ShareSync, ai-university, etc.); this needs its own new project
 - Expected volume (packages/month) — informs whether Supabase's free/starter tier is sufficient
