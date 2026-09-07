@@ -86,7 +86,7 @@ function UploadForm({ kind, isAdmin }: { kind: AssetKind; isAdmin: boolean }) {
           name="name"
           required
           placeholder="Name"
-          className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
         {isLink ? (
           <input
@@ -94,14 +94,14 @@ function UploadForm({ kind, isAdmin }: { kind: AssetKind; isAdmin: boolean }) {
             required
             type="url"
             placeholder="https://vimeo.com/..."
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
         ) : (
           <input
             name="file"
             required
             type="file"
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-sm"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 file:mr-3 file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-sm"
           />
         )}
       </div>
@@ -110,7 +110,7 @@ function UploadForm({ kind, isAdmin }: { kind: AssetKind; isAdmin: boolean }) {
           name="scope"
           defaultValue="personal"
           disabled={!isAdmin}
-          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm disabled:bg-neutral-100 disabled:text-neutral-400"
+          className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 disabled:bg-neutral-100 disabled:text-neutral-400"
         >
           <option value="personal">My library</option>
           {isAdmin && <option value="company">Company library</option>}

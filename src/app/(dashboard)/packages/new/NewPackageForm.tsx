@@ -23,19 +23,19 @@ export function NewPackageForm({ assets }: { assets: Asset[] }) {
           name="prospect_name"
           required
           placeholder="Prospect name"
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             name="prospect_company"
             placeholder="Company (optional)"
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
           <input
             name="prospect_email"
             type="email"
             placeholder="Email (optional)"
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
         </div>
       </fieldset>
@@ -54,7 +54,7 @@ export function NewPackageForm({ assets }: { assets: Asset[] }) {
               <select
                 name={`slot_${s.slot}`}
                 defaultValue=""
-                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
               >
                 <option value="">— None —</option>
                 {options.map((a) => (
@@ -77,7 +77,7 @@ export function NewPackageForm({ assets }: { assets: Asset[] }) {
           name="letter_body"
           rows={6}
           placeholder="Hi [Name], ..."
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
       </fieldset>
 
@@ -88,7 +88,7 @@ export function NewPackageForm({ assets }: { assets: Asset[] }) {
         <textarea
           name="private_note"
           rows={2}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
       </fieldset>
 

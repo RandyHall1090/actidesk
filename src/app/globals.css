@@ -1,6 +1,15 @@
 @import "tailwindcss";
 
+/*
+ * This app is fixed light-theme everywhere (bg-white, text-neutral-900,
+ * etc. throughout) — there's no dark-mode design. `color-scheme: light`
+ * stops browsers from auto-dark-styling native form controls (inputs,
+ * selects) when the OS is in dark mode, which is what made typed text in
+ * the login field unreadable: the browser gave inputs a dark native
+ * background while our color-inheriting text stayed near-white.
+ */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -10,13 +19,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
