@@ -1,5 +1,7 @@
 # CLAUDE.md — Securafy Online Shock-and-Awe Portal
 
+@AGENTS.md
+
 ## What this is
 A portal for Securafy sales reps to create personalized, trackable "Online Shock-and-Awe" pages for prospects ahead of meetings — video, audio, business card, magazine, letter, and brochures rendered on a branded desk-scene template — with HubSpot sync and engagement tracking. Modeled on TMT's Shockbox tool.
 
@@ -35,3 +37,4 @@ A portal for Securafy sales reps to create personalized, trackable "Online Shock
 - Video/audio are hosted on Vimeo (unlisted), not self-hosted
 - Sending a package syncs to HubSpot (portal 46124718) — upserts the contact, logs a timeline event
 - Reps send the generated link themselves; the app does not email prospects directly in v1
+- Scaffolded on Next.js 16.3.4 / React 19.2.8 — this is a newer major than most training data; AGENTS.md (auto-maintained by `next dev`, imported above) flags framework changes to check before writing App Router code

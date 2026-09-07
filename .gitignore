@@ -5,21 +5,34 @@
 *.local.*
 CLAUDE.local.md
 
-# Python
+# Next.js
+/node_modules
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+
+# Testing / coverage
+/coverage
+.pytest_cache/
+
+# Python (other tooling in this workspace)
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-.pytest_cache/
 .mypy_cache/
 .ruff_cache/
 *.egg-info/
 dist/
-build/
 
 # Node
-node_modules/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # Logs / temp
 *.log
@@ -31,3 +44,4 @@ tmp/
 Thumbs.db
 .idea/
 .vscode/
+*.pem
