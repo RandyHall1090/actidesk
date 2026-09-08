@@ -43,6 +43,8 @@ A Next.js + Supabase app with two surfaces: an internal rep/admin dashboard (ass
 
 **Live infrastructure**: Supabase project `shock-and-awe` (ref `fywmrqbxjlocjsdopjep`, `us-east-1`, in the Securafy org) — schema + RLS policies applied. Real URL/anon key are in the gitignored `.env.local`, not in this repo. Storage bucket `assets` (private) holds uploaded images/documents/business cards/logos; video/audio stay Vimeo links.
 
+**Deployed**: Vercel project `securafy/securafy-shock-and-awe`, live at https://securafy-shock-and-awe.vercel.app (production — Vercel auto-assigns a brand-new project's first deploy to production). Deployed from local files via the Vercel CLI (`vercel deploy` / `vercel deploy --prod`) — this repo has no git remote yet, so there's no git-based auto-deploy on push. Redeploy manually after pulling changes until that's set up.
+
 **RLS recursion bug (found and fixed)**: `profiles`' own SELECT policy queried `profiles` again to check admin status, which Postgres re-applies RLS to — recursing infinitely the moment any real query touched it (a rep's own dashboard included). Static analysis (the Supabase security advisor) never caught this; it only surfaced by actually running queries as each role against the live database. Fixed with a `SECURITY DEFINER` `is_org_admin()` helper (migrations 0005–0007) that breaks the cycle. Lesson for future migrations: verify RLS by actually querying as `anon`/`authenticated` (`set local role ...`), not just by reading the advisor's output.
 
 ## 6. Testing
