@@ -38,11 +38,12 @@ export async function updateSession(request: NextRequest) {
   const isPublicRoute =
     pathname.startsWith("/s/") ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/auth/");
+    pathname.startsWith("/signup");
 
   if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    // Fresh URL, not .clone() — a clone carries over the original request's
+    // query string, which previously leaked unrelated params onto /login.
+    const url = new URL("/login", request.url);
     return NextResponse.redirect(url);
   }
 
