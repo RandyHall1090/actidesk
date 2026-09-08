@@ -68,7 +68,8 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 ## 9. Risks & open questions
 - Risk: the desk-scene template art needs to be pixel-accurate across screen sizes (video/audio overlays must align with the tablet/phone graphics) → mitigate with careful responsive design and early mobile testing
 - Risk: fully-custom-per-send personalization means a longer create-package form → mitigate with sensible library defaults so reps aren't forced to upload something new every time
-- **Real blocker found — still open, re-verified live 2026-09-08**: Supabase's "Confirm email" setting is currently ON for the project, which means every `signUp()` call tries to send a confirmation email — reintroducing the exact corporate-email-scanning problem login already hit, plus the same low default-email-quota. Re-tested today: a live signup attempt failed with "email rate limit exceeded" before any account was even created, confirming the setting is still ON. This needs to be turned OFF in the Supabase dashboard (Authentication → Sign In / Providers → Email) for self-service signup to actually work without an email round-trip. No API access to fix this directly — needs Randy.
+- **Confirm-email blocker — resolved**: Supabase's "Confirm email" setting was ON, reintroducing the corporate-email-scanning problem login already moved away from. Randy turned it off (2026-09-08). Not yet re-verified live against a fresh signup.
+- **New risk**: Supabase flagged this project for a high bounce rate on its default transactional email sender and warned it may restrict sending. Fix is to switch to custom SMTP via Randy's paid Resend account — needs to be done in the Supabase dashboard (no API access to Auth SMTP config); not yet done.
 - Decided: public URLs use a shared platform domain with path-based links (`/s/[slug]`) — no per-tenant subdomain for v1 (superseded the earlier "subdomain of securafy.com" decision, which assumed single-tenant)
 - Decided: a company (tenant) is matched to signups purely by email domain — one domain per org; multiple domains per company is a known v1 limitation
 - Decided: no asset import/migration needed — each tenant seeds their own Company Library by uploading directly through the app
@@ -80,5 +81,5 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 - [x] M2: Create-package form + functional-layout renderer working end-to-end (photoreal desk-scene art still pending)
 - [x] M3: Tracking (page view + asset-open events) + "My Sites" list
 - [x] M4: Multi-tenant auth — sign in/up, sign out, password change, admin team management, org data isolation (all verified against the live database)
-- [ ] M5: HubSpot sync on package creation (Securafy only)
+- [x] M5: HubSpot sync on package creation (Securafy only)
 - [ ] M6: Photoreal desk-scene template art, properly aligned

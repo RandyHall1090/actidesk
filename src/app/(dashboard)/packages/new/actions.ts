@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
 import { randomSuffix, slugify } from "@/lib/packages/slug";
+import { syncPackageToHubSpot } from "@/lib/hubspot";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -89,6 +90,17 @@ export async function createPackage(
       return { ok: false, error: slotsError.message };
     }
   }
+
+  // syncPackageToHubSpot() never throws (it catches its own errors), so
+  // awaiting it here just makes sure it actually runs to completion before
+  // this serverless function returns — it can't fail the package creation.
+  await syncPackageToHubSpot({
+    orgId: profile.org_id,
+    prospectEmail,
+    prospectName,
+    prospectCompany,
+    packageSlug: inserted.slug,
+  });
 
   redirect(`/packages/${inserted.slug}`);
 }
