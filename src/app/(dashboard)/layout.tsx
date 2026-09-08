@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/profile";
+import { signOut } from "./actions";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
   { href: "/library", label: "Asset Library" },
   { href: "/packages", label: "My Sites" },
+  { href: "/account", label: "Account" },
 ];
 
 export default async function DashboardLayout({
@@ -13,16 +15,17 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const profile = await getCurrentProfile();
 
   // Belt-and-suspenders: middleware already redirects unauthenticated
   // visitors, this guards direct navigation during dev/edge cases.
-  if (!user) {
+  if (!profile) {
     redirect("/login");
   }
+
+  const navLinks = profile.role === "admin"
+    ? [...NAV_LINKS, { href: "/team", label: "Team" }]
+    : NAV_LINKS;
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-neutral-50">
@@ -31,10 +34,20 @@ export default async function DashboardLayout({
           <h1 className="text-lg font-semibold text-neutral-900">
             Shock-and-Awe Portal
           </h1>
-          <p className="text-sm text-neutral-500">{user.email}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-neutral-500">{profile.email}</p>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="text-sm font-medium text-neutral-500 hover:text-neutral-900"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
         <nav className="mt-3 flex gap-4">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}

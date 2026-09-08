@@ -1,0 +1,16 @@
+import { redirect } from "next/navigation";
+import { getCurrentProfile } from "@/lib/profile";
+import { ChangePasswordForm } from "./ChangePasswordForm";
+
+export default async function AccountPage() {
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
+
+  return (
+    <div className="max-w-sm">
+      <h2 className="text-xl font-semibold text-neutral-900">Account</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600">{profile.email}</p>
+      <ChangePasswordForm />
+    </div>
+  );
+}
