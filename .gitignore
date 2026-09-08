@@ -55,3 +55,6 @@ Thumbs.db
 # not part of the app, shouldn't be committed. See spec/plan.md.
 /*.pdf
 design/template-candidates/
+
+.vercel
+.env*
