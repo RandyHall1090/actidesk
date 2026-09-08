@@ -88,10 +88,21 @@ export default function SignupPage() {
 
     setStatus("sending");
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setStatus("error");
       setErrorMessage(error.message);
+      return;
+    }
+    if (!data.session) {
+      // signUp() didn't hand back a session — most likely email
+      // confirmation is still required. Don't call completeSignup with
+      // whatever session this browser happens to already have (could be
+      // stale/another account's); stop and tell the user what to do.
+      setStatus("error");
+      setErrorMessage(
+        "Check your email to confirm your account, then sign in.",
+      );
       return;
     }
 
