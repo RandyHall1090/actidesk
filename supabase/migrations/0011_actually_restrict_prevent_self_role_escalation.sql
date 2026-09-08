@@ -1,0 +1,11 @@
+-- Two prior attempts (in 0009, and a same-day retry) only revoked from the
+-- PUBLIC pseudo-role, but this function's ACL had a *direct* grant to
+-- anon (and authenticated) — a separate thing from PUBLIC in Postgres's
+-- ACL system, unaffected by "revoke ... from public". Confirmed via
+-- pg_proc.proacl, not assumed. This is a trigger-only function; nothing
+-- should call it directly, ever. Revoke from every relevant role by name.
+--
+-- Lesson for any future non-public function: always revoke from
+-- `public, anon, authenticated` explicitly (as 0002_restrict_handle_new_user
+-- did correctly the first time) rather than `from public` alone.
+revoke execute on function public.prevent_self_role_escalation() from public, anon, authenticated;

@@ -16,11 +16,15 @@ export function PackageView({
   prospectName,
   letterBody,
   slots,
+  orgName,
+  orgLogoUrl,
 }: {
   packageId: string;
   prospectName: string;
   letterBody: string | null;
   slots: SlotAsset[];
+  orgName: string;
+  orgLogoUrl: string | null;
 }) {
   useEffect(() => {
     logTrackingEvent(packageId, "page_view");
@@ -44,6 +48,17 @@ export function PackageView({
 
   return (
     <div className="mx-auto min-h-full max-w-3xl px-4 py-12">
+      <div className="mb-8 flex items-center gap-3">
+        {orgLogoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
+          <img
+            src={orgLogoUrl}
+            alt={orgName}
+            className="h-10 w-auto object-contain"
+          />
+        )}
+        <p className="text-sm font-medium text-neutral-500">{orgName}</p>
+      </div>
       <p className="mb-1 text-sm font-medium uppercase tracking-wide text-neutral-400">
         Prepared for
       </p>

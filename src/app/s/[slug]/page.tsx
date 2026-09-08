@@ -9,6 +9,8 @@ type PackageRow = {
   prospect_company: string | null;
   letter_body: string | null;
   template_id: string;
+  org_name: string;
+  org_logo_storage_path: string | null;
 };
 
 type SlotRow = {
@@ -58,12 +60,22 @@ export default async function PackagePage({
     }
   }
 
+  let orgLogoUrl: string | null = null;
+  if (pkg.org_logo_storage_path) {
+    const { data: signed } = await supabase.storage
+      .from("assets")
+      .createSignedUrl(pkg.org_logo_storage_path, 60 * 60);
+    orgLogoUrl = signed?.signedUrl ?? null;
+  }
+
   return (
     <PackageView
       packageId={pkg.id}
       prospectName={pkg.prospect_name}
       letterBody={pkg.letter_body}
       slots={slots}
+      orgName={pkg.org_name}
+      orgLogoUrl={orgLogoUrl}
     />
   );
 }

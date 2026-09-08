@@ -34,8 +34,8 @@ export default async function TeamPage() {
     <div className="max-w-2xl">
       <h2 className="text-xl font-semibold text-neutral-900">Team</h2>
       <p className="mt-1 mb-2 text-sm text-neutral-600">
-        Share this link so a teammate can create their own account (
-        @securafy.com only):
+        Share this link so a teammate can create their own account — matching
+        email domains automatically join this organization:
       </p>
       <code className="mb-6 block rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700">
         {signupUrl}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
+import { getOrg } from "@/lib/org";
 import { signOut } from "./actions";
 
 const NAV_LINKS = [
@@ -26,14 +27,18 @@ export default async function DashboardLayout({
   const navLinks = profile.role === "admin"
     ? [...NAV_LINKS, { href: "/team", label: "Team" }]
     : NAV_LINKS;
+  const org = await getOrg(profile.org_id);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-neutral-900">
-            Shock-and-Awe Portal
-          </h1>
+          <div>
+            <h1 className="text-lg font-semibold text-neutral-900">
+              {org?.name ?? "Shock-and-Awe Portal"}
+            </h1>
+            <p className="text-xs text-neutral-400">Shock-and-Awe Portal</p>
+          </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-neutral-500">{profile.email}</p>
             <form action={signOut}>

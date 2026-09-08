@@ -39,7 +39,7 @@ export default function LoginPage() {
         <div>
           <h1 className="text-lg font-semibold text-neutral-900">Sign in</h1>
           <p className="mt-1 text-sm text-neutral-500">
-            Securafy Shock-and-Awe Portal
+            Shock-and-Awe Portal
           </p>
         </div>
         <input
@@ -48,7 +48,7 @@ export default function LoginPage() {
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@securafy.com"
+          placeholder="you@company.com"
           className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
         <input

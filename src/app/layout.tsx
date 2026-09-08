@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Shock-and-Awe Portal",
-  description: "Securafy's personalized, trackable pre-meeting packages for prospects.",
+  description: "Personalized, trackable pre-meeting packages for prospects.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
