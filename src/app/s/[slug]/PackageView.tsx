@@ -47,7 +47,15 @@ export function PackageView({
   const brochures = slots.filter((s) => s.slot.startsWith("brochure_"));
 
   return (
-    <div className="mx-auto min-h-full max-w-3xl px-4 py-12">
+    // w-full is required, not redundant with max-w-3xl: body is a column
+    // flex container (layout.tsx), and this container's real content is
+    // sparse on packages with few slots filled (e.g. video only, no
+    // letter/brochures) -- without an explicit width, it was sized by
+    // shrink-to-fit against that sparse content instead of stretching to
+    // fill the flex cross-axis, rendering the whole page at a fraction of
+    // its intended size. Confirmed live: a package with only a video slot
+    // rendered at 87px wide instead of 768px.
+    <div className="mx-auto w-full min-h-full max-w-3xl px-4 py-12">
       <div className="mb-8 flex items-center gap-3">
         {orgLogoUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
