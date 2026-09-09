@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { buildAssetStoragePath } from "@/lib/assets/storage-path";
 import {
@@ -31,6 +31,12 @@ export function LibraryClient({
   isAdmin: boolean;
 }) {
   const [activeKind, setActiveKind] = useState<AssetKind>("video");
+  // Lifted out of UploadForm (rather than local state there) so it survives
+  // both the per-submission form reset (React resets uncontrolled fields
+  // after a successful action) and the remount on tab change below --
+  // otherwise every upload, or every tab switch, silently snapped back to
+  // "My library".
+  const [scope, setScope] = useState<AssetScope>("personal");
   const kindAssets = assets.filter((a) => a.kind === activeKind);
   const companyAssets = kindAssets.filter((a) => a.scope === "company");
   const myAssets = kindAssets.filter(
@@ -61,6 +67,8 @@ export function LibraryClient({
         isAdmin={isAdmin}
         orgId={orgId}
         ownerId={currentUserId}
+        scope={scope}
+        onScopeChange={setScope}
       />
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -80,11 +88,15 @@ function UploadForm({
   isAdmin,
   orgId,
   ownerId,
+  scope,
+  onScopeChange,
 }: {
   kind: AssetKind;
   isAdmin: boolean;
   orgId: string;
   ownerId: string;
+  scope: AssetScope;
+  onScopeChange: (scope: AssetScope) => void;
 }) {
   const isLink = isLinkKind(kind);
 
@@ -142,6 +154,17 @@ function UploadForm({
     initialState,
   );
 
+  // React resets every field to its default after a successful action --
+  // including this one, via a native form.reset() that overwrites the
+  // <select>'s DOM value directly, bypassing the controlled `value` prop
+  // (confirmed live: value={scope} alone wasn't enough, it still snapped
+  // back to "personal"). Re-assert the real value on the DOM node right
+  // after that reset happens.
+  const scopeSelectRef = useRef<HTMLSelectElement>(null);
+  useEffect(() => {
+    if (scopeSelectRef.current) scopeSelectRef.current.value = scope;
+  }, [state, scope]);
+
   return (
     <form
       // Remount on kind change so stale File inputs / action bindings don't
@@ -177,8 +200,12 @@ function UploadForm({
       </div>
       <div className="flex items-center justify-between gap-3">
         <select
+          ref={scopeSelectRef}
           name="scope"
-          defaultValue="personal"
+          value={scope}
+          onChange={(event) =>
+            onScopeChange(event.target.value as AssetScope)
+          }
           disabled={!isAdmin}
           className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 disabled:bg-neutral-100 disabled:text-neutral-400"
         >
