@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/library", label: "Asset Library" },
   { href: "/packages", label: "My Sites" },
   { href: "/account", label: "Account" },
+  { href: "/help", label: "Help" },
 ];
 
 export default async function DashboardLayout({
