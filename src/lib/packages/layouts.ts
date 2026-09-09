@@ -10,7 +10,7 @@ export type DeskLayout = {
   label: string; // shown in the layout picker
   backgroundImage: string;
   aspectRatio: string;
-  previewFilter?: string; // CSS filter applied to the background; desk-v2 placeholder only
+  previewFilter?: string; // optional CSS filter applied to the background (e.g. for a not-yet-art-finished placeholder layout)
   nameplate: SlotPosition;
   slots: {
     video: SlotPosition;
@@ -42,22 +42,21 @@ export const DESK_LAYOUTS: DeskLayout[] = [
   },
   {
     id: "desk-v2",
-    label: "Desk v2 (Preview — art pending)",
-    // Reuses desk-v1's background + geometry with a visible filter so the
-    // layout-selection mechanism is genuinely exercised end-to-end without
-    // fabricating art. Real next step: a live Recraft-generation session
-    // with Randy (same iterative process documented in spec/plan.md under
-    // "T3 desk-scene art") to produce the actual background, then replace
-    // backgroundImage/previewFilter/slots below with the real values.
-    backgroundImage: "/desk-scene/desk-background.webp",
-    previewFilter: "grayscale(0.5) sepia(0.3)",
+    label: "Light Oak Desk",
+    // Real Recraft-generated background (light natural oak, true top-down
+    // shot), produced live with Randy. Unlike desk-v1's full-bleed texture,
+    // this image shows a distinct rectangular tabletop with rounded corners
+    // and legs visible at the edges, floor visible around it -- so every
+    // slot position here is constrained to the actual tabletop area
+    // (roughly x: 7-93%, y: 21-80% of the frame), not the full canvas.
+    backgroundImage: "/desk-scene/desk-background-v2.webp",
     aspectRatio: "1344 / 768",
-    nameplate: { left: "3%", top: "6%", width: "23%", rotate: -3 },
+    nameplate: { left: "9%", top: "24%", width: "18%", rotate: -3 },
     slots: {
-      video: { left: "29%", top: "5%", width: "34%" },
-      audio: { left: "6%", top: "26%", width: "17%", rotate: -6 },
-      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6 },
-      business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      video: { left: "33%", top: "23%", width: "28%" },
+      audio: { left: "10%", top: "44%", width: "14%", rotate: -6 },
+      magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
+      business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
     },
   },
 ];
