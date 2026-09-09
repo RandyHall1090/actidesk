@@ -14,6 +14,16 @@ const nextConfig: NextConfig = {
       // the largest files actually being uploaded, not just match them.
       bodySizeLimit: "50mb",
     },
+    // The actual root cause of the upload failures: proxy.ts (our auth
+    // middleware) buffers the ENTIRE request body in memory for every
+    // request it processes, capped at 10MB by default -- completely
+    // separate from serverActions.bodySizeLimit above. A large upload
+    // was getting silently truncated here before it ever reached
+    // uploadFileAsset(), which then failed downstream with a multipart
+    // parse error ("Unexpected end of form"). Raising
+    // serverActions.bodySizeLimit alone did nothing because this limit
+    // is hit first, upstream of it.
+    proxyClientMaxBodySize: "50mb",
   },
 };
 
