@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
+import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
 import { randomSuffix, slugify } from "@/lib/packages/slug";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
 
@@ -32,6 +33,10 @@ export async function createPackage(
     (formData.get("letter_body") as string | null)?.trim() || null;
   const privateNote =
     (formData.get("private_note") as string | null)?.trim() || null;
+  const rawTemplateId = (formData.get("template_id") as string | null)?.trim();
+  const templateId = DESK_LAYOUTS.some((l) => l.id === rawTemplateId)
+    ? rawTemplateId!
+    : DEFAULT_LAYOUT_ID;
 
   const supabase = await createClient();
   const base = slugify(prospectName) || "package";
@@ -52,6 +57,7 @@ export async function createPackage(
         prospect_email: prospectEmail,
         letter_body: letterBody,
         private_note: privateNote,
+        template_id: templateId,
       })
       .select("id, slug")
       .single();

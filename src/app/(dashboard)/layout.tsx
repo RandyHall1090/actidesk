@@ -26,7 +26,11 @@ export default async function DashboardLayout({
   }
 
   const navLinks = profile.role === "admin"
-    ? [...NAV_LINKS, { href: "/team", label: "Team" }]
+    ? [
+        ...NAV_LINKS,
+        { href: "/templates", label: "Templates" },
+        { href: "/team", label: "Team" },
+      ]
     : NAV_LINKS;
   const org = await getOrg(profile.org_id);
 

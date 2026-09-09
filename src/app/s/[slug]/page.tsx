@@ -71,6 +71,7 @@ export default async function PackagePage({
   return (
     <PackageView
       packageId={pkg.id}
+      templateId={pkg.template_id}
       prospectName={pkg.prospect_name}
       letterBody={pkg.letter_body}
       slots={slots}

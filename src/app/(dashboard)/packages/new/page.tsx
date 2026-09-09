@@ -2,20 +2,35 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import type { Asset } from "@/lib/assets/types";
-import { NewPackageForm } from "./NewPackageForm";
+import { NewPackageForm, type PresetOption } from "./NewPackageForm";
+
+type PresetRow = {
+  id: string;
+  name: string;
+  letter_body: string | null;
+  preset_assets: { slot_name: string; asset_id: string | null }[];
+};
 
 export default async function NewPackagePage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
   const supabase = await createClient();
-  const { data: assets, error } = await supabase
-    .from("assets")
-    .select(
-      "id, org_id, owner_id, scope, kind, name, storage_path, external_url, file_size_bytes, created_at",
-    )
-    .order("name");
+  const [{ data: assets, error: assetsError }, { data: presetsData, error: presetsError }] =
+    await Promise.all([
+      supabase
+        .from("assets")
+        .select(
+          "id, org_id, owner_id, scope, kind, name, storage_path, external_url, file_size_bytes, created_at",
+        )
+        .order("name"),
+      supabase
+        .from("presets")
+        .select("id, name, letter_body, preset_assets(slot_name, asset_id)")
+        .order("name"),
+    ]);
 
+  const error = assetsError ?? presetsError;
   if (error) {
     return (
       <p className="text-sm text-red-600">
@@ -24,6 +39,19 @@ export default async function NewPackagePage() {
     );
   }
 
+  const presets: PresetOption[] = ((presetsData ?? []) as PresetRow[]).map(
+    (p) => ({
+      id: p.id,
+      name: p.name,
+      letterBody: p.letter_body,
+      slots: Object.fromEntries(
+        p.preset_assets
+          .filter((pa) => pa.asset_id)
+          .map((pa) => [pa.slot_name, pa.asset_id as string]),
+      ),
+    }),
+  );
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-neutral-900">New Package</h2>
@@ -31,7 +59,7 @@ export default async function NewPackagePage() {
         Pick assets for this prospect, then send them the link yourself once
         it&apos;s created.
       </p>
-      <NewPackageForm assets={(assets ?? []) as Asset[]} />
+      <NewPackageForm assets={(assets ?? []) as Asset[]} presets={presets} />
     </div>
   );
 }

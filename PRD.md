@@ -22,7 +22,6 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 - (Securafy specifically) sending a package logs/updates the prospect in Securafy's HubSpot
 
 ## 5. Non-goals (v1)
-- Multiple selectable page templates/layouts (shipping with one fixed layout)
 - The app emailing prospects directly (reps send the link themselves)
 - Per-tenant custom domains/subdomains (shared platform domain, path-based URLs for v1 — see spec/plan.md)
 - Self-hosting raw video/audio files (linking out to Vimeo instead)
@@ -40,7 +39,7 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 | P0 | Tracking | Log page views and per-asset opens/plays; surface in a "My Sites" list per rep |
 | P0 | Team management | Admins see everyone in their org and can promote/demote rep ↔ admin |
 | P1 | HubSpot sync (Securafy only) | Upsert the prospect as a HubSpot contact and log a timeline event when a package is created |
-| P2 | Additional templates/layouts | More desk-scene variants beyond the v1 layout |
+| P1 | Templates | Admins pick a desk-scene layout per package (2 to start; more are a dev+deploy task, not self-service) and manage reusable content presets — named bundles of asset picks + letter text reps can apply when creating a package |
 | P2 | Per-tenant CRM integration | Let other tenants connect their own CRM, not just Securafy's HubSpot |
 
 ## 7. User flow

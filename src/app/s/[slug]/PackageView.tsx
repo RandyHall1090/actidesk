@@ -13,6 +13,7 @@ export type SlotAsset = {
 
 export function PackageView({
   packageId,
+  templateId,
   prospectName,
   letterBody,
   slots,
@@ -20,6 +21,7 @@ export function PackageView({
   orgLogoUrl,
 }: {
   packageId: string;
+  templateId: string;
   prospectName: string;
   letterBody: string | null;
   slots: SlotAsset[];
@@ -69,6 +71,7 @@ export function PackageView({
       </div>
       <div className="mb-8">
         <DeskScene
+          templateId={templateId}
           prospectName={prospectName}
           video={video}
           audio={audio}
