@@ -63,6 +63,15 @@ export function LibraryClient({
       </div>
 
       <UploadForm
+        // Remounts UploadForm entirely on tab change, clearing its
+        // useActionState error/pending along with the form fields. The old
+        // key on the inner <form> only reset the DOM form (fixing stale
+        // file inputs) but not the hook state living in this component,
+        // which doesn't remount just because a key deeper in its own JSX
+        // changes -- a leftover "Name and a file are both required" error
+        // from a different, file-based tab was showing up on the Video
+        // link tab, which has no file field at all.
+        key={activeKind}
         kind={activeKind}
         isAdmin={isAdmin}
         orgId={orgId}
@@ -167,9 +176,6 @@ function UploadForm({
 
   return (
     <form
-      // Remount on kind change so stale File inputs / action bindings don't
-      // carry over between tabs.
-      key={kind}
       action={formAction}
       className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
     >
