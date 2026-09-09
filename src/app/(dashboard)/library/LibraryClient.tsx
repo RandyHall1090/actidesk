@@ -1,16 +1,19 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { buildAssetStoragePath } from "@/lib/assets/storage-path";
 import {
   ASSET_KINDS,
   isLinkKind,
   type Asset,
   type AssetKind,
+  type AssetScope,
 } from "@/lib/assets/types";
 import {
   createLinkAsset,
+  createFileAssetRecord,
   deleteAssetFormAction,
-  uploadFileAsset,
   type ActionResult,
 } from "./actions";
 
@@ -19,10 +22,12 @@ const initialState: ActionResult = { ok: true };
 export function LibraryClient({
   assets,
   currentUserId,
+  orgId,
   isAdmin,
 }: {
   assets: Asset[];
   currentUserId: string;
+  orgId: string;
   isAdmin: boolean;
 }) {
   const [activeKind, setActiveKind] = useState<AssetKind>("video");
@@ -51,7 +56,12 @@ export function LibraryClient({
         ))}
       </div>
 
-      <UploadForm kind={activeKind} isAdmin={isAdmin} />
+      <UploadForm
+        kind={activeKind}
+        isAdmin={isAdmin}
+        orgId={orgId}
+        ownerId={currentUserId}
+      />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <AssetColumn
@@ -65,10 +75,70 @@ export function LibraryClient({
   );
 }
 
-function UploadForm({ kind, isAdmin }: { kind: AssetKind; isAdmin: boolean }) {
+function UploadForm({
+  kind,
+  isAdmin,
+  orgId,
+  ownerId,
+}: {
+  kind: AssetKind;
+  isAdmin: boolean;
+  orgId: string;
+  ownerId: string;
+}) {
   const isLink = isLinkKind(kind);
+
+  // File kinds upload directly from the browser to Supabase Storage, not
+  // through this Server Action's request body — Vercel Functions hard-cap
+  // request bodies at 4.5MB (413 FUNCTION_PAYLOAD_TOO_LARGE), which real
+  // marketing PDFs/images routinely exceed, and that limit can't be raised
+  // via next.config.ts since it's enforced by the platform. Only the
+  // resulting storage path + file size (a few bytes) go through the
+  // action, matching Vercel's own recommended pattern for large uploads.
+  async function uploadFileThenRecord(
+    _prev: ActionResult,
+    formData: FormData,
+  ): Promise<ActionResult> {
+    const file = formData.get("file");
+    const name = (formData.get("name") as string | null)?.trim();
+    const scope = (
+      formData.get("scope") === "company" ? "company" : "personal"
+    ) as AssetScope;
+
+    if (!name || !(file instanceof File) || file.size === 0) {
+      return { ok: false, error: "Name and a file are both required." };
+    }
+    if (scope === "company" && !isAdmin) {
+      return {
+        ok: false,
+        error: "Only admins can add to the company library.",
+      };
+    }
+
+    const path = buildAssetStoragePath({
+      orgId,
+      scope,
+      ownerId,
+      fileName: file.name,
+    });
+
+    const supabase = createClient();
+    const { error: uploadError } = await supabase.storage
+      .from("assets")
+      .upload(path, file);
+    if (uploadError) return { ok: false, error: uploadError.message };
+
+    const recordFormData = new FormData();
+    recordFormData.set("kind", kind);
+    recordFormData.set("name", name);
+    recordFormData.set("scope", scope);
+    recordFormData.set("storage_path", path);
+    recordFormData.set("file_size", String(file.size));
+    return createFileAssetRecord(_prev, recordFormData);
+  }
+
   const [state, formAction, pending] = useActionState(
-    isLink ? createLinkAsset : uploadFileAsset,
+    isLink ? createLinkAsset : uploadFileThenRecord,
     initialState,
   );
 

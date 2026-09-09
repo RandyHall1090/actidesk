@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
-import { buildAssetStoragePath } from "@/lib/assets/storage-path";
 import { isLinkKind, type AssetKind, type AssetScope } from "@/lib/assets/types";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -65,8 +64,19 @@ export async function createLinkAsset(
   return { ok: true };
 }
 
-/** Image/document/business_card/logo assets are uploaded to Storage. */
-export async function uploadFileAsset(
+/**
+ * Image/document/business_card/logo assets are uploaded to Storage.
+ *
+ * The file itself is uploaded client-side, directly from the browser to
+ * Supabase Storage (see UploadForm in LibraryClient.tsx) — NOT through this
+ * Server Action. Vercel Functions hard-cap request bodies at 4.5MB
+ * (413 FUNCTION_PAYLOAD_TOO_LARGE), which real marketing PDFs/images
+ * routinely exceed; that limit isn't raiseable via next.config.ts, since
+ * it's enforced by the platform, not by Next.js. This action only records
+ * the already-uploaded file's metadata, so its request body is a few bytes
+ * regardless of file size.
+ */
+export async function createFileAssetRecord(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
@@ -76,43 +86,35 @@ export async function uploadFileAsset(
   const kind = parseKind(formData);
   const name = (formData.get("name") as string | null)?.trim();
   const scope = parseScope(formData);
-  const file = formData.get("file");
+  const storagePath = (formData.get("storage_path") as string | null)?.trim();
+  const fileSize = Number(formData.get("file_size") ?? 0);
 
   if (!kind || isLinkKind(kind)) {
     return { ok: false, error: "Invalid asset kind for a file upload." };
   }
-  if (!name || !(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Name and a file are both required." };
+  if (!name || !storagePath) {
+    return {
+      ok: false,
+      error: "Name and an uploaded file are both required.",
+    };
   }
   if (scope === "company" && profile.role !== "admin") {
     return { ok: false, error: "Only admins can add to the company library." };
   }
 
   const supabase = await createClient();
-  const path = buildAssetStoragePath({
-    orgId: profile.org_id,
-    scope,
-    ownerId: profile.id,
-    fileName: file.name,
-  });
-
-  const { error: uploadError } = await supabase.storage
-    .from("assets")
-    .upload(path, file);
-  if (uploadError) return { ok: false, error: uploadError.message };
-
   const { error } = await supabase.from("assets").insert({
     org_id: profile.org_id,
     owner_id: profile.id,
     scope,
     kind,
     name,
-    storage_path: path,
-    file_size_bytes: file.size,
+    storage_path: storagePath,
+    file_size_bytes: fileSize > 0 ? fileSize : null,
   });
   if (error) {
     // Roll back the upload so we don't leak an orphaned storage object.
-    await supabase.storage.from("assets").remove([path]);
+    await supabase.storage.from("assets").remove([storagePath]);
     return { ok: false, error: error.message };
   }
 

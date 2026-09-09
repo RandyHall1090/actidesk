@@ -36,6 +36,7 @@ export default async function LibraryPage() {
       <LibraryClient
         assets={(assets ?? []) as Asset[]}
         currentUserId={profile.id}
+        orgId={profile.org_id}
         isAdmin={profile.role === "admin"}
       />
     </div>
