@@ -66,7 +66,7 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 - Adoption: number of active reps creating packages per week
 
 ## 9. Risks & open questions
-- Risk: the desk-scene template art needs to be pixel-accurate across screen sizes (video/audio overlays must align with the tablet/phone graphics) → mitigate with careful responsive design and early mobile testing
+- Risk (resolved): the desk-scene template art needed to scale correctly across screen sizes → done via container-query-relative (`cqw`) sizing instead of fixed px/rem, verified live at both desktop and mobile widths; see spec/plan.md T3 notes
 - Risk: fully-custom-per-send personalization means a longer create-package form → mitigate with sensible library defaults so reps aren't forced to upload something new every time
 - **Confirm-email blocker — resolved (2026-09-09)**: Supabase's "Confirm email" setting was ON, reintroducing the corporate-email-scanning problem login already moved away from. Now off and verified live — see spec/plan.md for the full story (it was initially changed on the wrong Supabase project).
 - **New risk**: Supabase flagged this project for a high bounce rate on its default transactional email sender and warned it may restrict sending. Fix is to switch to custom SMTP via Randy's paid Resend account — needs to be done in the Supabase dashboard (no API access to Auth SMTP config); not yet done.
@@ -82,4 +82,4 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 - [x] M3: Tracking (page view + asset-open events) + "My Sites" list
 - [x] M4: Multi-tenant auth — sign in/up, sign out, password change, admin team management, org data isolation (all verified against the live database)
 - [x] M5: HubSpot sync on package creation (Securafy only)
-- [ ] M6: Photoreal desk-scene template art, properly aligned
+- [x] M6: Photoreal desk-scene template art, properly aligned
