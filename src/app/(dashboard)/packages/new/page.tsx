@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
+import { getOrg } from "@/lib/org";
 import type { Asset } from "@/lib/assets/types";
 import { NewPackageForm, type PresetOption } from "./NewPackageForm";
 
@@ -16,8 +17,9 @@ export default async function NewPackagePage() {
   if (!profile) redirect("/login");
 
   const supabase = await createClient();
-  const [{ data: assets, error: assetsError }, { data: presetsData, error: presetsError }] =
+  const [org, { data: assets, error: assetsError }, { data: presetsData, error: presetsError }] =
     await Promise.all([
+      getOrg(profile.org_id),
       supabase
         .from("assets")
         .select(
@@ -59,7 +61,11 @@ export default async function NewPackagePage() {
         Pick assets for this prospect, then send them the link yourself once
         it&apos;s created.
       </p>
-      <NewPackageForm assets={(assets ?? []) as Asset[]} presets={presets} />
+      <NewPackageForm
+        assets={(assets ?? []) as Asset[]}
+        presets={presets}
+        orgName={org?.name ?? ""}
+      />
     </div>
   );
 }

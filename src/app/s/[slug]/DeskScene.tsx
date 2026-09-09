@@ -17,6 +17,7 @@ function slotStyle(pos: SlotPosition): React.CSSProperties {
     left: pos.left,
     top: pos.top,
     width: pos.width,
+    aspectRatio: pos.aspect,
     transform: pos.rotate ? `rotate(${pos.rotate}deg)` : undefined,
   };
 }
@@ -28,10 +29,17 @@ function slotStyle(pos: SlotPosition): React.CSSProperties {
  * shadows, matching how TMT's actual rendered output looks (not the
  * perspective-warped trapezoids shown in TMT's *builder* UI, which turned
  * out to be placement guides, not the real rendering technique — confirmed
- * by comparing against a real TMT output screenshot). The letter and
- * brochures stay as ordinary readable text/list sections below this —
- * cramming paragraph text into a small on-photo box wasn't legible at any
- * reasonable scale.
+ * by comparing against a real TMT output screenshot).
+ *
+ * On desk-v1/desk-v2, the letter and brochures stay as ordinary readable
+ * text/list sections below this photo -- those layouts' desks have no
+ * room budgeted for a full page or a row of brochure cards. desk-v3 (and
+ * any layout that defines layout.letter/layout.brochures) instead renders
+ * them directly on the desk, matching a real TMT reference page that
+ * proved this is legible when given proportional space (a full sheet of
+ * paper, and a dedicated darker "blotter pad" zone for the brochures) --
+ * see PackageView.tsx for the below-fold fallback used when a layout
+ * doesn't define these.
  *
  * Which background image and slot positions are used depends on
  * `templateId` (the Templates feature) — see getLayout().
@@ -43,6 +51,10 @@ export function DeskScene({
   audio,
   businessCard,
   magazine,
+  letterBody,
+  brochures,
+  orgName,
+  orgLogoUrl,
   onTrack,
 }: {
   templateId: string;
@@ -51,6 +63,10 @@ export function DeskScene({
   audio: SlotAsset | undefined;
   businessCard: SlotAsset | undefined;
   magazine: SlotAsset | undefined;
+  letterBody: string | null;
+  brochures: SlotAsset[];
+  orgName: string;
+  orgLogoUrl: string | null;
   onTrack: (slot: string, kind?: "asset_opened" | "asset_played") => void;
 }) {
   const layout = getLayout(templateId);
@@ -144,6 +160,62 @@ export function DeskScene({
           />
         </a>
       )}
+
+      {layout.letter && letterBody && (
+        <div
+          style={slotStyle(layout.letter)}
+          className="flex flex-col overflow-hidden rounded-[0.4cqw] bg-white p-[1.6cqw] shadow-2xl"
+        >
+          <div className="mb-[0.8cqw] flex items-center gap-[0.6cqw] border-b border-neutral-200 pb-[0.6cqw]">
+            {orgLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
+              <img
+                src={orgLogoUrl}
+                alt=""
+                className="h-[1.8cqw] w-auto object-contain"
+              />
+            )}
+            <span className="text-[0.9cqw] font-semibold text-neutral-700">
+              {orgName}
+            </span>
+          </div>
+          {/* Fallback for a letter longer than the paper's fixed space --
+              cheapest safety net, not the primary plan (the paper is sized
+              generously against the real desk-v3 art first). */}
+          <div className="relative flex-1 overflow-y-auto">
+            <p className="whitespace-pre-wrap text-[0.85cqw] leading-snug text-neutral-800">
+              {letterBody}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {layout.brochures &&
+        brochures.length > 0 &&
+        layout.brochures.map((pos, i) => {
+          const slotName = `brochure_${i + 1}`;
+          const b = brochures.find((x) => x.slot === slotName);
+          if (!b) return null;
+          return (
+            <a
+              key={slotName}
+              href={b.url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => onTrack(slotName)}
+              style={slotStyle(pos)}
+              className="flex flex-col items-center justify-center gap-[0.6cqw] rounded-[0.6cqw] bg-white p-[1.2cqw] text-center shadow-xl ring-1 ring-black/10 transition-transform hover:scale-105"
+            >
+              {orgLogoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
+                <img src={orgLogoUrl} alt="" className="h-[2.2cqw] w-auto object-contain" />
+              )}
+              <span className="line-clamp-2 text-[1.1cqw] font-semibold text-neutral-800">
+                {b.name}
+              </span>
+            </a>
+          );
+        })}
     </div>
   );
 }

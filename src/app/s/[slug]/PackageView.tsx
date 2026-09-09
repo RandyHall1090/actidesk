@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { logTrackingEvent } from "@/lib/tracking";
+import { getLayout } from "@/lib/packages/layouts";
 import { DeskScene } from "./DeskScene";
 
 export type SlotAsset = {
@@ -41,6 +42,7 @@ export function PackageView({
     logTrackingEvent(packageId, kind, slot);
   }
 
+  const layout = getLayout(templateId);
   const bySlot = (name: string) => slots.find((s) => s.slot === name);
   const video = bySlot("video");
   const audio = bySlot("audio");
@@ -77,17 +79,21 @@ export function PackageView({
           audio={audio}
           businessCard={businessCard}
           magazine={magazine}
+          letterBody={letterBody}
+          brochures={brochures}
+          orgName={orgName}
+          orgLogoUrl={orgLogoUrl}
           onTrack={track}
         />
       </div>
 
-      {letterBody && (
+      {!layout.letter && letterBody && (
         <section className="mb-8 whitespace-pre-wrap rounded-lg border border-neutral-200 bg-white p-6 text-neutral-800">
           {letterBody}
         </section>
       )}
 
-      {brochures.length > 0 && (
+      {!layout.brochures && brochures.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-neutral-500">
             Documents

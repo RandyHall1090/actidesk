@@ -3,6 +3,7 @@ export type SlotPosition = {
   top: string;
   width: string;
   rotate?: number; // degrees; sign matches the original Tailwind rotate-N / -rotate-N
+  aspect?: string; // CSS aspect-ratio (e.g. "0.77" for a letter-proportioned paper); undefined = auto height, unchanged for every slot that doesn't set it
 };
 
 export type DeskLayout = {
@@ -18,6 +19,12 @@ export type DeskLayout = {
     business_card: SlotPosition;
     magazine: SlotPosition;
   };
+  // Only a layout with real estate for these (desk-v3+) sets them -- when
+  // absent, PackageView falls back to rendering the letter/brochures as
+  // plain sections below the photo instead, exactly as desk-v1/desk-v2 do
+  // today.
+  letter?: SlotPosition;
+  brochures?: SlotPosition[]; // length 4, index i <-> brochure_{i+1}
 };
 
 export const DEFAULT_LAYOUT_ID = "desk-v1";
@@ -58,6 +65,41 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
     },
+  },
+  {
+    id: "desk-v3",
+    label: "Executive Desk (Letter + Brochures)",
+    // Real Recraft-generated background: the whole desk in frame (legs
+    // visible at the corners, floor around it), with a flat dark-leather
+    // blotter-pad strip inlaid across the lower ~20% of the desk -- a
+    // distinct, flush, non-embossed zone for the 4 brochure cards, leaving
+    // the open wood above it (~y 17%-50%) for nameplate/video/audio/
+    // magazine/business_card plus the letter. That open band is shorter
+    // than desk-v1's, so the letter is sized to fit it directly rather
+    // than assumed to be full-page-sized -- its overflow-y-auto fallback
+    // (DeskScene.tsx) is the expected path for a longer letter, not just a
+    // theoretical safety net.
+    backgroundImage: "/desk-scene/desk-background-v3.webp",
+    aspectRatio: "1344 / 768",
+    nameplate: { left: "6%", top: "19%", width: "13%", rotate: -3 },
+    slots: {
+      video: { left: "20%", top: "19%", width: "18%" },
+      audio: { left: "6%", top: "33%", width: "10%", rotate: -6 },
+      magazine: { left: "68%", top: "19%", width: "11%", rotate: -6 },
+      business_card: { left: "80%", top: "20%", width: "10%", rotate: 6 },
+    },
+    // Wider/shorter (landscape-ish) rather than strictly letter-proportioned
+    // -- cqw sizing is relative to the whole scene's width, so a wider box
+    // fits dramatically more characters per line without changing font
+    // size, which matters far more for real legibility than matching a
+    // literal sheet-of-paper aspect ratio.
+    letter: { left: "40%", top: "19%", width: "26%", aspect: "1.5" },
+    brochures: [
+      { left: "12%", top: "54%", width: "17%" },
+      { left: "31%", top: "54%", width: "17%" },
+      { left: "50%", top: "54%", width: "17%" },
+      { left: "69%", top: "54%", width: "17%" },
+    ],
   },
 ];
 

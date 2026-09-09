@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
+import { getOrg } from "@/lib/org";
 import type { Asset } from "@/lib/assets/types";
 import { TemplatesClient, type Preset } from "./TemplatesClient";
 
@@ -17,8 +18,9 @@ export default async function TemplatesPage() {
 
   const supabase = await createClient();
 
-  const [{ data: assets, error: assetsError }, { data: presets, error: presetsError }] =
+  const [org, { data: assets, error: assetsError }, { data: presets, error: presetsError }] =
     await Promise.all([
+      getOrg(profile.org_id),
       supabase
         .from("assets")
         .select(
@@ -52,6 +54,7 @@ export default async function TemplatesPage() {
       <TemplatesClient
         assets={(assets ?? []) as Asset[]}
         presets={(presets ?? []) as Preset[]}
+        orgName={org?.name ?? ""}
       />
     </div>
   );
