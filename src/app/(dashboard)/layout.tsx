@@ -24,14 +24,31 @@ export default async function DashboardLayout({
   if (!profile) {
     redirect("/login");
   }
+  // A deactivated user's already-issued session token stays valid until it
+  // naturally expires (Supabase Auth has no way to revoke one early) --
+  // this closes the path through the actual app for that remaining window,
+  // even though a raw API replay of a captured session is a known,
+  // accepted residual risk (see migration 0014 / spec/plan.md).
+  if (!profile.is_active) {
+    redirect("/login");
+  }
 
-  const navLinks = profile.role === "admin"
-    ? [
-        ...NAV_LINKS,
-        { href: "/templates", label: "Templates" },
-        { href: "/team", label: "Team" },
-      ]
-    : NAV_LINKS;
+  // Built as a fresh array every time (never mutating NAV_LINKS itself --
+  // the ternary's "false" branch used to just alias it directly, which
+  // would have made a later .push() here corrupt the shared module-level
+  // constant across every subsequent request).
+  const navLinks = [
+    ...NAV_LINKS,
+    ...(profile.role === "admin"
+      ? [
+          { href: "/templates", label: "Templates" },
+          { href: "/team", label: "Team" },
+        ]
+      : []),
+    ...(profile.is_platform_admin
+      ? [{ href: "/admin", label: "Admin" }]
+      : []),
+  ];
   const org = await getOrg(profile.org_id);
 
   return (
