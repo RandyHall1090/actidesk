@@ -43,6 +43,7 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 | P1 | HubSpot sync (Securafy only) | Upsert the prospect as a HubSpot contact and log a timeline event when a package is created |
 | P1 | Templates | Admins pick a desk-scene layout per package (2 to start; more are a dev+deploy task, not self-service) and manage reusable content presets — named bundles of asset picks + letter text reps can apply when creating a package |
 | P2 | Per-tenant CRM integration | Let other tenants connect their own CRM, not just Securafy's HubSpot |
+| P2 | Layout designer (internal tool) | Platform admins visually drag/resize/rotate desk-scene slot positions and copy out a ready-to-paste layout config — speeds up building a new layout, still requires a developer to commit the background art and paste the result |
 
 ## 7. User flow
 
