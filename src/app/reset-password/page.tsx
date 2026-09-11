@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     setStatus("sending");
     const supabase = createClient();
 
-    // The code came from a 6-digit OTP in the Recovery email (not a
+    // The code came from a numeric OTP in the Recovery email (not a
     // clickable link -- see forgot-password/page.tsx for why). Verifying
     // it establishes a real recovery session, then updateUser sets the
     // new password on it -- same call as the already-signed-in
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
           autoComplete="one-time-code"
           value={code}
           onChange={(event) => setCode(event.target.value)}
-          placeholder="6-digit code"
+          placeholder="Code from the email"
           className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
         />
         <input

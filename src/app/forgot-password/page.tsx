@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
     const supabase = createClient();
     // No redirectTo -- this deliberately doesn't rely on a clickable email
     // link at all (see reset-password/page.tsx): the Recovery email
-    // template sends a 6-digit code instead, avoiding the corporate
+    // template sends a numeric code instead, avoiding the corporate
     // email-link-scanning problem that already broke magic-link login
     // once for this app.
     await supabase.auth.resetPasswordForEmail(email);
