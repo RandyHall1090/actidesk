@@ -37,7 +37,9 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 | P0 | Create package | Form to enter prospect info and pick/upload an asset for every slot (video, audio, business card, magazine, letter text, brochures) |
 | P0 | Desk-flat-lay renderer | Public page at a unique URL rendering the personalized template with all chosen assets, playable/openable, branded with the sending tenant's logo/name |
 | P0 | Tracking | Log page views and per-asset opens/plays; surface in a "My Sites" list per rep |
-| P0 | Team management | Admins see everyone in their org and can promote/demote rep ↔ admin |
+| P0 | Team management | Admins see everyone in their org and can promote/demote rep ↔ admin, add a user directly (system-generated temp password, no email), reset a locked-out user's password, and deactivate/reactivate a user without deleting their historical packages/assets |
+| P0 | Lost password | Self-service reset via an emailed 6-digit code (not a clickable link, to avoid the same corporate email-link-scanning problem login already moved away from) |
+| P0 | Platform admin (Securafy only) | A `/admin` page for Securafy staff with full cross-tenant access — the same add/reset-password/deactivate/role tools as Team management, applied across every tenant, not just one org |
 | P1 | HubSpot sync (Securafy only) | Upsert the prospect as a HubSpot contact and log a timeline event when a package is created |
 | P1 | Templates | Admins pick a desk-scene layout per package (2 to start; more are a dev+deploy task, not self-service) and manage reusable content presets — named bundles of asset picks + letter text reps can apply when creating a package |
 | P2 | Per-tenant CRM integration | Let other tenants connect their own CRM, not just Securafy's HubSpot |
