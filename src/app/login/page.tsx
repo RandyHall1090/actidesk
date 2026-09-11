@@ -70,6 +70,14 @@ export default function LoginPage() {
         {status === "error" && (
           <p className="text-sm text-red-600">{errorMessage}</p>
         )}
+        <p className="text-center text-sm">
+          <Link
+            href="/forgot-password"
+            className="font-medium text-neutral-500 underline hover:text-neutral-900"
+          >
+            Forgot your password?
+          </Link>
+        </p>
         <p className="text-center text-sm text-neutral-500">
           New here?{" "}
           <Link href="/signup" className="font-medium text-neutral-900 underline">

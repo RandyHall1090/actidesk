@@ -38,7 +38,9 @@ export async function updateSession(request: NextRequest) {
   const isPublicRoute =
     pathname.startsWith("/s/") ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/signup");
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's

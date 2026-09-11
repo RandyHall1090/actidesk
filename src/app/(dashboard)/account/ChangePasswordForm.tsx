@@ -28,10 +28,11 @@ export function ChangePasswordForm() {
 
     setStatus("sending");
     const supabase = createClient();
-    // Changing a password for an already-signed-in user needs no email —
-    // that's only required for a "forgot password" reset flow, which this
-    // app deliberately doesn't have yet (same link-scanning risk as the
-    // magic links we moved away from).
+    // Changing a password for an already-signed-in user needs no email --
+    // that's only needed for the separate "forgot password" flow
+    // (/forgot-password, /reset-password), which uses an emailed 6-digit
+    // code rather than a clickable link, for the same link-scanning
+    // reason login uses email+password instead of magic links.
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
     });
