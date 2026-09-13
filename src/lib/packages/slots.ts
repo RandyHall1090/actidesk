@@ -11,6 +11,7 @@ export type PackageSlot = {
 // its overlay position in the public renderer (T5/T3).
 export const PACKAGE_SLOTS: PackageSlot[] = [
   { slot: "video", label: "Video", kind: "video" },
+  { slot: "video_2", label: "Video 2", kind: "video" },
   { slot: "audio", label: "Audio Message", kind: "audio" },
   { slot: "business_card", label: "Business Card", kind: "business_card" },
   { slot: "magazine", label: "Magazine / Feature", kind: "image" },

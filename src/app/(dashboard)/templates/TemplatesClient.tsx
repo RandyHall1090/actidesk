@@ -154,6 +154,7 @@ export function TemplatesClient({
             templateId={PREVIEW_TEMPLATE_ID}
             prospectName={PREVIEW_PROSPECT_NAME}
             video={toSlotAsset("video", slotAssets.video)}
+            video2={toSlotAsset("video_2", slotAssets.video_2)}
             audio={toSlotAsset("audio", slotAssets.audio)}
             businessCard={toSlotAsset("business_card", slotAssets.business_card)}
             magazine={toSlotAsset("magazine", slotAssets.magazine)}

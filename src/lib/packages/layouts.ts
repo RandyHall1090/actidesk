@@ -15,6 +15,15 @@ export type DeskLayout = {
   nameplate: SlotPosition;
   slots: {
     video: SlotPosition;
+    // Optional -- like letter/brochures, an older or space-constrained
+    // layout can omit it and DeskScene simply won't render a second video
+    // (see DeskScene.tsx). Every layout as of this writing (desk-v1/v2/v3)
+    // defines one, matching the primary video's width where the desk photo
+    // has room for it (desk-v1, desk-v2); desk-v3 is already the most
+    // content-dense layout (9 items on the desk before this one), so its
+    // video_2 is deliberately smaller, sized to the one open pocket left
+    // rather than forced to match at the cost of overlapping something.
+    video_2?: SlotPosition;
     audio: SlotPosition;
     business_card: SlotPosition;
     magazine: SlotPosition;
@@ -42,6 +51,7 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     nameplate: { left: "3%", top: "6%", width: "23%", rotate: -3 },
     slots: {
       video: { left: "29%", top: "5%", width: "34%" },
+      video_2: { left: "64%", top: "5%", width: "34%" },
       audio: { left: "6%", top: "26%", width: "17%", rotate: -6 },
       magazine: { left: "2%", top: "54%", width: "17%", rotate: -6 },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
@@ -61,6 +71,7 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     nameplate: { left: "9%", top: "24%", width: "18%", rotate: -3 },
     slots: {
       video: { left: "33%", top: "23%", width: "28%" },
+      video_2: { left: "64%", top: "23%", width: "28%" },
       audio: { left: "10%", top: "44%", width: "14%", rotate: -6 },
       magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
@@ -84,6 +95,11 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     nameplate: { left: "6%", top: "19%", width: "13%", rotate: -3 },
     slots: {
       video: { left: "20%", top: "19%", width: "18%" },
+      // Smaller than the primary video -- desk-v3 is already the fullest
+      // layout (9 items before this one); this is the one open pocket left
+      // (below Audio, above the brochures' blotter row), found and verified
+      // live via the Layout Designer, not a guessed value.
+      video_2: { left: "17%", top: "43%", width: "10%" },
       audio: { left: "6%", top: "33%", width: "10%", rotate: -6 },
       magazine: { left: "68%", top: "19%", width: "11%", rotate: -6 },
       business_card: { left: "80%", top: "20%", width: "10%", rotate: 6 },

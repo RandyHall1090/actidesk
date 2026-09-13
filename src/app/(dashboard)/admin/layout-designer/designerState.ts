@@ -3,6 +3,7 @@ import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 export type SlotId =
   | "nameplate"
   | "video"
+  | "video_2"
   | "audio"
   | "business_card"
   | "magazine"
@@ -23,6 +24,7 @@ type SlotDef = { id: SlotId; label: string; optional: boolean };
 const SLOT_DEFS: SlotDef[] = [
   { id: "nameplate", label: "Nameplate", optional: false },
   { id: "video", label: "Video", optional: false },
+  { id: "video_2", label: "Video 2", optional: true },
   { id: "audio", label: "Audio", optional: false },
   { id: "magazine", label: "Magazine", optional: false },
   { id: "business_card", label: "Business Card", optional: false },
@@ -50,6 +52,7 @@ export function roundPct(n: number): string {
  */
 export const DEFAULT_PREVIEW_ASPECT: Partial<Record<SlotId, number>> = {
   video: 16 / 9,
+  video_2: 16 / 9,
   business_card: 1.6,
   letter: 1.5,
 };

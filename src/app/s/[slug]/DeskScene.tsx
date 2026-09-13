@@ -48,6 +48,7 @@ export function DeskScene({
   templateId,
   prospectName,
   video,
+  video2,
   audio,
   businessCard,
   magazine,
@@ -60,6 +61,7 @@ export function DeskScene({
   templateId: string;
   prospectName: string;
   video: SlotAsset | undefined;
+  video2: SlotAsset | undefined;
   audio: SlotAsset | undefined;
   businessCard: SlotAsset | undefined;
   magazine: SlotAsset | undefined;
@@ -110,6 +112,20 @@ export function DeskScene({
             className="h-full w-full"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             onLoad={() => onTrack("video", "asset_opened")}
+          />
+        </div>
+      )}
+
+      {video2 && layout.slots.video_2 && (
+        <div
+          style={slotStyle(layout.slots.video_2)}
+          className="aspect-video overflow-hidden rounded-[0.8cqw] bg-black shadow-2xl"
+        >
+          <iframe
+            src={toVimeoEmbedUrl(video2.url)}
+            className="h-full w-full"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            onLoad={() => onTrack("video_2", "asset_opened")}
           />
         </div>
       )}

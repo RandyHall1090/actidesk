@@ -36,6 +36,7 @@ export function formatDeskLayout(args: {
     `  nameplate: ${fmtSlot(get("nameplate"))},`,
     `  slots: {`,
     `    video: ${fmtSlot(get("video"))},`,
+    `    video_2: ${fmtSlot(get("video_2"))},`,
     `    audio: ${fmtSlot(get("audio"))},`,
     `    magazine: ${fmtSlot(get("magazine"))},`,
     `    business_card: ${fmtSlot(get("business_card"))},`,

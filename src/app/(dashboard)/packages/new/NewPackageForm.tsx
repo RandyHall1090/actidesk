@@ -267,6 +267,7 @@ export function NewPackageForm({
           templateId={templateId}
           prospectName={prospectName || "Prospect Name"}
           video={toSlotAsset("video", slotAssets.video)}
+          video2={toSlotAsset("video_2", slotAssets.video_2)}
           audio={toSlotAsset("audio", slotAssets.audio)}
           businessCard={toSlotAsset("business_card", slotAssets.business_card)}
           magazine={toSlotAsset("magazine", slotAssets.magazine)}

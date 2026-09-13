@@ -45,6 +45,7 @@ export function PackageView({
   const layout = getLayout(templateId);
   const bySlot = (name: string) => slots.find((s) => s.slot === name);
   const video = bySlot("video");
+  const video2 = bySlot("video_2");
   const audio = bySlot("audio");
   const businessCard = bySlot("business_card");
   const magazine = bySlot("magazine");
@@ -76,6 +77,7 @@ export function PackageView({
           templateId={templateId}
           prospectName={prospectName}
           video={video}
+          video2={video2}
           audio={audio}
           businessCard={businessCard}
           magazine={magazine}
