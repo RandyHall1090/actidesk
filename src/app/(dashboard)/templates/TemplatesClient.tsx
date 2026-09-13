@@ -7,7 +7,7 @@ import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
 import type { SlotAsset } from "@/app/s/[slug]/PackageView";
-import { createPreset, deletePresetFormAction, type ActionResult } from "./actions";
+import { savePreset, deletePresetFormAction, type ActionResult } from "./actions";
 
 export type Preset = {
   id: string;
@@ -53,40 +53,54 @@ export function TemplatesClient({
     [layouts],
   );
   const [state, formAction, pending] = useActionState(
-    createPreset,
+    savePreset,
     initialState,
   );
 
-  // Cloning prefills this same create-form (imperatively, via refs) rather
-  // than a separate "edit" flow -- presets are create+delete only (matching
-  // the asset-library convention), so a clone is just a fast starting point
-  // the admin reviews/renames before actually saving it as its own
-  // independent preset. Deliberately uncontrolled, not React state, for the
-  // exact reset-safety reason documented in NewPackageForm.tsx: useActionState's
-  // post-action form.reset() overwrites even a value-controlled field's DOM
-  // value directly.
+  // Clone and Edit both prefill this same form (imperatively, via refs)
+  // rather than being separate UIs -- deliberately uncontrolled, not React
+  // state, for the exact reset-safety reason documented in
+  // NewPackageForm.tsx: useActionState's post-action form.reset() overwrites
+  // even a value-controlled field's DOM value directly.
+  //
+  // mirroredPresetIdRef: which preset's values are currently mirrored into
+  // the form (Clone or Edit both set this; "" means blank/from-scratch) --
+  // used only to know what to re-apply if a submission fails (see the
+  // reset-safety effect below).
+  // editingPresetIdRef: if non-empty, Save updates THIS preset in place
+  // instead of creating a new one -- the hidden `preset_id` field's real
+  // value. Empty for both "from scratch" and Clone (Clone always creates
+  // new); equal to mirroredPresetIdRef only when actually editing.
   const nameRef = useRef<HTMLInputElement>(null);
   const letterBodyRef = useRef<HTMLTextAreaElement>(null);
   const slotRefs = useRef<Partial<Record<string, HTMLSelectElement>>>({});
   const formRef = useRef<HTMLFormElement>(null);
-  const clonedFromIdRef = useRef<string>("");
+  const presetIdInputRef = useRef<HTMLInputElement>(null);
+  const mirroredPresetIdRef = useRef<string>("");
+  const editingPresetIdRef = useRef<string>("");
 
   const [letterBody, setLetterBody] = useState("");
   const [cloneWarning, setCloneWarning] = useState<string | null>(null);
+  // Purely for display (button label, the "Editing X" banner) -- the real
+  // source of truth Save reads from is editingPresetIdRef/the hidden input.
+  const [editingName, setEditingName] = useState<string | null>(null);
   const { slotAssets, setSlot, clearAll } = usePreviewAssets(assets);
 
-  function applyClone(preset: Preset | undefined) {
+  function applyFormValues(preset: Preset | undefined, asCopy: boolean) {
     if (nameRef.current) {
-      nameRef.current.value = preset ? `${preset.name} (Copy)` : "";
+      nameRef.current.value = preset
+        ? asCopy
+          ? `${preset.name} (Copy)`
+          : preset.name
+        : "";
     }
-    // A cloned slot's asset can be personal-scope, owned by whoever
+    // A mirrored slot's asset can be personal-scope, owned by whoever
     // originally picked it -- invisible to this admin's own `assets` list
     // (assets_select_org RLS: scope = 'company' or owner_id = you), so
     // there's no matching <option> for el.value to land on and the browser
     // just silently leaves the select on its current value. Caught live:
-    // cloning a real preset dropped 2 of 8 picks with no indication at all.
-    // Track and surface those instead of letting a "clone" quietly become
-    // an incomplete copy.
+    // cloning a real preset dropped 2 of 8 picks with no indication at all
+    // -- applies equally to Edit, so this check stays shared.
     const invisible: string[] = [];
     for (const s of PACKAGE_SLOTS) {
       const sourceAssetId = preset?.preset_assets.find(
@@ -103,6 +117,9 @@ export function TemplatesClient({
       letterBodyRef.current.value = preset?.letter_body ?? "";
     }
     setLetterBody(preset?.letter_body ?? "");
+    if (presetIdInputRef.current) {
+      presetIdInputRef.current.value = editingPresetIdRef.current;
+    }
     setCloneWarning(
       invisible.length > 0
         ? `Couldn't copy ${invisible.join(", ")} — picked as a personal asset by whoever set up the original, so it isn't visible to you. Pick a replacement below if needed.`
@@ -111,9 +128,26 @@ export function TemplatesClient({
   }
 
   function handleClone(preset: Preset) {
-    clonedFromIdRef.current = preset.id;
-    applyClone(preset);
+    mirroredPresetIdRef.current = preset.id;
+    editingPresetIdRef.current = "";
+    setEditingName(null);
+    applyFormValues(preset, true);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function handleEdit(preset: Preset) {
+    mirroredPresetIdRef.current = preset.id;
+    editingPresetIdRef.current = preset.id;
+    setEditingName(preset.name);
+    applyFormValues(preset, false);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function handleCancelEdit() {
+    mirroredPresetIdRef.current = "";
+    editingPresetIdRef.current = "";
+    setEditingName(null);
+    applyFormValues(undefined, false);
   }
 
   const orgLogoAsset = useMemo(
@@ -127,23 +161,34 @@ export function TemplatesClient({
     if (orgLogoAsset) setSlot(ORG_LOGO_SLOT, orgLogoAsset.id);
   }, [orgLogoAsset, setSlot]);
 
-  // createPreset doesn't redirect on success -- it clears the form so the
+  // savePreset doesn't redirect on success -- it clears the form so the
   // admin can add another -- so every action resolution (success or
   // failure) means the native form.reset() just blanked the DOM. On success
-  // that's the right outcome (ready for a genuinely new template), so
-  // clonedFromIdRef is cleared first and applyClone(undefined) blanks the
-  // preview to match. On a validation failure, though, the same native
-  // reset would otherwise silently discard whatever was just cloned in --
-  // re-applying the last-cloned preset here re-populates it, the same
-  // reset-safety fix already used in NewPackageForm.tsx for its own preset
-  // prefill. This is synchronizing local state with an external signal (the
-  // native reset a resolved action just triggered), not state derivable
-  // during render -- the lint rule's "setState looks unconditional"
-  // heuristic doesn't fit this case.
+  // that's the right outcome (ready for a genuinely new template, and out
+  // of edit mode), so both id refs are cleared first and
+  // applyFormValues(undefined, ...) blanks the preview to match. On a
+  // validation failure, though, the same native reset would otherwise
+  // silently discard whatever was just cloned or being edited -- and for
+  // Edit specifically, silently falling back to "create" mode would make
+  // the next Save click wrongly create a duplicate instead of updating.
+  // Re-applying whatever was mirrored in re-populates it correctly either
+  // way, the same reset-safety fix already used in NewPackageForm.tsx for
+  // its own preset prefill. This is synchronizing local state with an
+  // external signal (the native reset a resolved action just triggered),
+  // not state derivable during render -- the lint rule's "setState looks
+  // unconditional" heuristic doesn't fit this case.
   useEffect(() => {
     clearAll();
-    if (state.ok) clonedFromIdRef.current = "";
-    applyClone(presets.find((p) => p.id === clonedFromIdRef.current));
+    if (state.ok) {
+      mirroredPresetIdRef.current = "";
+      editingPresetIdRef.current = "";
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see the comment above: synchronizing with the native form.reset() a resolved action just triggered, not state derivable during render.
+      setEditingName(null);
+    }
+    applyFormValues(
+      presets.find((p) => p.id === mirroredPresetIdRef.current),
+      !editingPresetIdRef.current,
+    );
     if (orgLogoAsset) setSlot(ORG_LOGO_SLOT, orgLogoAsset.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -160,6 +205,21 @@ export function TemplatesClient({
           action={formAction}
           className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
         >
+          <input ref={presetIdInputRef} type="hidden" name="preset_id" />
+          {editingName && (
+            <p className="flex items-center justify-between rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+              <span>
+                Editing <strong>{editingName}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="font-medium text-neutral-600 hover:underline"
+              >
+                Cancel
+              </button>
+            </p>
+          )}
           {cloneWarning && (
             <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
               {cloneWarning}
@@ -222,7 +282,7 @@ export function TemplatesClient({
             disabled={pending}
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
           >
-            {pending ? "Saving…" : "Save Template"}
+            {pending ? "Saving…" : editingName ? "Save changes" : "Save Template"}
           </button>
         </form>
 
@@ -280,6 +340,13 @@ export function TemplatesClient({
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(preset)}
+                      className="text-xs text-neutral-700 hover:underline"
+                    >
+                      Edit
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleClone(preset)}
