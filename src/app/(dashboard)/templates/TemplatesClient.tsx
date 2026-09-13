@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
 import { DEFAULT_LAYOUT_ID, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
@@ -57,8 +57,64 @@ export function TemplatesClient({
     initialState,
   );
 
+  // Cloning prefills this same create-form (imperatively, via refs) rather
+  // than a separate "edit" flow -- presets are create+delete only (matching
+  // the asset-library convention), so a clone is just a fast starting point
+  // the admin reviews/renames before actually saving it as its own
+  // independent preset. Deliberately uncontrolled, not React state, for the
+  // exact reset-safety reason documented in NewPackageForm.tsx: useActionState's
+  // post-action form.reset() overwrites even a value-controlled field's DOM
+  // value directly.
+  const nameRef = useRef<HTMLInputElement>(null);
+  const letterBodyRef = useRef<HTMLTextAreaElement>(null);
+  const slotRefs = useRef<Partial<Record<string, HTMLSelectElement>>>({});
+  const formRef = useRef<HTMLFormElement>(null);
+  const clonedFromIdRef = useRef<string>("");
+
   const [letterBody, setLetterBody] = useState("");
+  const [cloneWarning, setCloneWarning] = useState<string | null>(null);
   const { slotAssets, setSlot, clearAll } = usePreviewAssets(assets);
+
+  function applyClone(preset: Preset | undefined) {
+    if (nameRef.current) {
+      nameRef.current.value = preset ? `${preset.name} (Copy)` : "";
+    }
+    // A cloned slot's asset can be personal-scope, owned by whoever
+    // originally picked it -- invisible to this admin's own `assets` list
+    // (assets_select_org RLS: scope = 'company' or owner_id = you), so
+    // there's no matching <option> for el.value to land on and the browser
+    // just silently leaves the select on its current value. Caught live:
+    // cloning a real preset dropped 2 of 8 picks with no indication at all.
+    // Track and surface those instead of letting a "clone" quietly become
+    // an incomplete copy.
+    const invisible: string[] = [];
+    for (const s of PACKAGE_SLOTS) {
+      const sourceAssetId = preset?.preset_assets.find(
+        (pa) => pa.slot_name === s.slot,
+      )?.asset_id;
+      const isVisible = !sourceAssetId || assets.some((a) => a.id === sourceAssetId);
+      const assetId = sourceAssetId && isVisible ? sourceAssetId : "";
+      if (sourceAssetId && !isVisible) invisible.push(s.label);
+      const el = slotRefs.current[s.slot];
+      if (el) el.value = assetId;
+      setSlot(s.slot, assetId);
+    }
+    if (letterBodyRef.current) {
+      letterBodyRef.current.value = preset?.letter_body ?? "";
+    }
+    setLetterBody(preset?.letter_body ?? "");
+    setCloneWarning(
+      invisible.length > 0
+        ? `Couldn't copy ${invisible.join(", ")} — picked as a personal asset by whoever set up the original, so it isn't visible to you. Pick a replacement below if needed.`
+        : null,
+    );
+  }
+
+  function handleClone(preset: Preset) {
+    clonedFromIdRef.current = preset.id;
+    applyClone(preset);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const orgLogoAsset = useMemo(
     () =>
@@ -73,16 +129,21 @@ export function TemplatesClient({
 
   // createPreset doesn't redirect on success -- it clears the form so the
   // admin can add another -- so every action resolution (success or
-  // failure) means the native form.reset() just blanked the DOM, and the
-  // preview needs to match: reset fully, then re-resolve the org logo
-  // since clearAll() just wiped that slot too. This is synchronizing local
-  // state with an external signal (the native reset a resolved action just
-  // triggered), not state derivable during render -- the lint rule's
-  // "setState looks unconditional" heuristic doesn't fit this case.
+  // failure) means the native form.reset() just blanked the DOM. On success
+  // that's the right outcome (ready for a genuinely new template), so
+  // clonedFromIdRef is cleared first and applyClone(undefined) blanks the
+  // preview to match. On a validation failure, though, the same native
+  // reset would otherwise silently discard whatever was just cloned in --
+  // re-applying the last-cloned preset here re-populates it, the same
+  // reset-safety fix already used in NewPackageForm.tsx for its own preset
+  // prefill. This is synchronizing local state with an external signal (the
+  // native reset a resolved action just triggered), not state derivable
+  // during render -- the lint rule's "setState looks unconditional"
+  // heuristic doesn't fit this case.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLetterBody("");
     clearAll();
+    if (state.ok) clonedFromIdRef.current = "";
+    applyClone(presets.find((p) => p.id === clonedFromIdRef.current));
     if (orgLogoAsset) setSlot(ORG_LOGO_SLOT, orgLogoAsset.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -95,10 +156,17 @@ export function TemplatesClient({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
         <form
+          ref={formRef}
           action={formAction}
           className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
         >
+          {cloneWarning && (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              {cloneWarning}
+            </p>
+          )}
           <input
+            ref={nameRef}
             name="name"
             required
             placeholder="Template name (e.g. Enterprise pitch)"
@@ -115,6 +183,9 @@ export function TemplatesClient({
                 <select
                   name={`slot_${s.slot}`}
                   defaultValue=""
+                  ref={(el) => {
+                    slotRefs.current[s.slot] = el ?? undefined;
+                  }}
                   onChange={(e) => setSlot(s.slot, e.target.value)}
                   className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
                 >
@@ -135,6 +206,7 @@ export function TemplatesClient({
               Letter
             </span>
             <textarea
+              ref={letterBodyRef}
               name="letter_body"
               rows={5}
               placeholder="Hi [Name], ..."
@@ -207,14 +279,23 @@ export function TemplatesClient({
                       {preset.letter_body ? " · has letter text" : ""}
                     </p>
                   </div>
-                  <form action={deletePresetFormAction.bind(null, preset.id)}>
+                  <div className="flex shrink-0 items-center gap-3">
                     <button
-                      type="submit"
-                      className="shrink-0 text-xs text-red-600 hover:underline"
+                      type="button"
+                      onClick={() => handleClone(preset)}
+                      className="text-xs text-neutral-700 hover:underline"
                     >
-                      Delete
+                      Clone
                     </button>
-                  </form>
+                    <form action={deletePresetFormAction.bind(null, preset.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </li>
               );
             })}
