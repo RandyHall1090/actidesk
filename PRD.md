@@ -41,9 +41,9 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 | P0 | Lost password | Self-service reset via an emailed numeric code (not a clickable link, to avoid the same corporate email-link-scanning problem login already moved away from) |
 | P0 | Platform admin (Securafy only) | A `/admin` page for Securafy staff with full cross-tenant access — the same add/reset-password/deactivate/role tools as Team management, applied across every tenant, not just one org |
 | P1 | HubSpot sync (Securafy only) | Upsert the prospect as a HubSpot contact and log a timeline event when a package is created |
-| P1 | Templates | Admins pick a desk-scene layout per package (2 to start; more are a dev+deploy task, not self-service) and manage reusable content presets — named bundles of asset picks + letter text reps can apply when creating a package |
+| P1 | Templates | Admins pick a desk-scene layout per package (the built-in ones, or any their own org has saved) and manage reusable content presets — named bundles of asset picks + letter text reps can apply when creating a package |
+| P1 | Layout designer (self-service) | Any org's own admin visually drags/resizes/rotates desk-scene slot positions on a background (an existing one, or their own uploaded image) and saves it directly — no developer or deploy step. Saved layouts are private to that org; a separate dev-assisted path still exists for shipping a new layout every tenant gets |
 | P2 | Per-tenant CRM integration | Let other tenants connect their own CRM, not just Securafy's HubSpot |
-| P2 | Layout designer (internal tool) | Platform admins visually drag/resize/rotate desk-scene slot positions and copy out a ready-to-paste layout config — speeds up building a new layout, still requires a developer to commit the background art and paste the result |
 
 ## 7. User flow
 
