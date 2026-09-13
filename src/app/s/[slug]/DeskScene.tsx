@@ -1,7 +1,7 @@
 "use client";
 
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
-import { getLayout, type SlotPosition } from "@/lib/packages/layouts";
+import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
 
 // Layout positions come from a per-template config (src/lib/packages/layouts.ts)
@@ -41,11 +41,13 @@ function slotStyle(pos: SlotPosition): React.CSSProperties {
  * see PackageView.tsx for the below-fold fallback used when a layout
  * doesn't define these.
  *
- * Which background image and slot positions are used depends on
- * `templateId` (the Templates feature) — see getLayout().
+ * Which background image and slot positions are used depends on the
+ * caller-resolved `layout` (built-in code array, or an org's own saved
+ * custom one -- see getOrgLayouts.ts). This component never resolves a
+ * template_id itself, so it doesn't care which source a layout came from.
  */
 export function DeskScene({
-  templateId,
+  layout,
   prospectName,
   video,
   video2,
@@ -58,7 +60,7 @@ export function DeskScene({
   orgLogoUrl,
   onTrack,
 }: {
-  templateId: string;
+  layout: DeskLayout;
   prospectName: string;
   video: SlotAsset | undefined;
   video2: SlotAsset | undefined;
@@ -71,7 +73,6 @@ export function DeskScene({
   orgLogoUrl: string | null;
   onTrack: (slot: string, kind?: "asset_opened" | "asset_played") => void;
 }) {
-  const layout = getLayout(templateId);
   return (
     // @container: every size below is in cqw (% of this container's own
     // rendered width), not px/rem, so the whole scene -- text included --

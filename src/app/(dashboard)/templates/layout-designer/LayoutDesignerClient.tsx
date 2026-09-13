@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DESK_LAYOUTS } from "@/lib/packages/layouts";
+import { useRouter } from "next/navigation";
+import { DESK_LAYOUTS, type DeskLayout } from "@/lib/packages/layouts";
+import { createClient } from "@/lib/supabase/client";
 import {
   blankSlots,
   fromDeskLayout,
@@ -9,17 +11,35 @@ import {
   type SlotId,
 } from "./designerState";
 import { DesignerBox } from "./DesignerBox";
-import { formatDeskLayout } from "./exportLayout";
+import { formatDeskLayout, toDeskLayoutFields } from "./exportLayout";
+import { saveLayout, deleteLayout } from "./actions";
 
 type SourceMode = "existing-layout" | "existing-background" | "upload";
 
 const DEFAULT_ASPECT_RATIO = "1344 / 768";
-const EXISTING_BACKGROUNDS = Array.from(
-  new Set(DESK_LAYOUTS.map((l) => l.backgroundImage)),
-);
 
-export function LayoutDesignerClient() {
+function isBuiltIn(id: string): boolean {
+  return DESK_LAYOUTS.some((l) => l.id === id);
+}
+
+export function LayoutDesignerClient({
+  orgId,
+  layouts,
+}: {
+  orgId: string;
+  // Built-in (shared by every tenant) + this org's own saved custom ones --
+  // see getOrgLayouts.ts. Refining a built-in one and clicking Save always
+  // creates a new custom layout (built-ins aren't rows in the "layouts"
+  // table); refining one of this org's own custom ones updates it in place.
+  layouts: DeskLayout[];
+}) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const customLayouts = layouts.filter((l) => !isBuiltIn(l.id));
+  const existingBackgrounds = Array.from(
+    new Set(layouts.map((l) => l.backgroundImage)),
+  );
 
   const [sourceMode, setSourceMode] = useState<SourceMode>("existing-layout");
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -31,6 +51,22 @@ export function LayoutDesignerClient() {
   const [includeLetterAndBrochures, setIncludeLetterAndBrochures] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Set only when refining one of THIS org's own saved layouts -- tells
+  // Save to update that row instead of creating a new one. Cleared by
+  // every other load path (a built-in, a fresh background, an upload),
+  // since those always produce a new custom layout on Save.
+  const [loadedCustomLayoutId, setLoadedCustomLayoutId] = useState<string | null>(null);
+  // The raw File for "candidate image" mode -- kept so Save can actually
+  // upload it; the object URL alone (for the live preview) doesn't carry
+  // real bytes anywhere. Cleared once that exact file has been uploaded so
+  // a second Save (e.g. after nudging a position) reuses the same
+  // already-uploaded URL instead of uploading it again.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const objectUrlRef = useRef<string | null>(null);
   useEffect(() => {
     return () => {
@@ -38,8 +74,13 @@ export function LayoutDesignerClient() {
     };
   }, []);
 
+  function resetSaveFeedback() {
+    setSaveState("idle");
+    setSaveError(null);
+  }
+
   function loadExistingLayout(layoutId: string) {
-    const layout = DESK_LAYOUTS.find((l) => l.id === layoutId);
+    const layout = layouts.find((l) => l.id === layoutId);
     if (!layout) return;
     setBackgroundImage(layout.backgroundImage);
     setSlots(fromDeskLayout(layout));
@@ -47,6 +88,9 @@ export function LayoutDesignerClient() {
     setIncludeLetterAndBrochures(!!(layout.letter && layout.brochures));
     setExportId(layout.id);
     setExportLabel(layout.label);
+    setLoadedCustomLayoutId(isBuiltIn(layout.id) ? null : layout.id);
+    setPendingFile(null);
+    resetSaveFeedback();
   }
 
   function loadExistingBackground(src: string) {
@@ -55,6 +99,9 @@ export function LayoutDesignerClient() {
     setExportAspectRatio(DEFAULT_ASPECT_RATIO);
     setExportId("");
     setExportLabel("");
+    setLoadedCustomLayoutId(null);
+    setPendingFile(null);
+    resetSaveFeedback();
   }
 
   function loadUploadedFile(file: File) {
@@ -65,6 +112,9 @@ export function LayoutDesignerClient() {
     setSlots(blankSlots());
     setExportId("");
     setExportLabel("");
+    setLoadedCustomLayoutId(null);
+    setPendingFile(file);
+    resetSaveFeedback();
   }
 
   function updateSlot(next: DesignerSlotState) {
@@ -84,7 +134,7 @@ export function LayoutDesignerClient() {
       id: exportId || "desk-vN",
       label: exportLabel || "New Layout",
       backgroundImage:
-        sourceMode === "upload"
+        sourceMode === "upload" && pendingFile
           ? "/desk-scene/desk-background-vN.webp  // TODO: real committed path once this image is added"
           : (backgroundImage ?? ""),
       aspectRatio: exportAspectRatio,
@@ -93,7 +143,79 @@ export function LayoutDesignerClient() {
     });
   }
 
-  const idCollision = exportId && DESK_LAYOUTS.some((l) => l.id === exportId);
+  async function handleSave() {
+    if (slots.length === 0) return;
+    const label = exportLabel.trim();
+    if (!label) {
+      setSaveState("error");
+      setSaveError("Give this layout a label first.");
+      return;
+    }
+
+    setSaveState("saving");
+    setSaveError(null);
+    try {
+      let finalBackgroundImage = backgroundImage ?? "";
+
+      // Only actually uploads once per chosen file -- a re-save after just
+      // nudging a position (pendingFile already cleared below) reuses the
+      // already-uploaded public URL instead of uploading it again.
+      if (sourceMode === "upload" && pendingFile) {
+        const ext = pendingFile.name.split(".").pop()?.toLowerCase() || "webp";
+        const path = `${orgId}/${crypto.randomUUID()}.${ext}`;
+        const supabase = createClient();
+        const { error: uploadError } = await supabase.storage
+          .from("layout-backgrounds")
+          .upload(path, pendingFile, { upsert: false });
+        if (uploadError) throw new Error(uploadError.message);
+        const { data } = supabase.storage
+          .from("layout-backgrounds")
+          .getPublicUrl(path);
+        finalBackgroundImage = data.publicUrl;
+      }
+
+      const fields = toDeskLayoutFields(slots, includeLetterAndBrochures);
+      const result = await saveLayout({
+        id: loadedCustomLayoutId ?? undefined,
+        label,
+        backgroundImage: finalBackgroundImage,
+        aspectRatio: exportAspectRatio,
+        ...fields,
+      });
+
+      if (!result.ok) {
+        setSaveState("error");
+        setSaveError(result.error);
+        return;
+      }
+
+      setBackgroundImage(finalBackgroundImage);
+      setPendingFile(null);
+      setLoadedCustomLayoutId(result.id);
+      setSaveState("saved");
+      router.refresh();
+    } catch (err) {
+      setSaveState("error");
+      setSaveError(err instanceof Error ? err.message : "Couldn't save the layout.");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    const result = await deleteLayout(id);
+    setDeletingId(null);
+    if (!result.ok) {
+      setSaveState("error");
+      setSaveError(result.error);
+      return;
+    }
+    if (loadedCustomLayoutId === id) {
+      setLoadedCustomLayoutId(null);
+    }
+    router.refresh();
+  }
+
+  const idCollision = exportId && layouts.some((l) => l.id === exportId);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
@@ -139,9 +261,9 @@ export function LayoutDesignerClient() {
                 <option value="" disabled>
                   Pick a layout…
                 </option>
-                {DESK_LAYOUTS.map((l) => (
+                {layouts.map((l) => (
                   <option key={l.id} value={l.id}>
-                    {l.label} ({l.id})
+                    {l.label} {isBuiltIn(l.id) ? `(${l.id})` : "(your own)"}
                   </option>
                 ))}
               </select>
@@ -155,7 +277,7 @@ export function LayoutDesignerClient() {
                 <option value="" disabled>
                   Pick a background…
                 </option>
-                {EXISTING_BACKGROUNDS.map((src) => (
+                {existingBackgrounds.map((src) => (
                   <option key={src} value={src}>
                     {src}
                   </option>
@@ -173,11 +295,9 @@ export function LayoutDesignerClient() {
                   }}
                   className="block w-full text-sm text-neutral-700"
                 />
-                <p className="mt-1 text-xs text-amber-700">
-                  Local preview only — this file is never uploaded anywhere.
-                  Fill in the real <code>/desk-scene/...</code> path by hand
-                  in the exported code once this image is actually committed
-                  to the repo.
+                <p className="mt-1 text-xs text-neutral-500">
+                  Previewed locally while you position everything — nothing
+                  is uploaded until you click <strong>Save</strong> below.
                 </p>
               </div>
             )}
@@ -198,13 +318,13 @@ export function LayoutDesignerClient() {
               className="relative w-full overflow-hidden rounded-md shadow"
               style={{ aspectRatio: exportAspectRatio }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- either a static public asset or a local blob: object URL, neither of which next/image can optimize meaningfully here */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- either a static public asset, an already-uploaded public Storage URL, or a local blob: object URL, none of which next/image can optimize meaningfully here */}
               <img
                 src={backgroundImage}
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover"
                 onLoad={(e) => {
-                  if (sourceMode !== "upload") return;
+                  if (!(sourceMode === "upload" && pendingFile)) return;
                   const img = e.currentTarget;
                   if (img.naturalWidth && img.naturalHeight) {
                     setExportAspectRatio(
@@ -315,30 +435,18 @@ export function LayoutDesignerClient() {
       <div className="space-y-4">
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
           <h3 className="mb-2 text-sm font-semibold text-neutral-700">
-            Export
+            Save
           </h3>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">id</span>
-            <input
-              value={exportId}
-              onChange={(e) => setExportId(e.target.value)}
-              placeholder="desk-v4"
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
-            />
-          </label>
-          {idCollision && (
-            <p className="mt-1 text-xs text-red-600">
-              &ldquo;{exportId}&rdquo; already exists in DESK_LAYOUTS — pick a
-              different id.
-            </p>
-          )}
-          <label className="mt-2 block text-sm">
             <span className="mb-1 block font-medium text-neutral-700">
               label
             </span>
             <input
               value={exportLabel}
-              onChange={(e) => setExportLabel(e.target.value)}
+              onChange={(e) => {
+                setExportLabel(e.target.value);
+                resetSaveFeedback();
+              }}
               placeholder="New Layout"
               className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
             />
@@ -362,6 +470,87 @@ export function LayoutDesignerClient() {
             Include letter + brochures
           </label>
 
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={slots.length === 0 || saveState === "saving"}
+            className="mt-3 w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          >
+            {saveState === "saving"
+              ? "Saving…"
+              : loadedCustomLayoutId
+                ? "Save changes"
+                : "Save as a new layout"}
+          </button>
+          {saveState === "saved" && (
+            <p className="mt-2 text-sm text-green-600">
+              Saved — selectable now in New Package and Templates.
+            </p>
+          )}
+          {saveState === "error" && (
+            <p className="mt-2 text-sm text-red-600">{saveError}</p>
+          )}
+          <p className="mt-2 text-xs text-neutral-500">
+            {loadedCustomLayoutId
+              ? "Updates this saved layout in place."
+              : "Creates a new layout owned by your organization — nobody else sees it."}
+          </p>
+        </div>
+
+        {customLayouts.length > 0 && (
+          <div className="rounded-lg border border-neutral-200 bg-white p-4">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+              Your saved layouts
+            </h3>
+            <ul className="space-y-2">
+              {customLayouts.map((l) => (
+                <li
+                  key={l.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 px-3 py-2 text-sm"
+                >
+                  <span className="min-w-0 truncate font-medium text-neutral-800">
+                    {l.label}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(l.id)}
+                    disabled={deletingId === l.id}
+                    className="shrink-0 text-xs text-red-600 hover:underline disabled:opacity-50"
+                  >
+                    {deletingId === l.id ? "Deleting…" : "Delete"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <details className="rounded-lg border border-neutral-200 bg-white p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-neutral-700">
+            Developer: ship as a new built-in layout instead
+          </summary>
+          <p className="mt-2 text-xs text-neutral-500">
+            For a layout every tenant should have (not just your own org),
+            copy the code below and paste it into <code>DESK_LAYOUTS</code>{" "}
+            in <code>src/lib/packages/layouts.ts</code> for a developer to
+            deploy, instead of clicking Save.
+          </p>
+          <label className="mt-3 block text-sm">
+            <span className="mb-1 block font-medium text-neutral-700">
+              id
+            </span>
+            <input
+              value={exportId}
+              onChange={(e) => setExportId(e.target.value)}
+              placeholder="desk-v4"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+            />
+          </label>
+          {idCollision && (
+            <p className="mt-1 text-xs text-red-600">
+              &ldquo;{exportId}&rdquo; already exists — pick a different id.
+            </p>
+          )}
           <pre className="mt-3 max-h-96 overflow-auto rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-800">
             {exportText()}
           </pre>
@@ -369,16 +558,11 @@ export function LayoutDesignerClient() {
             type="button"
             onClick={handleCopy}
             disabled={slots.length === 0}
-            className="mt-2 w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            className="mt-2 w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-opacity hover:bg-neutral-50 disabled:opacity-50"
           >
             {copied ? "Copied!" : "Copy to clipboard"}
           </button>
-          <p className="mt-2 text-xs text-neutral-500">
-            Paste this into <code>DESK_LAYOUTS</code> in{" "}
-            <code>src/lib/packages/layouts.ts</code> and deploy — this tool
-            doesn&apos;t save anything itself.
-          </p>
-        </div>
+        </details>
       </div>
     </div>
   );

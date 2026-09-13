@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLayoutForPublicPage } from "@/lib/packages/getOrgLayouts";
 import { PackageView, type SlotAsset } from "./PackageView";
 
 type PackageRow = {
@@ -68,10 +69,12 @@ export default async function PackagePage({
     orgLogoUrl = signed?.signedUrl ?? null;
   }
 
+  const layout = await getLayoutForPublicPage(pkg.template_id);
+
   return (
     <PackageView
       packageId={pkg.id}
-      templateId={pkg.template_id}
+      layout={layout}
       prospectName={pkg.prospect_name}
       letterBody={pkg.letter_body}
       slots={slots}

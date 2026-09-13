@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
+import { DEFAULT_LAYOUT_ID, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
@@ -19,16 +19,6 @@ export type Preset = {
 
 const initialState: ActionResult = { ok: true };
 const ORG_LOGO_SLOT = "__org_logo";
-// Presets have no layout concept of their own -- a layout is picked
-// per-package, not per-preset. Preview against whichever layout actually
-// renders a letter/brochures on the desk (desk-v3 today) rather than the
-// bare default -- otherwise an admin could never see their letter text or
-// brochure picks in the preview at all, since desk-v1/v2 push those below
-// the photo (outside what this DeskScene-only preview renders). A
-// from-scratch "preview against a different layout" toggle would be a
-// nicety, not something asked for here.
-const PREVIEW_TEMPLATE_ID =
-  DESK_LAYOUTS.find((l) => l.letter && l.brochures)?.id ?? DEFAULT_LAYOUT_ID;
 const PREVIEW_PROSPECT_NAME = "Sample Prospect";
 
 function toSlotAsset(slot: string, a: PreviewAsset | undefined): SlotAsset | undefined {
@@ -39,11 +29,29 @@ export function TemplatesClient({
   assets,
   presets,
   orgName,
+  layouts,
 }: {
   assets: Asset[];
   presets: Preset[];
   orgName: string;
+  // Built-in + this org's own saved custom ones (see NewPackageForm.tsx).
+  layouts: DeskLayout[];
 }) {
+  // Presets have no layout concept of their own -- a layout is picked
+  // per-package, not per-preset. Preview against whichever layout actually
+  // renders a letter/brochures on the desk rather than the bare default --
+  // otherwise an admin could never see their letter text or brochure picks
+  // in the preview at all, since a layout with no letter/brochures pushes
+  // those below the photo (outside what this DeskScene-only preview
+  // renders). A from-scratch "preview against a different layout" toggle
+  // would be a nicety, not something asked for here.
+  const previewLayout = useMemo(
+    () =>
+      layouts.find((l) => l.letter && l.brochures) ??
+      layouts.find((l) => l.id === DEFAULT_LAYOUT_ID) ??
+      layouts[0],
+    [layouts],
+  );
   const [state, formAction, pending] = useActionState(
     createPreset,
     initialState,
@@ -151,7 +159,7 @@ export function TemplatesClient({
             Live Preview
           </h3>
           <DeskScene
-            templateId={PREVIEW_TEMPLATE_ID}
+            layout={previewLayout}
             prospectName={PREVIEW_PROSPECT_NAME}
             video={toSlotAsset("video", slotAssets.video)}
             video2={toSlotAsset("video_2", slotAssets.video_2)}

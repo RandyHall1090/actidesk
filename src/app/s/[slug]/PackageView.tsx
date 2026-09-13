@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { logTrackingEvent } from "@/lib/tracking";
-import { getLayout } from "@/lib/packages/layouts";
+import type { DeskLayout } from "@/lib/packages/layouts";
 import { DeskScene } from "./DeskScene";
 
 export type SlotAsset = {
@@ -14,7 +14,7 @@ export type SlotAsset = {
 
 export function PackageView({
   packageId,
-  templateId,
+  layout,
   prospectName,
   letterBody,
   slots,
@@ -22,7 +22,9 @@ export function PackageView({
   orgLogoUrl,
 }: {
   packageId: string;
-  templateId: string;
+  // Resolved server-side (getLayoutForPublicPage) -- built-in or a custom
+  // org layout, PackageView doesn't need to know which.
+  layout: DeskLayout;
   prospectName: string;
   letterBody: string | null;
   slots: SlotAsset[];
@@ -42,7 +44,6 @@ export function PackageView({
     logTrackingEvent(packageId, kind, slot);
   }
 
-  const layout = getLayout(templateId);
   const bySlot = (name: string) => slots.find((s) => s.slot === name);
   const video = bySlot("video");
   const video2 = bySlot("video_2");
@@ -74,7 +75,7 @@ export function PackageView({
       </div>
       <div className="mb-8">
         <DeskScene
-          templateId={templateId}
+          layout={layout}
           prospectName={prospectName}
           video={video}
           video2={video2}

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
@@ -39,17 +38,9 @@ export default async function AdminPage() {
   return (
     <div>
       <h2 className="text-xl font-semibold text-neutral-900">Admin</h2>
-      <p className="mt-1 mb-2 text-sm text-neutral-600">
+      <p className="mt-1 mb-6 text-sm text-neutral-600">
         Securafy platform admin — manage users across every tenant on the
         platform.
-      </p>
-      <p className="mb-6 text-sm">
-        <Link
-          href="/admin/layout-designer"
-          className="font-medium text-neutral-700 underline hover:text-neutral-900"
-        >
-          Layout designer →
-        </Link>
       </p>
       <AdminClient
         orgs={(orgs ?? []) as AdminOrg[]}

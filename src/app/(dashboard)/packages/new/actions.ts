@@ -12,6 +12,30 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const MAX_SLUG_ATTEMPTS = 3;
 
+/**
+ * A template_id is either a built-in DESK_LAYOUTS id (checked first, no DB
+ * call) or a custom layout this org saved itself (T15) -- looked up scoped
+ * to org_id so a rep can't submit another org's layout id and have it
+ * silently accepted. Falls back to the default rather than reject the
+ * whole submission outright for a stale/tampered value.
+ */
+async function resolveTemplateId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  orgId: string,
+  rawTemplateId: string | undefined,
+): Promise<string> {
+  if (!rawTemplateId) return DEFAULT_LAYOUT_ID;
+  if (DESK_LAYOUTS.some((l) => l.id === rawTemplateId)) return rawTemplateId;
+
+  const { data } = await supabase
+    .from("layouts")
+    .select("id")
+    .eq("id", rawTemplateId)
+    .eq("org_id", orgId)
+    .maybeSingle();
+  return data ? rawTemplateId : DEFAULT_LAYOUT_ID;
+}
+
 export async function createPackage(
   _prev: ActionResult,
   formData: FormData,
@@ -34,11 +58,8 @@ export async function createPackage(
   const privateNote =
     (formData.get("private_note") as string | null)?.trim() || null;
   const rawTemplateId = (formData.get("template_id") as string | null)?.trim();
-  const templateId = DESK_LAYOUTS.some((l) => l.id === rawTemplateId)
-    ? rawTemplateId!
-    : DEFAULT_LAYOUT_ID;
-
   const supabase = await createClient();
+  const templateId = await resolveTemplateId(supabase, profile.org_id, rawTemplateId);
   const base = slugify(prospectName) || "package";
 
   let inserted: { id: string; slug: string } | null = null;

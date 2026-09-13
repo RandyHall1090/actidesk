@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
+import { DEFAULT_LAYOUT_ID, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
@@ -27,10 +27,15 @@ export function NewPackageForm({
   assets,
   presets,
   orgName,
+  layouts,
 }: {
   assets: Asset[];
   presets: PresetOption[];
   orgName: string;
+  // Built-in (DESK_LAYOUTS) + this org's own saved custom ones, resolved
+  // server-side (getOrgLayouts) -- see layouts.ts for why this component
+  // can't just import DESK_LAYOUTS directly anymore.
+  layouts: DeskLayout[];
 }) {
   const [state, formAction, pending] = useActionState(
     createPackage,
@@ -114,6 +119,11 @@ export function NewPackageForm({
     .map((n) => toSlotAsset(`brochure_${n}`, slotAssets[`brochure_${n}`]))
     .filter((a): a is SlotAsset => !!a);
 
+  const resolvedLayout =
+    layouts.find((l) => l.id === templateId) ??
+    layouts.find((l) => l.id === DEFAULT_LAYOUT_ID) ??
+    layouts[0];
+
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
       <form action={formAction} className="space-y-6">
@@ -156,7 +166,7 @@ export function NewPackageForm({
             }}
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
           >
-            {DESK_LAYOUTS.map((l) => (
+            {layouts.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.label}
               </option>
@@ -264,7 +274,7 @@ export function NewPackageForm({
           Live Preview
         </h3>
         <DeskScene
-          templateId={templateId}
+          layout={resolvedLayout}
           prospectName={prospectName || "Prospect Name"}
           video={toSlotAsset("video", slotAssets.video)}
           video2={toSlotAsset("video_2", slotAssets.video_2)}
