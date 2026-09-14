@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
@@ -17,7 +18,7 @@ export default async function PackageDetailPage({
   const { data: pkg, error } = await supabase
     .from("packages")
     .select(
-      "id, slug, prospect_name, prospect_company, prospect_email, private_note, created_at",
+      "id, slug, prospect_name, prospect_company, prospect_email, private_note, created_at, created_by",
     )
     .eq("slug", slug)
     .single();
@@ -35,12 +36,22 @@ export default async function PackageDetailPage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-neutral-900">
-          {pkg.prospect_name}
-        </h2>
-        {pkg.prospect_company && (
-          <p className="text-sm text-neutral-500">{pkg.prospect_company}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-neutral-900">
+            {pkg.prospect_name}
+          </h2>
+          {pkg.prospect_company && (
+            <p className="text-sm text-neutral-500">{pkg.prospect_company}</p>
+          )}
+        </div>
+        {pkg.created_by === profile.id && (
+          <Link
+            href={`/packages/${pkg.slug}/edit`}
+            className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-neutral-400"
+          >
+            Edit
+          </Link>
         )}
       </div>
 

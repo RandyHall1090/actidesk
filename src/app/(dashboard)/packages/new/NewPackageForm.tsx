@@ -7,12 +7,26 @@ import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
 import type { SlotAsset } from "@/app/s/[slug]/PackageView";
-import { createPackage, type ActionResult } from "./actions";
+import { savePackage, type ActionResult } from "./actions";
 
 export type PresetOption = {
   id: string;
   name: string;
   letterBody: string | null;
+  slots: Record<string, string>; // slot_name -> asset_id
+};
+
+// Passed only when editing an already-sent package (packages/[slug]/edit) --
+// its presence is what switches this form from create to edit mode.
+export type InitialPackage = {
+  id: string;
+  slug: string;
+  prospectName: string;
+  prospectCompany: string;
+  prospectEmail: string;
+  letterBody: string;
+  privateNote: string;
+  templateId: string;
   slots: Record<string, string>; // slot_name -> asset_id
 };
 
@@ -28,6 +42,7 @@ export function NewPackageForm({
   presets,
   orgName,
   layouts,
+  initialPackage,
 }: {
   assets: Asset[];
   presets: PresetOption[];
@@ -36,32 +51,61 @@ export function NewPackageForm({
   // server-side (getOrgLayouts) -- see layouts.ts for why this component
   // can't just import DESK_LAYOUTS directly anymore.
   layouts: DeskLayout[];
+  initialPackage?: InitialPackage;
 }) {
   const [state, formAction, pending] = useActionState(
-    createPackage,
+    savePackage,
     initialState,
   );
 
-  // Preset selection just pre-fills these fields client-side (imperatively,
-  // via refs) -- deliberately uncontrolled, not React state, per the lesson
-  // learned in LibraryClient.tsx: useActionState's post-success form.reset()
+  // Preset selection, editing an already-picked slot, typing the letter,
+  // etc. all pre-fill/update these fields client-side (imperatively, via
+  // refs) -- deliberately uncontrolled, not React state, per the lesson
+  // learned in LibraryClient.tsx: useActionState's post-action form.reset()
   // overwrites even a value-controlled <select>'s DOM value directly, so
-  // controlled state alone isn't a safe way to hold a "prefilled" value here.
+  // controlled state alone isn't a safe way to hold any of this.
   const slotRefs = useRef<Partial<Record<string, HTMLSelectElement>>>({});
+  const prospectNameRef = useRef<HTMLInputElement>(null);
+  const prospectCompanyRef = useRef<HTMLInputElement>(null);
+  const prospectEmailRef = useRef<HTMLInputElement>(null);
   const letterBodyRef = useRef<HTMLTextAreaElement>(null);
+  const privateNoteRef = useRef<HTMLTextAreaElement>(null);
   const presetSelectRef = useRef<HTMLSelectElement>(null);
   const layoutSelectRef = useRef<HTMLSelectElement>(null);
   const selectedPresetIdRef = useRef<string>("");
-  const selectedLayoutIdRef = useRef<string>(DEFAULT_LAYOUT_ID);
+
+  // The single source of truth for "what does this form currently hold,"
+  // independent of where a given value came from (typed, a preset pick, or
+  // the initial edit prefill) -- re-asserted onto every field after any
+  // action result (see the effect below), so a failed save never loses
+  // work back to blank/original. Editing a package this way (rather than
+  // only re-deriving from the selected preset, as this form did for
+  // create-only) matters much more here: silently discarding an in-
+  // progress *edit* back to blank on a failed save would be a much worse
+  // surprise than a blank create-form.
+  const currentRef = useRef({
+    prospectName: initialPackage?.prospectName ?? "",
+    prospectCompany: initialPackage?.prospectCompany ?? "",
+    prospectEmail: initialPackage?.prospectEmail ?? "",
+    letterBody: initialPackage?.letterBody ?? "",
+    privateNote: initialPackage?.privateNote ?? "",
+    templateId: initialPackage?.templateId ?? DEFAULT_LAYOUT_ID,
+    slots: { ...(initialPackage?.slots ?? {}) } as Record<string, string>,
+  });
 
   // Live-preview mirror state -- separate from the uncontrolled form above,
   // since nothing here is ever read back into a submitted field. Every
-  // place that sets a DOM value imperatively (applyPreset, the post-reset
-  // useEffect) must also update this, because el.value = x never fires
-  // React's onChange.
-  const [templateId, setTemplateId] = useState(DEFAULT_LAYOUT_ID);
-  const [prospectName, setProspectName] = useState("");
-  const [letterBody, setLetterBody] = useState("");
+  // place that sets a DOM value imperatively (applyPreset, reassertCurrent)
+  // must also update this, because el.value = x never fires React's onChange.
+  const [templateId, setTemplateId] = useState(
+    () => initialPackage?.templateId ?? DEFAULT_LAYOUT_ID,
+  );
+  const [prospectName, setProspectName] = useState(
+    () => initialPackage?.prospectName ?? "",
+  );
+  const [letterBody, setLetterBody] = useState(
+    () => initialPackage?.letterBody ?? "",
+  );
   const { slotAssets, setSlot } = usePreviewAssets(assets);
 
   const orgLogoAsset = useMemo(
@@ -75,17 +119,30 @@ export function NewPackageForm({
     if (orgLogoAsset) setSlot(ORG_LOGO_SLOT, orgLogoAsset.id);
   }, [orgLogoAsset, setSlot]);
 
+  // Seed the live preview from the package being edited -- setSlot itself
+  // only drives preview state, it's independent of (and runs once before)
+  // the reset-safety effect below. Deliberately mount-only: initialPackage
+  // never changes identity for a given edit session.
+  useEffect(() => {
+    if (!initialPackage) return;
+    for (const [slot, assetId] of Object.entries(initialPackage.slots)) {
+      setSlot(slot, assetId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function applyPreset(preset: PresetOption | undefined) {
     for (const s of PACKAGE_SLOTS) {
       const el = slotRefs.current[s.slot];
       const assetId = preset?.slots[s.slot] ?? "";
       if (el) el.value = assetId;
+      currentRef.current.slots[s.slot] = assetId;
       setSlot(s.slot, assetId);
     }
-    if (letterBodyRef.current) {
-      letterBodyRef.current.value = preset?.letterBody ?? "";
-    }
-    setLetterBody(preset?.letterBody ?? "");
+    const letter = preset?.letterBody ?? "";
+    if (letterBodyRef.current) letterBodyRef.current.value = letter;
+    currentRef.current.letterBody = letter;
+    setLetterBody(letter);
   }
 
   function handlePresetChange(id: string) {
@@ -93,25 +150,38 @@ export function NewPackageForm({
     applyPreset(presets.find((p) => p.id === id));
   }
 
-  // Confirmed live: useActionState's post-action form.reset() fires on ANY
-  // resolved action result, not just a successful one -- a failed {ok:false}
-  // validation response (e.g. a blank prospect name) silently snapped the
-  // preset pick, the prefilled assets/letter, and the layout choice all back
-  // to blank/default, discarding everything the rep had just entered. Same
-  // fix as LibraryClient.tsx's scope select: re-assert the real values right
-  // after that reset happens -- and also keep the live-preview state in
-  // sync, since the native reset blanks the ref-less prospect-name input
-  // too (nothing else was watching that before this preview existed).
+  // Re-applies currentRef onto every DOM field + the preview mirror state --
+  // shared by the post-action reset effect below.
+  function reassertCurrent() {
+    if (prospectNameRef.current) prospectNameRef.current.value = currentRef.current.prospectName;
+    if (prospectCompanyRef.current) prospectCompanyRef.current.value = currentRef.current.prospectCompany;
+    if (prospectEmailRef.current) prospectEmailRef.current.value = currentRef.current.prospectEmail;
+    if (letterBodyRef.current) letterBodyRef.current.value = currentRef.current.letterBody;
+    if (privateNoteRef.current) privateNoteRef.current.value = currentRef.current.privateNote;
+    if (layoutSelectRef.current) layoutSelectRef.current.value = currentRef.current.templateId;
+    for (const s of PACKAGE_SLOTS) {
+      const el = slotRefs.current[s.slot];
+      const assetId = currentRef.current.slots[s.slot] ?? "";
+      if (el) el.value = assetId;
+      setSlot(s.slot, assetId);
+    }
+    setTemplateId(currentRef.current.templateId);
+    setProspectName(currentRef.current.prospectName);
+    setLetterBody(currentRef.current.letterBody);
+  }
+
+  // Confirmed live (T10/T11, re-confirmed here): useActionState's
+  // post-action form.reset() fires on ANY resolved action result, not just
+  // a successful one -- a failed {ok:false} validation response would
+  // otherwise silently snap every field back to blank, discarding whatever
+  // the rep had just typed/picked (on an edit, that includes the fields
+  // that were already correct before they started editing). Re-assert the
+  // real current values right after that reset happens, every time.
   useEffect(() => {
     if (presetSelectRef.current) {
       presetSelectRef.current.value = selectedPresetIdRef.current;
     }
-    if (layoutSelectRef.current) {
-      layoutSelectRef.current.value = selectedLayoutIdRef.current;
-    }
-    setTemplateId(selectedLayoutIdRef.current);
-    setProspectName("");
-    applyPreset(presets.find((p) => p.id === selectedPresetIdRef.current));
+    reassertCurrent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
@@ -127,6 +197,10 @@ export function NewPackageForm({
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
       <form action={formAction} className="space-y-6">
+        {initialPackage && (
+          <input type="hidden" name="package_id" value={initialPackage.id} />
+        )}
+
         {presets.length > 0 && (
           <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
             <legend className="px-1 text-sm font-semibold text-neutral-700">
@@ -147,7 +221,7 @@ export function NewPackageForm({
             </select>
             <p className="text-xs text-neutral-500">
               Pre-fills the assets and letter below — you can still edit
-              anything before creating the package.
+              anything before saving.
             </p>
           </fieldset>
         )}
@@ -159,9 +233,9 @@ export function NewPackageForm({
           <select
             name="template_id"
             ref={layoutSelectRef}
-            defaultValue={DEFAULT_LAYOUT_ID}
+            defaultValue={initialPackage?.templateId ?? DEFAULT_LAYOUT_ID}
             onChange={(e) => {
-              selectedLayoutIdRef.current = e.target.value;
+              currentRef.current.templateId = e.target.value;
               setTemplateId(e.target.value);
             }}
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
@@ -179,22 +253,37 @@ export function NewPackageForm({
             Prospect
           </legend>
           <input
+            ref={prospectNameRef}
             name="prospect_name"
             required
+            defaultValue={initialPackage?.prospectName ?? ""}
             placeholder="Prospect name"
-            onChange={(e) => setProspectName(e.target.value)}
+            onChange={(e) => {
+              currentRef.current.prospectName = e.target.value;
+              setProspectName(e.target.value);
+            }}
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
           <div className="grid gap-3 sm:grid-cols-2">
             <input
+              ref={prospectCompanyRef}
               name="prospect_company"
+              defaultValue={initialPackage?.prospectCompany ?? ""}
               placeholder="Company (optional)"
+              onChange={(e) => {
+                currentRef.current.prospectCompany = e.target.value;
+              }}
               className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
             />
             <input
+              ref={prospectEmailRef}
               name="prospect_email"
               type="email"
+              defaultValue={initialPackage?.prospectEmail ?? ""}
               placeholder="Email (optional)"
+              onChange={(e) => {
+                currentRef.current.prospectEmail = e.target.value;
+              }}
               className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
             />
           </div>
@@ -213,11 +302,14 @@ export function NewPackageForm({
                 </span>
                 <select
                   name={`slot_${s.slot}`}
-                  defaultValue=""
+                  defaultValue={initialPackage?.slots[s.slot] ?? ""}
                   ref={(el) => {
                     slotRefs.current[s.slot] = el ?? undefined;
                   }}
-                  onChange={(e) => setSlot(s.slot, e.target.value)}
+                  onChange={(e) => {
+                    currentRef.current.slots[s.slot] = e.target.value;
+                    setSlot(s.slot, e.target.value);
+                  }}
                   className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
                 >
                   <option value="">— None —</option>
@@ -241,8 +333,12 @@ export function NewPackageForm({
             name="letter_body"
             ref={letterBodyRef}
             rows={6}
+            defaultValue={initialPackage?.letterBody ?? ""}
             placeholder="Hi [Name], ..."
-            onChange={(e) => setLetterBody(e.target.value)}
+            onChange={(e) => {
+              currentRef.current.letterBody = e.target.value;
+              setLetterBody(e.target.value);
+            }}
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
         </fieldset>
@@ -253,20 +349,41 @@ export function NewPackageForm({
           </legend>
           <textarea
             name="private_note"
+            ref={privateNoteRef}
             rows={2}
+            defaultValue={initialPackage?.privateNote ?? ""}
+            onChange={(e) => {
+              currentRef.current.privateNote = e.target.value;
+            }}
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
         </fieldset>
 
         {!state.ok && <p className="text-sm text-red-600">{state.error}</p>}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
-        >
-          {pending ? "Creating…" : "Create Package"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          >
+            {pending
+              ? initialPackage
+                ? "Saving…"
+                : "Creating…"
+              : initialPackage
+                ? "Save changes"
+                : "Create Package"}
+          </button>
+          {initialPackage && (
+            <a
+              href={`/packages/${initialPackage.slug}`}
+              className="text-sm text-neutral-500 hover:text-neutral-700"
+            >
+              Cancel
+            </a>
+          )}
+        </div>
       </form>
 
       <div className="lg:sticky lg:top-6">
