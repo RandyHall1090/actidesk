@@ -59,17 +59,18 @@ function AudioSlot({
         type="button"
         onClick={toggle}
         aria-label={playing ? "Pause audio message" : "Play audio message"}
-        className="relative block aspect-square w-full overflow-hidden rounded-[1cqw] shadow-2xl transition-transform hover:scale-105"
+        className="relative block h-full w-full overflow-hidden rounded-[1cqw] shadow-2xl transition-transform hover:scale-105"
       >
         {/* The source graphic's own canvas is a tall, generously-padded
-            product shot (896x1216, lots of surrounding white); cropped to
-            square via object-cover instead of shown at its native aspect
-            so the slot's on-desk footprint doesn't balloon far past what
-            every layout budgeted for this position (verified live against
-            all 3 layouts -- an uncropped tall render collided with the
-            nameplate/magazine in every one of them). Center crop keeps the
-            whole tilted phone in frame; only the excess white margin above
-            and below it is trimmed. */}
+            product shot (896x1216, lots of surrounding white); cropped via
+            object-cover to whatever aspect this slot is given (layouts.ts,
+            or the Layout Designer's own Aspect field -- square by default,
+            same as every layout shipped before this fix, but adjustable
+            now, unlike before when this was hardcoded to aspect-square
+            regardless of what the Designer's Aspect field said). Center
+            crop keeps the whole tilted phone in frame at any reasonable
+            aspect; only the excess white margin above and below it is
+            trimmed first. */}
         {/* eslint-disable-next-line @next/next/no-img-element -- static public asset, not a content image */}
         <img
           src="/desk-scene/audio-phone.webp"
@@ -129,6 +130,19 @@ function brochureTopPadding(pos: SlotPosition): string | undefined {
   const aspect = parseFloat(pos.aspect);
   if (!widthPct || !aspect) return undefined;
   return `${((widthPct / aspect) * (1 / 3)).toFixed(2)}%`;
+}
+
+// The audio slot's button fills its wrapper with h-full/w-full (so any
+// aspect actually takes effect -- see AudioSlot below), which only works
+// if the wrapper resolves to a real height. A non-numeric aspect value --
+// "auto" is a real one someone might type into the Layout Designer,
+// expecting "size itself naturally" -- sets no height at all here (there's
+// no intrinsic image directly establishing one, unlike e.g. the business
+// card's plain <img>), collapsing the box to nothing. Falls back to a
+// square, the same default every layout had before aspect was adjustable.
+function resolveAudioAspect(aspect: string | undefined): string {
+  const parsed = aspect ? parseFloat(aspect) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? aspect! : "1";
 }
 
 /**
@@ -249,7 +263,12 @@ export function DeskScene({
       {audio && (
         <AudioSlot
           url={audio.url}
-          style={slotStyle(layout.slots.audio)}
+          // Square by default (every layout shipped before this fix has no
+          // aspect set for audio and relied on that default), but a real,
+          // adjustable value now -- previously the button underneath this
+          // ignored pos.aspect entirely and always forced a square crop, so
+          // the Layout Designer's Aspect field for this slot did nothing.
+          style={{ ...slotStyle(layout.slots.audio), aspectRatio: resolveAudioAspect(layout.slots.audio.aspect) }}
           onPlay={() => onTrack("audio", "asset_played")}
         />
       )}

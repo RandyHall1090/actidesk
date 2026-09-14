@@ -61,6 +61,11 @@ export const DEFAULT_PREVIEW_ASPECT: Partial<Record<SlotId, number>> = {
   video_2: 16 / 9,
   business_card: 1.6,
   letter: 1.5,
+  // Matches the real DeskScene default now that the audio slot's aspect
+  // is actually adjustable (previously hardcoded square regardless of
+  // this field) -- 1 here so the designer's own preview box starts out
+  // matching what a layout with no aspect set for audio really renders.
+  audio: 1,
   // Matches MagazineSlot's real aspect-[0.77] (DocumentViewer.tsx) -- a
   // book/magazine-cover proportion, not a video/card shape.
   magazine: 0.77,
