@@ -31,6 +31,12 @@ export type DeskLayout = {
     // optional-slot pattern as video_2, an older layout simply doesn't
     // define a position for it and DeskScene won't render one.
     pen?: SlotPosition;
+    // A second and third magazine/feature cover, same optional-slot
+    // pattern as video_2/pen -- every layout as of this writing defines
+    // both, smaller than the primary magazine where a layout's remaining
+    // open pockets demand it (see DeskScene.tsx for the shared rendering).
+    magazine_2?: SlotPosition;
+    magazine_3?: SlotPosition;
   };
   // Only a layout with real estate for these (desk-v3+) sets them -- when
   // absent, PackageView falls back to rendering the letter/brochures as
@@ -61,6 +67,10 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // its bottom edge into the magazine slot below (verified live).
       audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
       magazine: { left: "2%", top: "54%", width: "17%", rotate: -6 },
+      // Between the pen and business_card, clear of video_2 above.
+      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6 },
+      // Below business_card, right of the pen.
+      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6 },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
       // Open middle-bottom area, clear of every other slot.
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
@@ -86,6 +96,11 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // width to keep its bottom edge clear of the magazine (verified live).
       audio: { left: "10%", top: "44%", width: "6%", rotate: -6 },
       magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
+      // Right of magazine 1, clear of the pen in the middle.
+      magazine_2: { left: "27%", top: "58%", width: "9%", rotate: -6 },
+      // Narrow open column right of video_2/business_card, at the edge of
+      // the real tabletop (this layout's usable area stops around y 80%).
+      magazine_3: { left: "83%", top: "53%", width: "11%", rotate: 6 },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
       // Open middle-bottom area of the tabletop, between magazine and
       // business_card, below the video row.
@@ -123,11 +138,25 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // both verified live via real element bounding boxes, not eyeballed.
       audio: { left: "6%", top: "42%", width: "6%", rotate: -6 },
       magazine: { left: "68%", top: "19%", width: "11%", rotate: -6 },
+      // Takes over the pen's old pocket (below business_card, right of the
+      // letter, above the brochures' blotter row) -- the pen moved to a
+      // smaller gap to make room (see below). Narrower than magazine_2 on
+      // the other two layouts: this pocket is short, so a wider box would
+      // push into the brochures row (verified live via real bounding
+      // boxes). No magazine_3 on this layout at all -- there simply isn't
+      // a third pocket left that doesn't look cramped; same optional-slot
+      // pattern as video_2/pen, just the first slot dense enough to hit
+      // that ceiling (confirmed with Randy rather than forced in).
+      magazine_2: { left: "78%", top: "38%", width: "6%", rotate: 6 },
       business_card: { left: "80%", top: "20%", width: "10%", rotate: 6 },
-      // Smaller than the other layouts' pen -- desk-v3 is already the
-      // densest layout. The one open pocket left: below business_card,
-      // right of the letter, above the brochures' blotter row.
-      pen: { left: "78%", top: "38%", width: "8%", rotate: -20 },
+      // Moved into the narrow gap between the nameplate and the audio
+      // phone/second video (was in magazine_2's now pocket, above) -- its
+      // bounding box technically grazes the nameplate's corner here
+      // (confirmed live), but the pen photo's own transparent margin means
+      // the visible ink doesn't actually touch it or the nameplate text --
+      // judged by eye at real size, not just by box math, the same way a
+      // document cover (solid white, no forgiving transparency) couldn't.
+      pen: { left: "14%", top: "37%", width: "5%", rotate: -20 },
     },
     // Wider/shorter (landscape-ish) rather than strictly letter-proportioned
     // -- cqw sizing is relative to the whole scene's width, so a wider box

@@ -340,6 +340,8 @@ export function TemplatesClient({
             pen={toSlotAsset("pen", slotAssets.pen)}
             businessCard={toSlotAsset("business_card", slotAssets.business_card)}
             magazine={toSlotAsset("magazine", slotAssets.magazine)}
+            magazine2={toSlotAsset("magazine_2", slotAssets.magazine_2)}
+            magazine3={toSlotAsset("magazine_3", slotAssets.magazine_3)}
             letterBody={letterBody || null}
             brochures={brochureSlots}
             orgName={orgName}

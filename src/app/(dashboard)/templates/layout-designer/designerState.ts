@@ -8,6 +8,8 @@ export type SlotId =
   | "pen"
   | "business_card"
   | "magazine"
+  | "magazine_2"
+  | "magazine_3"
   | "letter"
   | "brochure_1"
   | "brochure_2"
@@ -28,7 +30,9 @@ const SLOT_DEFS: SlotDef[] = [
   { id: "video_2", label: "Video 2", optional: true },
   { id: "audio", label: "Audio", optional: false },
   { id: "pen", label: "Pen", optional: true },
-  { id: "magazine", label: "Magazine", optional: false },
+  { id: "magazine", label: "Magazine 1", optional: false },
+  { id: "magazine_2", label: "Magazine 2", optional: true },
+  { id: "magazine_3", label: "Magazine 3", optional: true },
   { id: "business_card", label: "Business Card", optional: false },
   { id: "letter", label: "Letter", optional: true },
   { id: "brochure_1", label: "Brochure 1", optional: true },
@@ -57,6 +61,11 @@ export const DEFAULT_PREVIEW_ASPECT: Partial<Record<SlotId, number>> = {
   video_2: 16 / 9,
   business_card: 1.6,
   letter: 1.5,
+  // Matches MagazineSlot's real aspect-[0.77] (DocumentViewer.tsx) -- a
+  // book/magazine-cover proportion, not a video/card shape.
+  magazine: 0.77,
+  magazine_2: 0.77,
+  magazine_3: 0.77,
 };
 
 /** A blank starting layout: cascades the 10 boxes so they don't all spawn stacked and unreachable. */

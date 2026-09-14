@@ -34,7 +34,7 @@ Reps have no fast way to send a prospect a rich, credibility-building package be
 |----------|---------|-------------|
 | P0 | Multi-tenant signup | Self-service: a new email domain creates a new organization (its creator becomes admin); a matching domain joins the existing one (as rep) |
 | P0 | Asset library | Company-wide + personal libraries for video, audio, images, documents, business cards, logo, pen photos — scoped per tenant |
-| P0 | Create package | Form to enter prospect info and pick/upload an asset for every slot (video, a second video, audio, business card, magazine, letter text, brochures, an optional decorative pen) |
+| P0 | Create package | Form to enter prospect info and pick/upload an asset for every slot (video, a second video, audio, business card, up to 3 magazines/features, letter text, brochures, an optional decorative pen) |
 | P0 | Desk-flat-lay renderer | Public page at a unique URL rendering the personalized template with all chosen assets, playable/openable, branded with the sending tenant's logo/name |
 | P0 | Tracking | Log page views and per-asset opens/plays; surface in a "My Sites" list per rep |
 | P0 | Team management | Admins see everyone in their org and can promote/demote rep ↔ admin, add a user directly (system-generated temp password, no email), reset a locked-out user's password, and deactivate/reactivate a user without deleting their historical packages/assets |

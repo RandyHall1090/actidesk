@@ -149,6 +149,8 @@ export function DeskScene({
   pen,
   businessCard,
   magazine,
+  magazine2,
+  magazine3,
   letterBody,
   brochures,
   orgName,
@@ -163,6 +165,8 @@ export function DeskScene({
   pen: SlotAsset | undefined;
   businessCard: SlotAsset | undefined;
   magazine: SlotAsset | undefined;
+  magazine2: SlotAsset | undefined;
+  magazine3: SlotAsset | undefined;
   letterBody: string | null;
   brochures: SlotAsset[];
   orgName: string;
@@ -280,6 +284,29 @@ export function DeskScene({
           {/* eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset */}
           <img src={magazine.url} alt="Magazine feature" className="w-full" />
         </a>
+      )}
+
+      {/* Magazine 2/3 -- same optional-slot pattern as video_2/pen, and no
+          legacy image-kind branch needed (unlike Magazine 1): these slots
+          never existed before "document" was the only kind offered for
+          them, so there's no pre-existing image-based asset to stay
+          backward-compatible with. */}
+      {magazine2 && layout.slots.magazine_2 && (
+        <MagazineSlot
+          url={magazine2.url}
+          name={magazine2.name}
+          style={slotStyle(layout.slots.magazine_2)}
+          onOpen={() => onTrack("magazine_2")}
+        />
+      )}
+
+      {magazine3 && layout.slots.magazine_3 && (
+        <MagazineSlot
+          url={magazine3.url}
+          name={magazine3.name}
+          style={slotStyle(layout.slots.magazine_3)}
+          onOpen={() => onTrack("magazine_3")}
+        />
       )}
 
       {businessCard && (

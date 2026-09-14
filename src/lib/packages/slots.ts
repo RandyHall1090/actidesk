@@ -24,8 +24,14 @@ export const PACKAGE_SLOTS: PackageSlot[] = [
   // photo. A pre-existing image-kind magazine asset already attached to a
   // real package still renders (DeskScene branches on the asset's own
   // .kind, not this registry), it's just no longer offered when picking a
-  // *new* one.
-  { slot: "magazine", label: "Magazine / Feature", kind: "document" },
+  // *new* one. The slot key stays "magazine" (not "magazine_1") even
+  // though its label is now "Magazine 1" -- every already-sent package's
+  // package_assets row already uses this key, and renaming the key itself
+  // would require a data migration for zero real benefit (the label is
+  // display-only).
+  { slot: "magazine", label: "Magazine 1", kind: "document" },
+  { slot: "magazine_2", label: "Magazine 2", kind: "document" },
+  { slot: "magazine_3", label: "Magazine 3", kind: "document" },
   { slot: "brochure_1", label: "Brochure 1", kind: "document" },
   { slot: "brochure_2", label: "Brochure 2", kind: "document" },
   { slot: "brochure_3", label: "Brochure 3", kind: "document" },
