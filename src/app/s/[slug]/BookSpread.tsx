@@ -55,19 +55,24 @@ function PageBox({
   height: number;
   left: number;
 }) {
+  // A cover (or a trailing unpaired back cover) has nothing on the facing
+  // side -- render nothing there at all rather than an empty white
+  // rectangle. Confirmed live: a real 18-page proposal PDF opened straight
+  // onto a stark blank page-sized white box next to the cover, which read
+  // as broken/half-loaded rather than "this is a single page, by design."
+  if (pageNumber === null) return null;
+
   return (
     <div
       className="absolute top-0 overflow-hidden rounded bg-white shadow-2xl"
       style={{ left, width, height }}
     >
-      {pageNumber !== null && (
-        <PdfPageCanvas
-          pdf={pdf}
-          pageNumber={pageNumber}
-          targetWidth={width}
-          className="h-full w-full object-contain"
-        />
-      )}
+      <PdfPageCanvas
+        pdf={pdf}
+        pageNumber={pageNumber}
+        targetWidth={width}
+        className="h-full w-full object-contain"
+      />
     </div>
   );
 }
@@ -291,7 +296,17 @@ export const BookSpread = forwardRef<
   }
 
   const gap = 6;
-  const maxPerPageWidthFromWidth = (containerWidth - gap) / 2;
+  // The row also holds two 40px arrow/spacer slots and the two gap-4 (16px)
+  // gaps flanking the page spread -- confirmed live, omitting this chrome
+  // budget let the computed spread width fill the *entire* container, so
+  // the whole row (spread + arrows) overflowed its clipped parent by
+  // ~112px. Centered overflow inside an overflow-hidden ancestor clips
+  // symmetrically from both edges, which is exactly why *both* arrows
+  // disappeared rather than just one: the real bug wasn't that they failed
+  // to render (they were in the DOM the whole time), it's that they were
+  // pushed outside the visible area on both sides at once.
+  const arrowChrome = 2 * 40 + 2 * 16;
+  const maxPerPageWidthFromWidth = (containerWidth - arrowChrome - gap) / 2;
   const maxPerPageWidthFromHeight = containerHeight * aspect;
   const perPageWidth = Math.max(
     80,
