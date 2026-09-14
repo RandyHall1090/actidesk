@@ -243,7 +243,14 @@ export function DeskScene({
         <img
           src={pen.url}
           alt=""
-          style={slotStyle(layout.slots.pen)}
+          style={{
+            ...slotStyle(layout.slots.pen),
+            // Mirrored -- the source photo points the opposite way from
+            // how it reads naturally on the desk; flipped once here at the
+            // render site rather than re-editing the source asset, so the
+            // rotate value from layouts.ts still applies on top of it.
+            transform: `scaleX(-1) ${slotStyle(layout.slots.pen).transform ?? ""}`,
+          }}
           className="pointer-events-none drop-shadow-2xl"
         />
       )}
