@@ -8,11 +8,16 @@ import { PACKAGE_SLOTS } from "@/lib/packages/slots";
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 /**
- * Presets are entirely admin-authored, org-wide bundles (no owner/scope
- * concept like assets have) -- the role check here is a friendly-error
- * guard, matching the pattern in library/actions.ts. RLS (presets_insert_admin
- * / presets_update_admin / presets_delete_admin, via is_org_admin()) is the
- * real enforcement.
+ * Presets are personal/company-scope, owned bundles -- the same shape as
+ * assets (0001), extended onto presets in migration 0019. Any signed-in org
+ * member can create one and choose to share it (scope: "company"); only the
+ * owner or an org admin can update/delete it. This is a deliberate
+ * departure from how assets themselves work (there, only an admin can mark
+ * something company-scope) -- Randy explicitly asked for any rep to be able
+ * to share their own template. RLS (presets_insert_own /
+ * presets_update_own_or_admin / presets_delete_own_or_admin) is the real
+ * enforcement; the ownership/permission errors below are just a clearer
+ * message than RLS's own "0 rows affected."
  *
  * One form, one action, for both create and edit -- a hidden `preset_id`
  * field (empty when creating/cloning into a new one) tells this which case
@@ -27,15 +32,13 @@ export async function savePreset(
 ): Promise<ActionResult> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Not signed in." };
-  if (profile.role !== "admin") {
-    return { ok: false, error: "Only admins can manage templates." };
-  }
 
   const name = (formData.get("name") as string | null)?.trim();
   if (!name) return { ok: false, error: "Name is required." };
   const letterBody =
     (formData.get("letter_body") as string | null)?.trim() || null;
   const presetId = (formData.get("preset_id") as string | null)?.trim() || null;
+  const scope = formData.get("scope") === "company" ? "company" : "personal";
 
   const supabase = await createClient();
   let targetPresetId: string;
@@ -43,7 +46,7 @@ export async function savePreset(
   if (presetId) {
     const { data, error } = await supabase
       .from("presets")
-      .update({ name, letter_body: letterBody })
+      .update({ name, letter_body: letterBody, scope })
       .eq("id", presetId)
       .eq("org_id", profile.org_id)
       .select("id")
@@ -51,7 +54,9 @@ export async function savePreset(
     if (error || !data) {
       return {
         ok: false,
-        error: error?.message ?? "Couldn't update the template.",
+        error:
+          error?.message ??
+          "Couldn't save changes — you may not have permission to edit this template.",
       };
     }
     targetPresetId = data.id;
@@ -69,6 +74,7 @@ export async function savePreset(
         created_by: profile.id,
         name,
         letter_body: letterBody,
+        scope,
       })
       .select("id")
       .single();
@@ -115,13 +121,23 @@ export async function deletePresetFormAction(presetId: string): Promise<void> {
 export async function deletePreset(presetId: string): Promise<ActionResult> {
   const profile = await getCurrentProfile();
   if (!profile) return { ok: false, error: "Not signed in." };
-  if (profile.role !== "admin") {
-    return { ok: false, error: "Only admins can delete templates." };
-  }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("presets").delete().eq("id", presetId);
+  // RLS (presets_delete_own_or_admin) silently deletes 0 rows rather than
+  // erroring when the caller isn't the owner or an admin -- the count check
+  // is what turns that into an actual, visible error instead of the row
+  // just quietly staying put with no feedback.
+  const { error, count } = await supabase
+    .from("presets")
+    .delete({ count: "exact" })
+    .eq("id", presetId);
   if (error) return { ok: false, error: error.message };
+  if (!count) {
+    return {
+      ok: false,
+      error: "You don't have permission to delete this template.",
+    };
+  }
 
   revalidatePath("/templates");
   return { ok: true };

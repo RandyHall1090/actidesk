@@ -13,6 +13,8 @@ export type Preset = {
   id: string;
   name: string;
   letter_body: string | null;
+  scope: "personal" | "company";
+  created_by: string;
   created_at: string;
   preset_assets: { slot_name: string; asset_id: string | null }[];
 };
@@ -30,12 +32,16 @@ export function TemplatesClient({
   presets,
   orgName,
   layouts,
+  currentUserId,
+  isAdmin,
 }: {
   assets: Asset[];
   presets: Preset[];
   orgName: string;
   // Built-in + this org's own saved custom ones (see NewPackageForm.tsx).
   layouts: DeskLayout[];
+  currentUserId: string;
+  isAdmin: boolean;
 }) {
   // Presets have no layout concept of their own -- a layout is picked
   // per-package, not per-preset. Preview against whichever layout actually
@@ -73,6 +79,7 @@ export function TemplatesClient({
   // new); equal to mirroredPresetIdRef only when actually editing.
   const nameRef = useRef<HTMLInputElement>(null);
   const letterBodyRef = useRef<HTMLTextAreaElement>(null);
+  const scopeSelectRef = useRef<HTMLSelectElement>(null);
   const slotRefs = useRef<Partial<Record<string, HTMLSelectElement>>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const presetIdInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +100,16 @@ export function TemplatesClient({
           ? `${preset.name} (Copy)`
           : preset.name
         : "";
+    }
+    // A clone always starts personal, regardless of the source's own scope
+    // -- "make changes to their version" means their own private copy
+    // first, not something that's immediately visible to the whole team
+    // again. Editing keeps whatever scope the template already has;
+    // starting from scratch defaults to personal too.
+    if (scopeSelectRef.current) {
+      scopeSelectRef.current.value = asCopy
+        ? "personal"
+        : (preset?.scope ?? "personal");
     }
     // A mirrored slot's asset can be personal-scope, owned by whoever
     // originally picked it -- invisible to this admin's own `assets` list
@@ -197,6 +214,15 @@ export function TemplatesClient({
     .map((n) => toSlotAsset(`brochure_${n}`, slotAssets[`brochure_${n}`]))
     .filter((a): a is SlotAsset => !!a);
 
+  // presets already only contains your own (any scope) plus every
+  // company-scope one in the org (RLS, migration 0019) -- this just splits
+  // that one list into the two sections, mirroring LibraryClient.tsx's own
+  // "My library" / "Company library" split for assets.
+  const myPresets = presets.filter((p) => p.created_by === currentUserId);
+  const sharedPresets = presets.filter(
+    (p) => p.scope === "company" && p.created_by !== currentUserId,
+  );
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
@@ -232,6 +258,21 @@ export function TemplatesClient({
             placeholder="Template name (e.g. Enterprise pitch)"
             className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
           />
+
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-neutral-700">
+              Visibility
+            </span>
+            <select
+              name="scope"
+              ref={scopeSelectRef}
+              defaultValue="personal"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+            >
+              <option value="personal">Personal — only you</option>
+              <option value="company">Shared with your team</option>
+            </select>
+          </label>
 
           {PACKAGE_SLOTS.map((s) => {
             const options = assets.filter((a) => a.kind === s.kind);
@@ -311,64 +352,111 @@ export function TemplatesClient({
         </div>
       </div>
 
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-neutral-700">
-          Existing Templates
-        </h3>
-        {presets.length === 0 ? (
-          <p className="text-sm text-neutral-400">No templates yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {presets.map((preset) => {
-              const filledSlots = preset.preset_assets.filter(
-                (pa) => pa.asset_id,
-              );
-              return (
-                <li
+      <div className="space-y-6">
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+            My Templates
+          </h3>
+          {myPresets.length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              No templates of your own yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {myPresets.map((preset) => (
+                <PresetRow
                   key={preset.id}
-                  className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-neutral-900">
-                      {preset.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-neutral-500">
-                      {filledSlots.length > 0
-                        ? `${filledSlots.length} asset${filledSlots.length === 1 ? "" : "s"} selected`
-                        : "No assets selected"}
-                      {preset.letter_body ? " · has letter text" : ""}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(preset)}
-                      className="text-xs text-neutral-700 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleClone(preset)}
-                      className="text-xs text-neutral-700 hover:underline"
-                    >
-                      Clone
-                    </button>
-                    <form action={deletePresetFormAction.bind(null, preset.id)}>
-                      <button
-                        type="submit"
-                        className="text-xs text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                  preset={preset}
+                  canManage
+                  onEdit={handleEdit}
+                  onClone={handleClone}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+            Shared by your team
+          </h3>
+          {sharedPresets.length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              No one has shared a template yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {sharedPresets.map((preset) => (
+                <PresetRow
+                  key={preset.id}
+                  preset={preset}
+                  canManage={isAdmin}
+                  onEdit={handleEdit}
+                  onClone={handleClone}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+/** One row in either template list. Edit/Delete only for the owner (or an
+ * admin, on a shared one) -- Clone is always available, since that's how
+ * anyone else turns someone's shared template into their own editable copy. */
+function PresetRow({
+  preset,
+  canManage,
+  onEdit,
+  onClone,
+}: {
+  preset: Preset;
+  canManage: boolean;
+  onEdit: (preset: Preset) => void;
+  onClone: (preset: Preset) => void;
+}) {
+  const filledSlots = preset.preset_assets.filter((pa) => pa.asset_id);
+  return (
+    <li className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm">
+      <div className="min-w-0">
+        <p className="font-medium text-neutral-900">{preset.name}</p>
+        <p className="mt-0.5 text-xs text-neutral-500">
+          {filledSlots.length > 0
+            ? `${filledSlots.length} asset${filledSlots.length === 1 ? "" : "s"} selected`
+            : "No assets selected"}
+          {preset.letter_body ? " · has letter text" : ""}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-3">
+        {canManage && (
+          <button
+            type="button"
+            onClick={() => onEdit(preset)}
+            className="text-xs text-neutral-700 hover:underline"
+          >
+            Edit
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onClone(preset)}
+          className="text-xs text-neutral-700 hover:underline"
+        >
+          Clone
+        </button>
+        {canManage && (
+          <form action={deletePresetFormAction.bind(null, preset.id)}>
+            <button
+              type="submit"
+              className="text-xs text-red-600 hover:underline"
+            >
+              Delete
+            </button>
+          </form>
+        )}
+      </div>
+    </li>
   );
 }

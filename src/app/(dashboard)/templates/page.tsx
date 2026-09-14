@@ -10,13 +10,6 @@ import { TemplatesClient, type Preset } from "./TemplatesClient";
 export default async function TemplatesPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
-  if (profile.role !== "admin") {
-    return (
-      <p className="text-sm text-neutral-600">
-        Only admins can manage templates.
-      </p>
-    );
-  }
 
   const supabase = await createClient();
 
@@ -30,9 +23,14 @@ export default async function TemplatesPage() {
           "id, org_id, owner_id, scope, kind, name, storage_path, external_url, file_size_bytes, created_at",
         )
         .order("created_at", { ascending: false }),
+      // RLS (presets_select_org, migration 0019) already limits this to your
+      // own presets plus every company-scope one in the org -- no further
+      // filtering needed here.
       supabase
         .from("presets")
-        .select("id, name, letter_body, created_at, preset_assets(slot_name, asset_id)")
+        .select(
+          "id, name, letter_body, scope, created_by, created_at, preset_assets(slot_name, asset_id)",
+        )
         .order("created_at", { ascending: false }),
     ]);
 
@@ -49,22 +47,28 @@ export default async function TemplatesPage() {
     <div>
       <h2 className="text-xl font-semibold text-neutral-900">Templates</h2>
       <p className="mt-1 mb-2 text-sm text-neutral-600">
-        Content presets reps can start a new package from — a saved set of
-        asset picks and letter text.
+        Content presets you can start a new package from — a saved set of
+        asset picks and letter text. Keep your own private, or share one with
+        your team; clone anyone&apos;s shared template to make your own
+        editable version.
       </p>
-      <p className="mb-6 text-sm">
-        <Link
-          href="/templates/layout-designer"
-          className="font-medium text-neutral-700 underline hover:text-neutral-900"
-        >
-          Manage desk layouts →
-        </Link>
-      </p>
+      {profile.role === "admin" && (
+        <p className="mb-6 text-sm">
+          <Link
+            href="/templates/layout-designer"
+            className="font-medium text-neutral-700 underline hover:text-neutral-900"
+          >
+            Manage desk layouts →
+          </Link>
+        </p>
+      )}
       <TemplatesClient
         assets={(assets ?? []) as Asset[]}
         presets={(presets ?? []) as Preset[]}
         orgName={org?.name ?? ""}
         layouts={layouts}
+        currentUserId={profile.id}
+        isAdmin={profile.role === "admin"}
       />
     </div>
   );
