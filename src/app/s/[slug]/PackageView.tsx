@@ -53,15 +53,27 @@ export function PackageView({
   const brochures = slots.filter((s) => s.slot.startsWith("brochure_"));
 
   return (
-    // w-full is required, not redundant with max-w-3xl: body is a column
+    // w-full is required, not redundant with max-w-7xl: body is a column
     // flex container (layout.tsx), and this container's real content is
     // sparse on packages with few slots filled (e.g. video only, no
     // letter/brochures) -- without an explicit width, it was sized by
     // shrink-to-fit against that sparse content instead of stretching to
     // fill the flex cross-axis, rendering the whole page at a fraction of
     // its intended size. Confirmed live: a package with only a video slot
-    // rendered at 87px wide instead of 768px.
-    <div className="mx-auto w-full min-h-full max-w-3xl px-4 py-12">
+    // rendered at 87px wide instead of the intended width.
+    //
+    // max-w-7xl (not max-w-3xl): DeskScene already scales to fill its own
+    // parent (that's the whole point of its cqw-based sizing), so the real
+    // desk-scene hero was capped at a fixed 768px regardless of how much
+    // wider the browser window actually was -- confirmed live, it left
+    // large empty margins on anything wider than a small laptop. 7xl fills
+    // essentially the whole window on typical screens while still keeping
+    // the aspect-ratio'd hero from becoming absurdly tall on very wide
+    // monitors. The letter/brochure fallback text (for layouts that don't
+    // render them on-photo) stays in its own narrower wrapper below --
+    // paragraph text at 1200px+ wide reads badly even though the hero image
+    // looks better that big.
+    <div className="mx-auto w-full min-h-full max-w-7xl px-4 py-12">
       <div className="mb-8 flex items-center gap-3">
         {orgLogoUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
@@ -90,34 +102,36 @@ export function PackageView({
         />
       </div>
 
-      {!layout.letter && letterBody && (
-        <section className="mb-8 whitespace-pre-wrap rounded-lg border border-neutral-200 bg-white p-6 text-neutral-800">
-          {letterBody}
-        </section>
-      )}
+      <div className="mx-auto max-w-3xl">
+        {!layout.letter && letterBody && (
+          <section className="mb-8 whitespace-pre-wrap rounded-lg border border-neutral-200 bg-white p-6 text-neutral-800">
+            {letterBody}
+          </section>
+        )}
 
-      {!layout.brochures && brochures.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-sm font-semibold text-neutral-500">
-            Documents
-          </h2>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {brochures.map((b) => (
-              <li key={b.slot}>
-                <a
-                  href={b.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => track(b.slot)}
-                  className="block rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 hover:border-neutral-400"
-                >
-                  {b.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {!layout.brochures && brochures.length > 0 && (
+          <section>
+            <h2 className="mb-2 text-sm font-semibold text-neutral-500">
+              Documents
+            </h2>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {brochures.map((b) => (
+                <li key={b.slot}>
+                  <a
+                    href={b.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => track(b.slot)}
+                    className="block rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 hover:border-neutral-400"
+                  >
+                    {b.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
