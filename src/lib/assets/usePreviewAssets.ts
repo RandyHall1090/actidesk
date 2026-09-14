@@ -63,7 +63,14 @@ export function usePreviewAssets(assets: Asset[]) {
       if (!asset.storage_path) return;
       createClient()
         .storage.from("assets")
-        .createSignedUrl(asset.storage_path, 3600)
+        // "document" gets a download-flagged URL too, matching the public
+        // page (page.tsx) -- so the reader's Download button behaves the
+        // same way in this admin preview as it will for a real prospect.
+        .createSignedUrl(
+          asset.storage_path,
+          3600,
+          asset.kind === "document" ? { download: `${asset.name}.pdf` } : undefined,
+        )
         .then(({ data }) => {
           if (!data?.signedUrl) return;
           signedUrlCache.current.set(asset.id, data.signedUrl);

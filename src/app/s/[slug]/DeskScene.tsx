@@ -3,7 +3,7 @@
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
-import { MagazineSlot } from "./MagazineViewer";
+import { MagazineSlot, DocumentLink } from "./DocumentViewer";
 
 // Layout positions come from a per-template config (src/lib/packages/layouts.ts)
 // as inline styles rather than Tailwind arbitrary-value classes -- Tailwind v4
@@ -228,12 +228,11 @@ export function DeskScene({
           const b = brochures.find((x) => x.slot === slotName);
           if (!b) return null;
           return (
-            <a
+            <DocumentLink
               key={slotName}
-              href={b.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => onTrack(slotName)}
+              url={b.url}
+              name={b.name}
+              onOpen={() => onTrack(slotName)}
               style={slotStyle(pos)}
               className="flex flex-col items-center justify-center gap-[0.6cqw] rounded-[0.6cqw] bg-white p-[1.2cqw] text-center shadow-xl ring-1 ring-black/10 transition-transform hover:scale-105"
             >
@@ -244,7 +243,7 @@ export function DeskScene({
               <span className="line-clamp-2 text-[1.1cqw] font-semibold text-neutral-800">
                 {b.name}
               </span>
-            </a>
+            </DocumentLink>
           );
         })}
     </div>

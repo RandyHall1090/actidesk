@@ -51,9 +51,22 @@ export default async function PackagePage({
   for (const row of slotRows) {
     let url = row.external_url;
     if (!url && row.storage_path) {
+      // "document" (brochure/magazine PDFs) gets a download-flagged signed
+      // URL -- the DocumentViewer reader's Download button just links
+      // straight to this same url, and Supabase's `download` option makes
+      // the object's response carry a real Content-Disposition: attachment
+      // header, which is what actually makes a clicked link save the file
+      // instead of navigating to it (the HTML `download` attribute alone
+      // is ignored cross-origin, which this signed URL always is). Every
+      // document-kind asset observed in this app is a PDF; ".pdf" isn't
+      // derived from the stored file's own extension.
       const { data: signed } = await supabase.storage
         .from("assets")
-        .createSignedUrl(row.storage_path, 60 * 60); // regenerated on every page load
+        .createSignedUrl(
+          row.storage_path,
+          60 * 60, // regenerated on every page load
+          row.kind === "document" ? { download: `${row.name}.pdf` } : undefined,
+        );
       url = signed?.signedUrl ?? null;
     }
     if (url) {

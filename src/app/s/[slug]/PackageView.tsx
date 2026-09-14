@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { logTrackingEvent } from "@/lib/tracking";
 import type { DeskLayout } from "@/lib/packages/layouts";
 import { DeskScene } from "./DeskScene";
+import { DocumentLink } from "./DocumentViewer";
 
 export type SlotAsset = {
   slot: string;
@@ -117,15 +118,14 @@ export function PackageView({
             <ul className="grid gap-2 sm:grid-cols-2">
               {brochures.map((b) => (
                 <li key={b.slot}>
-                  <a
-                    href={b.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => track(b.slot)}
-                    className="block rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-800 hover:border-neutral-400"
+                  <DocumentLink
+                    url={b.url}
+                    name={b.name}
+                    onOpen={() => track(b.slot)}
+                    className="block w-full rounded-md border border-neutral-200 bg-white px-4 py-3 text-left text-sm font-medium text-neutral-800 hover:border-neutral-400"
                   >
                     {b.name}
-                  </a>
+                  </DocumentLink>
                 </li>
               ))}
             </ul>

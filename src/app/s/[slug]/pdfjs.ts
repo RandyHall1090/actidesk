@@ -31,9 +31,15 @@ export async function loadPdf(url: string): Promise<PDFDocumentProxy> {
 
 /**
  * Renders one page to a caller-owned canvas at `targetWidth` CSS px
- * (multiplied by devicePixelRatio for a crisp raster), then lets CSS scale
- * the canvas responsively via `width:100%; height:auto` exactly like an
- * `<img>` -- the canvas's width/height attributes set its intrinsic size.
+ * (multiplied by devicePixelRatio for a crisp raster). Only the canvas's
+ * width/height *attributes* (its intrinsic resolution) are set here --
+ * deliberately no inline `style.width`/`style.height`, so each caller's own
+ * CSS classes fully control how it's displayed. That matters for the
+ * reader's main page view, which needs `max-h-full` (fit inside whichever
+ * of width/height is more restrictive, exactly like `object-fit: contain`)
+ * rather than the cover/thumbnail uses' simple `w-full` -- an inline style
+ * set here would win over those classes (inline style always beats a
+ * stylesheet rule) and silently break that per-caller sizing.
  *
  * Returns the real pdf.js RenderTask (not just its promise) so a caller can
  * `.cancel()` an in-flight render -- required because pdf.js throws if a
@@ -54,8 +60,6 @@ export async function renderPageToCanvas(
 
   canvas.width = Math.round(viewport.width);
   canvas.height = Math.round(viewport.height);
-  canvas.style.width = "100%";
-  canvas.style.height = "auto";
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context unavailable");
