@@ -1,0 +1,22 @@
+-- Second layer of the same class of bug fixed in migration 0016.
+--
+-- After granting anon EXECUTE on is_org_admin, the identical anon-key
+-- Storage sign-endpoint call still failed -- this time with "permission
+-- denied for function is_platform_admin". The pre-existing anon-scoped
+-- storage policies (assets_storage_select_public_via_package,
+-- assets_storage_select_public_logo, from migrations
+-- assets_storage_bucket/package_lookup_org_branding) subquery the
+-- `assets` table to decide whether a given storage object is publicly
+-- visible, and `assets`'s own SELECT RLS policy (extended in migration
+-- platform_admin_and_user_lifecycle) also checks is_platform_admin() --
+-- so planning an anon storage request that touches `assets` hits the
+-- same missing-grant error one level deeper.
+--
+-- Same safety reasoning as 0016: is_platform_admin() already returns
+-- false for anon (auth.uid() is null), so this grant does not change
+-- what it authorizes -- it only lets it run instead of erroring. See
+-- migration 0018 for the underlying root-cause fix this uncovered:
+-- `assets`/`package_assets` had no real anon-readable SELECT policy at
+-- all, so even with both grants in place the storage policies' subqueries
+-- always returned zero rows for anon regardless of the real data.
+grant execute on function public.is_platform_admin() to anon;

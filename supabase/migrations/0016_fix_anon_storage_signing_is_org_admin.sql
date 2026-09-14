@@ -1,0 +1,27 @@
+-- Fix: the public /s/[slug] page's server-side createSignedUrl() calls
+-- (anon role) started failing for every storage-path-backed slot
+-- (brochures, documents, etc.) across the whole app after migration
+-- 0015_org_custom_layouts added layout_backgrounds_insert_admin and
+-- layout_backgrounds_delete_admin -- both scoped `to authenticated` and
+-- referencing is_org_admin(uuid).
+--
+-- Confirmed live: a bare anon-key REST call to Storage's sign endpoint on
+-- ANY assets-bucket object returned 403 "permission denied for function
+-- is_org_admin" -- even though those two policies are for a different
+-- bucket ('layout-backgrounds') and scoped to a different role. Postgres
+-- still attempts to evaluate every policy expression defined on the
+-- shared storage.objects table while planning RLS for the request,
+-- regardless of whether that particular policy's role/bucket actually
+-- matches the request, and is_org_admin has never had EXECUTE granted to
+-- anon (matching this app's established "revoke from public/anon, grant
+-- only to authenticated" convention for admin-check helpers) -- so the
+-- attempted evaluation errors outright instead of short-circuiting to
+-- false.
+--
+-- is_org_admin's body is already safe for an anon caller (auth.uid() is
+-- null under anon, so the EXISTS check it drives never matches) --
+-- granting EXECUTE here doesn't change what the function is allowed to
+-- authorize, it just lets it actually run instead of throwing. See
+-- migration 0017 for the next layer of the same problem this uncovered,
+-- and 0018 for the underlying root-cause fix.
+grant execute on function public.is_org_admin(uuid) to anon;
