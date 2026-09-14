@@ -84,7 +84,7 @@ export function PackageView({
             className="h-10 w-auto object-contain"
           />
         )}
-        <p className="text-sm font-medium text-neutral-500">{orgName}</p>
+        <p className="text-sm font-medium text-neutral-300">{orgName}</p>
       </div>
       <div className="mb-8">
         <DeskScene
@@ -112,7 +112,7 @@ export function PackageView({
 
         {!layout.brochures && brochures.length > 0 && (
           <section>
-            <h2 className="mb-2 text-sm font-semibold text-neutral-500">
+            <h2 className="mb-2 text-sm font-semibold text-neutral-400">
               Documents
             </h2>
             <ul className="grid gap-2 sm:grid-cols-2">
