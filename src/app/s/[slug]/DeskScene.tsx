@@ -180,6 +180,7 @@ export function DeskScene({
   magazine,
   magazine2,
   magazine3,
+  magazine4,
   letterBody,
   brochures,
   orgName,
@@ -196,6 +197,7 @@ export function DeskScene({
   magazine: SlotAsset | undefined;
   magazine2: SlotAsset | undefined;
   magazine3: SlotAsset | undefined;
+  magazine4: SlotAsset | undefined;
   letterBody: string | null;
   brochures: SlotAsset[];
   orgName: string;
@@ -340,6 +342,15 @@ export function DeskScene({
           name={magazine3.name}
           style={slotStyle(layout.slots.magazine_3)}
           onOpen={() => onTrack("magazine_3")}
+        />
+      )}
+
+      {magazine4 && layout.slots.magazine_4 && (
+        <MagazineSlot
+          url={magazine4.url}
+          name={magazine4.name}
+          style={slotStyle(layout.slots.magazine_4)}
+          onOpen={() => onTrack("magazine_4")}
         />
       )}
 

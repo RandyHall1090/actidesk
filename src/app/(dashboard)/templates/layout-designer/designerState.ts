@@ -10,6 +10,7 @@ export type SlotId =
   | "magazine"
   | "magazine_2"
   | "magazine_3"
+  | "magazine_4"
   | "letter"
   | "brochure_1"
   | "brochure_2"
@@ -33,6 +34,7 @@ const SLOT_DEFS: SlotDef[] = [
   { id: "magazine", label: "Magazine 1", optional: false },
   { id: "magazine_2", label: "Magazine 2", optional: true },
   { id: "magazine_3", label: "Magazine 3", optional: true },
+  { id: "magazine_4", label: "Magazine 4", optional: true },
   { id: "business_card", label: "Business Card", optional: false },
   { id: "letter", label: "Letter", optional: true },
   { id: "brochure_1", label: "Brochure 1", optional: true },
@@ -71,6 +73,7 @@ export const DEFAULT_PREVIEW_ASPECT: Partial<Record<SlotId, number>> = {
   magazine: 0.77,
   magazine_2: 0.77,
   magazine_3: 0.77,
+  magazine_4: 0.77,
 };
 
 /** A blank starting layout: cascades the 10 boxes so they don't all spawn stacked and unreachable. */

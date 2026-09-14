@@ -32,6 +32,7 @@ export const PACKAGE_SLOTS: PackageSlot[] = [
   { slot: "magazine", label: "Magazine 1", kind: "document" },
   { slot: "magazine_2", label: "Magazine 2", kind: "document" },
   { slot: "magazine_3", label: "Magazine 3", kind: "document" },
+  { slot: "magazine_4", label: "Magazine 4", kind: "document" },
   { slot: "brochure_1", label: "Brochure 1", kind: "document" },
   { slot: "brochure_2", label: "Brochure 2", kind: "document" },
   { slot: "brochure_3", label: "Brochure 3", kind: "document" },

@@ -54,6 +54,7 @@ export function PackageView({
   const magazine = bySlot("magazine");
   const magazine2 = bySlot("magazine_2");
   const magazine3 = bySlot("magazine_3");
+  const magazine4 = bySlot("magazine_4");
   const brochures = slots.filter((s) => s.slot.startsWith("brochure_"));
 
   return (
@@ -101,6 +102,7 @@ export function PackageView({
           magazine={magazine}
           magazine2={magazine2}
           magazine3={magazine3}
+          magazine4={magazine4}
           letterBody={letterBody}
           brochures={brochures}
           orgName={orgName}

@@ -31,12 +31,14 @@ export type DeskLayout = {
     // optional-slot pattern as video_2, an older layout simply doesn't
     // define a position for it and DeskScene won't render one.
     pen?: SlotPosition;
-    // A second and third magazine/feature cover, same optional-slot
-    // pattern as video_2/pen -- every layout as of this writing defines
-    // both, smaller than the primary magazine where a layout's remaining
-    // open pockets demand it (see DeskScene.tsx for the shared rendering).
+    // A second, third, and fourth magazine/feature cover, same
+    // optional-slot pattern as video_2/pen -- not every layout has room
+    // for all of them (desk-v3 already tops out at Magazine 2), smaller
+    // than the primary magazine where a layout's remaining open pockets
+    // demand it (see DeskScene.tsx for the shared rendering).
     magazine_2?: SlotPosition;
     magazine_3?: SlotPosition;
+    magazine_4?: SlotPosition;
   };
   // Only a layout with real estate for these (desk-v3+) sets them -- when
   // absent, PackageView falls back to rendering the letter/brochures as
@@ -80,6 +82,10 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6, aspect: "0.77" },
       // Below business_card, right of the pen.
       magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
+      // Far right column, clear of magazine_3 and business_card's own
+      // x-ranges entirely (found live via real bounding boxes -- neither
+      // slot reaches past ~83% left).
+      magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
       // Open middle-bottom area, clear of every other slot.
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
