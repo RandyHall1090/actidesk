@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DEFAULT_LAYOUT_ID, type DeskLayout } from "@/lib/packages/layouts";
+import { DEFAULT_LAYOUT_ID, DESK_LAYOUTS, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
@@ -37,12 +37,24 @@ function toSlotAsset(slot: string, a: PreviewAsset | undefined): SlotAsset | und
   return a ? { slot, ...a } : undefined;
 }
 
+// Prospect fields prefilled from outside the app (currently: a HubSpot
+// contact-record link) on an otherwise-blank create form -- distinct from
+// initialPackage, whose mere presence switches the whole form into edit
+// mode (hidden package_id, different button label, etc.). This never does
+// that; it only seeds prospectName/Company/Email on a genuinely new package.
+export type InitialProspect = {
+  name: string;
+  company: string;
+  email: string;
+};
+
 export function NewPackageForm({
   assets,
   presets,
   orgName,
   layouts,
   initialPackage,
+  initialProspect,
 }: {
   assets: Asset[];
   presets: PresetOption[];
@@ -52,11 +64,25 @@ export function NewPackageForm({
   // can't just import DESK_LAYOUTS directly anymore.
   layouts: DeskLayout[];
   initialPackage?: InitialPackage;
+  initialProspect?: InitialProspect;
 }) {
   const [state, formAction, pending] = useActionState(
     savePackage,
     initialState,
   );
+
+  // For a brand-new package (no initialPackage), default to this org's own
+  // most-recently-saved custom layout rather than the generic built-in
+  // DEFAULT_LAYOUT_ID -- an org that went to the trouble of customizing a
+  // layout in the Layout Designer almost certainly wants that one to be
+  // what a rep starts from, not the stock art it was based on. `layouts` is
+  // always built-ins-then-custom (getOrgLayouts.ts), and custom ones are
+  // ordered most-recent-first, so the first non-built-in entry is exactly
+  // that. Falls back to DEFAULT_LAYOUT_ID for an org with no custom layouts
+  // yet (every tenant on day one, and any tenant other than Securafy today).
+  const defaultLayoutId =
+    layouts.find((l) => !DESK_LAYOUTS.some((b) => b.id === l.id))?.id ??
+    DEFAULT_LAYOUT_ID;
 
   // Preset selection, editing an already-picked slot, typing the letter,
   // etc. all pre-fill/update these fields client-side (imperatively, via
@@ -84,12 +110,12 @@ export function NewPackageForm({
   // progress *edit* back to blank on a failed save would be a much worse
   // surprise than a blank create-form.
   const currentRef = useRef({
-    prospectName: initialPackage?.prospectName ?? "",
-    prospectCompany: initialPackage?.prospectCompany ?? "",
-    prospectEmail: initialPackage?.prospectEmail ?? "",
+    prospectName: initialPackage?.prospectName ?? initialProspect?.name ?? "",
+    prospectCompany: initialPackage?.prospectCompany ?? initialProspect?.company ?? "",
+    prospectEmail: initialPackage?.prospectEmail ?? initialProspect?.email ?? "",
     letterBody: initialPackage?.letterBody ?? "",
     privateNote: initialPackage?.privateNote ?? "",
-    templateId: initialPackage?.templateId ?? DEFAULT_LAYOUT_ID,
+    templateId: initialPackage?.templateId ?? defaultLayoutId,
     slots: { ...(initialPackage?.slots ?? {}) } as Record<string, string>,
   });
 
@@ -98,10 +124,10 @@ export function NewPackageForm({
   // place that sets a DOM value imperatively (applyPreset, reassertCurrent)
   // must also update this, because el.value = x never fires React's onChange.
   const [templateId, setTemplateId] = useState(
-    () => initialPackage?.templateId ?? DEFAULT_LAYOUT_ID,
+    () => initialPackage?.templateId ?? defaultLayoutId,
   );
   const [prospectName, setProspectName] = useState(
-    () => initialPackage?.prospectName ?? "",
+    () => initialPackage?.prospectName ?? initialProspect?.name ?? "",
   );
   const [letterBody, setLetterBody] = useState(
     () => initialPackage?.letterBody ?? "",
@@ -233,7 +259,7 @@ export function NewPackageForm({
           <select
             name="template_id"
             ref={layoutSelectRef}
-            defaultValue={initialPackage?.templateId ?? DEFAULT_LAYOUT_ID}
+            defaultValue={initialPackage?.templateId ?? defaultLayoutId}
             onChange={(e) => {
               currentRef.current.templateId = e.target.value;
               setTemplateId(e.target.value);
@@ -256,7 +282,7 @@ export function NewPackageForm({
             ref={prospectNameRef}
             name="prospect_name"
             required
-            defaultValue={initialPackage?.prospectName ?? ""}
+            defaultValue={initialPackage?.prospectName ?? initialProspect?.name ?? ""}
             placeholder="Prospect name"
             onChange={(e) => {
               currentRef.current.prospectName = e.target.value;
@@ -268,7 +294,7 @@ export function NewPackageForm({
             <input
               ref={prospectCompanyRef}
               name="prospect_company"
-              defaultValue={initialPackage?.prospectCompany ?? ""}
+              defaultValue={initialPackage?.prospectCompany ?? initialProspect?.company ?? ""}
               placeholder="Company (optional)"
               onChange={(e) => {
                 currentRef.current.prospectCompany = e.target.value;
@@ -279,7 +305,7 @@ export function NewPackageForm({
               ref={prospectEmailRef}
               name="prospect_email"
               type="email"
-              defaultValue={initialPackage?.prospectEmail ?? ""}
+              defaultValue={initialPackage?.prospectEmail ?? initialProspect?.email ?? ""}
               placeholder="Email (optional)"
               onChange={(e) => {
                 currentRef.current.prospectEmail = e.target.value;

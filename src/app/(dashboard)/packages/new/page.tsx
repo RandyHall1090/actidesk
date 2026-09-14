@@ -13,9 +13,32 @@ type PresetRow = {
   preset_assets: { slot_name: string; asset_id: string | null }[];
 };
 
-export default async function NewPackagePage() {
+export default async function NewPackagePage({
+  searchParams,
+}: {
+  // Prefills the Prospect fields when the rep arrives from an external
+  // link (e.g. a HubSpot contact-record link) instead of a blank form --
+  // see NewPackageForm's InitialProspect. Never trusted beyond a plain
+  // text prefill: the real create still goes through savePackage's own
+  // validation same as any manually-typed value.
+  searchParams: Promise<{
+    prospect_name?: string;
+    prospect_company?: string;
+    prospect_email?: string;
+  }>;
+}) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
+
+  const params = await searchParams;
+  const initialProspect =
+    params.prospect_name || params.prospect_company || params.prospect_email
+      ? {
+          name: params.prospect_name ?? "",
+          company: params.prospect_company ?? "",
+          email: params.prospect_email ?? "",
+        }
+      : undefined;
 
   const supabase = await createClient();
   const [org, layouts, { data: assets, error: assetsError }, { data: presetsData, error: presetsError }] =
@@ -68,6 +91,7 @@ export default async function NewPackagePage() {
         presets={presets}
         orgName={org?.name ?? ""}
         layouts={layouts}
+        initialProspect={initialProspect}
       />
     </div>
   );
