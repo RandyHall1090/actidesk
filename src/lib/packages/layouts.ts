@@ -66,11 +66,20 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // the iPhone-graphic AudioSlot is a square crop, and 17% would push
       // its bottom edge into the magazine slot below (verified live).
       audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
-      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6 },
+      // aspect 0.77 on every magazine slot (real page proportion, matches
+      // MagazineSlot's own loading/error placeholder) -- without it, the
+      // on-desk cover's height comes from whatever the *actual* uploaded
+      // PDF's own page shape is (a real one found live: "MSP Success
+      // Magazine" rendered tall enough to swallow magazine_2's position
+      // entirely, even though the two boxes' own nominal positions never
+      // overlapped). Bounding every magazine box the same way brochures
+      // already are makes the footprint predictable regardless of which
+      // real document a rep picks.
+      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6, aspect: "0.77" },
       // Between the pen and business_card, clear of video_2 above.
-      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6 },
+      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6, aspect: "0.77" },
       // Below business_card, right of the pen.
-      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6 },
+      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
       // Open middle-bottom area, clear of every other slot.
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
@@ -95,12 +104,15 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // magazine) is shorter here, so the square AudioSlot needs a smaller
       // width to keep its bottom edge clear of the magazine (verified live).
       audio: { left: "10%", top: "44%", width: "6%", rotate: -6 },
-      magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
+      // aspect 0.77 on every magazine slot -- see desk-v1's own comment on
+      // this: without it, an on-desk cover's real height depends on the
+      // actual uploaded PDF's own page shape, not this box's own budget.
+      magazine: { left: "9%", top: "58%", width: "13%", rotate: -6, aspect: "0.77" },
       // Right of magazine 1, clear of the pen in the middle.
-      magazine_2: { left: "27%", top: "58%", width: "9%", rotate: -6 },
+      magazine_2: { left: "27%", top: "58%", width: "9%", rotate: -6, aspect: "0.77" },
       // Narrow open column right of video_2/business_card, at the edge of
       // the real tabletop (this layout's usable area stops around y 80%).
-      magazine_3: { left: "83%", top: "53%", width: "11%", rotate: 6 },
+      magazine_3: { left: "83%", top: "53%", width: "11%", rotate: 6, aspect: "0.77" },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
       // Open middle-bottom area of the tabletop, between magazine and
       // business_card, below the video row.
@@ -137,17 +149,23 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // clear of both the nameplate above and the brochures row below --
       // both verified live via real element bounding boxes, not eyeballed.
       audio: { left: "6%", top: "42%", width: "6%", rotate: -6 },
-      magazine: { left: "68%", top: "19%", width: "11%", rotate: -6 },
-      // Takes over the pen's old pocket (below business_card, right of the
-      // letter, above the brochures' blotter row) -- the pen moved to a
-      // smaller gap to make room (see below). Narrower than magazine_2 on
-      // the other two layouts: this pocket is short, so a wider box would
-      // push into the brochures row (verified live via real bounding
-      // boxes). No magazine_3 on this layout at all -- there simply isn't
-      // a third pocket left that doesn't look cramped; same optional-slot
-      // pattern as video_2/pen, just the first slot dense enough to hit
-      // that ceiling (confirmed with Randy rather than forced in).
-      magazine_2: { left: "78%", top: "38%", width: "6%", rotate: 6 },
+      // aspect 0.77 -- see desk-v1's comment on this: without a bounded
+      // aspect, magazine's on-desk height depends on the real uploaded
+      // PDF's own page shape, not this box's nominal budget. That's what
+      // actually broke magazine_2 below at first: a taller-than-assumed
+      // real magazine cover swallowed magazine_2's original position even
+      // though the two positions' own numbers never overlapped on paper.
+      magazine: { left: "68%", top: "19%", width: "11%", rotate: -6, aspect: "0.77" },
+      // Below business_card, right of magazine -- the pocket directly
+      // under magazine (its old spot) is too short once magazine's own
+      // height is properly bounded (54% brochures row minus magazine's own
+      // bottom at 44% leaves only ~10%, not enough even at this slot's
+      // minimum useful width). No magazine_3 on this layout at all --
+      // there simply isn't a third pocket left that doesn't look cramped;
+      // same optional-slot pattern as video_2/pen, just the first slot
+      // dense enough to hit that ceiling (confirmed with Randy rather than
+      // forced in).
+      magazine_2: { left: "80%", top: "32%", width: "9%", rotate: 6, aspect: "0.77" },
       business_card: { left: "80%", top: "20%", width: "10%", rotate: 6 },
       // Moved into the narrow gap between the nameplate and the audio
       // phone/second video (was in magazine_2's now pocket, above) -- its
