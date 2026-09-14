@@ -116,6 +116,21 @@ function slotStyle(pos: SlotPosition): React.CSSProperties {
   };
 }
 
+// A brochure's own content (logo + title) should start about a third of
+// the way down its now page-shaped box (aspect set in layouts.ts), not be
+// vertically centered. Percentage padding always resolves against the
+// containing block's width (the whole scene here), never the padded
+// element's own width, so a plain Tailwind `pt-[N%]` class can't express
+// "a third of *this slot's* height" -- it has to be computed per slot from
+// that slot's own width/aspect, same as slotStyle does for everything else.
+function brochureTopPadding(pos: SlotPosition): string | undefined {
+  if (!pos.aspect) return undefined;
+  const widthPct = parseFloat(pos.width);
+  const aspect = parseFloat(pos.aspect);
+  if (!widthPct || !aspect) return undefined;
+  return `${((widthPct / aspect) * (1 / 3)).toFixed(2)}%`;
+}
+
 /**
  * The photoreal desk-scene hero (T3): a background photo of an empty desk
  * with the compact, inherently visual content — nameplate, video, audio,
@@ -368,8 +383,17 @@ export function DeskScene({
               url={b.url}
               name={b.name}
               onOpen={() => onTrack(slotName)}
-              style={slotStyle(pos)}
-              className="flex flex-col items-center justify-center gap-[0.6cqw] rounded-[0.6cqw] bg-white p-[1.2cqw] text-center shadow-xl ring-1 ring-black/10 transition-transform hover:scale-105"
+              // A computed inline paddingTop (not justify-center, and not a
+              // Tailwind pt-[N%] class) puts the logo/title about a third
+              // of the way down this page-shaped box, not dead center --
+              // CSS resolves percentage padding against the CONTAINING
+              // BLOCK's width (the whole desk scene here), never the
+              // element's own width, even for padding-top. A static class
+              // can't get this right for an arbitrary slot width, so it's
+              // computed the same way slotStyle derives everything else:
+              // relative to this specific slot's own width and aspect.
+              style={{ ...slotStyle(pos), paddingTop: brochureTopPadding(pos) }}
+              className="flex flex-col items-center gap-[0.6cqw] rounded-[0.6cqw] bg-white px-[1.2cqw] pb-[1.2cqw] text-center shadow-xl ring-1 ring-black/10 transition-transform hover:scale-105"
             >
               {orgLogoUrl && (
                 // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset

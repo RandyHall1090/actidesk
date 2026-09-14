@@ -164,11 +164,18 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     // size, which matters far more for real legibility than matching a
     // literal sheet-of-paper aspect ratio.
     letter: { left: "40%", top: "19%", width: "26%", aspect: "1.5" },
+    // aspect 0.77 (matches the magazine cover's real page proportion) gives
+    // each brochure real page-like height instead of a tiny content-hugging
+    // button -- previously there was no aspect at all, so the box just
+    // hugged its logo+title tightly and "centered vs. near the top" looked
+    // identical (confirmed live: zero slack space either way). See
+    // DeskScene.tsx's brochure card for how the logo/title are positioned
+    // within this taller box.
     brochures: [
-      { left: "12%", top: "54%", width: "17%" },
-      { left: "31%", top: "54%", width: "17%" },
-      { left: "50%", top: "54%", width: "17%" },
-      { left: "69%", top: "54%", width: "17%" },
+      { left: "12%", top: "54%", width: "17%", aspect: "0.77" },
+      { left: "31%", top: "54%", width: "17%", aspect: "0.77" },
+      { left: "50%", top: "54%", width: "17%", aspect: "0.77" },
+      { left: "69%", top: "54%", width: "17%", aspect: "0.77" },
     ],
   },
 ];
