@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DEFAULT_LAYOUT_ID, type DeskLayout } from "@/lib/packages/layouts";
+import { DEFAULT_LAYOUT_ID, DESK_LAYOUTS, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
@@ -44,15 +44,21 @@ export function TemplatesClient({
   isAdmin: boolean;
 }) {
   // Presets have no layout concept of their own -- a layout is picked
-  // per-package, not per-preset. Preview against whichever layout actually
-  // renders a letter/brochures on the desk rather than the bare default --
-  // otherwise an admin could never see their letter text or brochure picks
-  // in the preview at all, since a layout with no letter/brochures pushes
-  // those below the photo (outside what this DeskScene-only preview
-  // renders). A from-scratch "preview against a different layout" toggle
-  // would be a nicety, not something asked for here.
+  // per-package, not per-preset. Prefer this org's own custom layout
+  // first (same reasoning as NewPackageForm's defaultLayoutId: an org that
+  // went to the trouble of customizing one almost certainly wants to
+  // preview against THAT, not a generic built-in -- previously this always
+  // resolved to a built-in whenever one happened to have letter+brochures,
+  // completely ignoring any custom layout the org had saved, which is
+  // exactly why a real edit made in the Layout Designer and saved never
+  // showed up here). Falls back to whichever layout actually renders a
+  // letter/brochures on the desk (so letter text/brochure picks aren't
+  // invisible in the preview, since a layout with neither pushes those
+  // below the photo, outside what this DeskScene-only preview renders),
+  // then the built-in default, then whatever's first.
   const previewLayout = useMemo(
     () =>
+      layouts.find((l) => !DESK_LAYOUTS.some((b) => b.id === l.id)) ??
       layouts.find((l) => l.letter && l.brochures) ??
       layouts.find((l) => l.id === DEFAULT_LAYOUT_ID) ??
       layouts[0],
