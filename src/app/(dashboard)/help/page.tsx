@@ -2,34 +2,60 @@ const SECTIONS = [
   {
     title: "1. Add assets to the Library",
     body: [
-      "Go to Asset Library. Video and audio are added as links (paste a Vimeo URL) — nothing to upload there. Images, documents, business cards, and your company logo are uploaded as files.",
-      "Choose My library for something only you'll use, or Company library for anything the whole team should be able to pick from when building a package. Only admins can add to the company library.",
+      "Go to Asset Library. Video and audio are added as links (paste a Vimeo URL) — nothing to upload there. Images, documents (PDFs), business cards, pen photos, and your company logo are uploaded as files.",
+      "Choose My library for something only you'll use, or Company library for anything the whole team should be able to pick from when building a package. Any rep can add to the company library — it's not admin-only.",
+      "Magazines and brochures are both PDFs, opened in the same in-app page-by-page reader — a magazine shows its real page 1 as the on-desk cover thumbnail, a brochure shows a simple branded card instead.",
     ],
   },
   {
     title: "2. Create a package",
     body: [
-      "Go to New Package. Enter the prospect's name, company, and email (email is optional — the app never sends anything on its own).",
-      "For each slot (video, audio, business card, magazine, up to 4 brochures), pick an asset from your library or the company library. Any slot can be left blank — the desk-scene page only shows what you filled in.",
-      "Write the letter body as plain text — it's shown as a readable note below the desk scene, not squeezed onto the photo.",
+      "Go to New Package. Pick a Layout first — this picks which desk photo and slot positions are used; your organization's own saved layout (if it has one) is offered alongside the built-in ones.",
+      "Optionally start from a Template to prefill everything below (see Templates), then adjust anything before saving.",
+      "Enter the prospect's name, company, and email (email is optional — the app never sends anything on its own).",
+      "For each slot — Video, a second Video, Audio, Business Card, Pen, up to 4 Magazines, and up to 4 Brochures — pick an asset from your library or the company library. Any slot can be left blank; the desk-scene page only shows what you filled in, and not every layout has room for every slot (e.g. a denser layout may not offer a 4th magazine).",
+      "Write the letter body as plain text — some layouts show it as a real sheet of paper on the desk; others show it as a readable note below the desk scene instead.",
       "Click Create Package to get a unique link.",
     ],
   },
   {
-    title: "3. Send it yourself",
+    title: "3. Edit an already-sent package",
+    body: [
+      "Open the package from My Sites and click Edit. You can change anything — the prospect's info, the layout, any slot, the letter — and the link you already sent keeps working.",
+      "The web address itself never changes, and editing never re-notifies your CRM — only creating a brand-new package does that. Only the rep who created a package can edit it.",
+    ],
+  },
+  {
+    title: "4. Send it yourself",
     body: [
       "The app doesn't email the prospect. Copy the link from the package page (or from My Sites) and send it yourself — Outlook, Gmail, whatever you already use.",
     ],
   },
   {
-    title: "4. See what the prospect did",
+    title: "5. See what the prospect did",
     body: [
       "Go to My Sites to see every package you've sent, whether it's been opened, and how many times.",
-      "Open a specific package to see its full activity log — page views and which individual items (video, audio, business card, magazine, each brochure) were opened or played, with timestamps.",
+      "Open a specific package to see its full activity log — page views and which individual items (each video, the audio message, the magazines, each brochure) were opened or played, with timestamps.",
     ],
   },
   {
-    title: "5. Team (admins only)",
+    title: "6. Templates",
+    body: [
+      "Go to Templates to save a reusable bundle of asset picks and letter text, so you're not rebuilding the same package from scratch every time.",
+      "Any rep can create a template. Mark it Personal to keep it to yourself, or Shared with your team so every rep can see and use it.",
+      "You can edit your own templates in place, and Clone any template you can see — yours or a teammate's — into your own independent copy to tweak without touching the original.",
+    ],
+  },
+  {
+    title: "7. Layout Designer (admins only)",
+    body: [
+      "Go to Templates → Layout Designer to visually place every slot on a desk photo — drag to move, drag the corner handle to resize, type an exact rotation or aspect ratio.",
+      "Refine one of the built-in layouts, start fresh on an existing background, or preview a candidate image of your own (that preview stays local — nothing uploads until you save).",
+      "Save changes to create your organization's own custom layout — it shows up in the Layout dropdown on New Package and as the default Live Preview on Templates, right alongside the built-in ones.",
+    ],
+  },
+  {
+    title: "8. Team (admins only)",
     body: [
       "The Team page lists everyone in your organization and lets admins promote a rep to admin or demote an admin to rep.",
       "New teammates join automatically: anyone who signs up with a matching email domain joins your organization as a rep. Share the signup link shown on the Team page.",
