@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 import { loadPdf, renderPageToCanvas } from "./pdfjs";
+import { BookSpread, type BookSpreadHandle } from "./BookSpread";
 
-function ChevronLeftIcon() {
+// Below this the two pages of a real book spread would render too small to
+// read comfortably (~380px per page) -- narrower viewports (and any single-
+// page document) get the plain single-page view instead.
+const BOOK_SPREAD_MIN_WIDTH = 800;
+
+export function ChevronLeftIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
       <path d="M15 18l-6-6 6-6" />
@@ -13,7 +19,7 @@ function ChevronLeftIcon() {
   );
 }
 
-function ChevronRightIcon() {
+export function ChevronRightIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
       <path d="M9 18l6-6-6-6" />
@@ -43,9 +49,10 @@ function CloseIcon() {
  * One PDF page rendered to a canvas at `targetWidth` CSS px, scaled
  * responsively by CSS from there (same replaced-element behavior as an
  * `<img>`). Shared by the on-desk magazine cover (page 1), the reader's
- * current page, and every thumbnail in its page strip.
+ * current page, every thumbnail in its page strip, and BookSpread.tsx's
+ * two-page view (exported for that reuse).
  */
-function PdfPageCanvas({
+export function PdfPageCanvas({
   pdf,
   pageNumber,
   targetWidth,
@@ -143,7 +150,11 @@ function PdfReaderModal({
   );
   const [page, setPage] = useState(1);
   const [targetWidth, setTargetWidth] = useState(600);
+  const [containerHeight, setContainerHeight] = useState(400);
   const containerRef = useRef<HTMLDivElement>(null);
+  const bookRef = useRef<BookSpreadHandle>(null);
+  const [spreadPages, setSpreadPages] = useState<number[]>([]);
+  const [jumpSignal, setJumpSignal] = useState<{ page: number; nonce: number } | null>(null);
 
   useEffect(() => {
     if (preloadedPdf) return;
@@ -167,17 +178,35 @@ function PdfReaderModal({
     const el = containerRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width;
-      if (width) setTargetWidth(Math.max(200, Math.floor(width)));
+      const rect = entries[0]?.contentRect;
+      if (!rect) return;
+      if (rect.width) setTargetWidth(Math.max(200, Math.floor(rect.width)));
+      if (rect.height) setContainerHeight(Math.max(150, Math.floor(rect.height)));
     });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
+  const ready = state.status === "ready";
+  // A real two-page spread only once there's room to actually read two
+  // pages side by side, and only when there's more than one page to pair up.
+  const mode: "single" | "spread" =
+    ready && state.pageCount > 1 && targetWidth >= BOOK_SPREAD_MIN_WIDTH
+      ? "spread"
+      : "single";
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      else if (state.status === "ready" && e.key === "ArrowRight") {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (mode === "spread") {
+        if (e.key === "ArrowRight") bookRef.current?.goNext();
+        else if (e.key === "ArrowLeft") bookRef.current?.goPrev();
+        return;
+      }
+      if (state.status === "ready" && e.key === "ArrowRight") {
         setPage((p) => Math.min(state.pageCount, p + 1));
       } else if (state.status === "ready" && e.key === "ArrowLeft") {
         setPage((p) => Math.max(1, p - 1));
@@ -185,9 +214,8 @@ function PdfReaderModal({
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose, state]);
+  }, [onClose, state, mode]);
 
-  const ready = state.status === "ready";
   const hasPrev = ready && page > 1;
   const hasNext = ready && page < state.pageCount;
 
@@ -207,7 +235,17 @@ function PdfReaderModal({
           forced this whole column taller than the viewport instead of
           being capped by it -- confirmed live, it pushed the header and
           thumbnail strip off-screen entirely for a 4-page portrait PDF. */}
-      <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col items-stretch">
+      {/* Always max-w-6xl, not conditional on `mode` -- mode itself is
+          computed from this container's *measured* width (via
+          containerRef below), so capping it narrower specifically while
+          in "single" mode created a circular dependency: the container
+          could never measure wide enough to switch to "spread" in the
+          first place, since it started single (targetWidth defaults to
+          600) and a narrower cap kept it there permanently. Confirmed
+          live: a 1440px viewport still measured only 784px available and
+          never left single-page mode until this was fixed. A lone single
+          page just centers within the extra width harmlessly. */}
+      <div className="flex min-h-0 w-full max-w-6xl flex-1 flex-col items-stretch">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="truncate rounded-full bg-black/40 px-3 py-1 text-xs font-medium text-white">
             {name}
@@ -236,29 +274,41 @@ function PdfReaderModal({
         </div>
 
         <div className="flex min-h-0 flex-1 items-center justify-center gap-2 sm:gap-4">
-          {hasPrev ? (
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              aria-label="Previous page"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
-            >
-              <ChevronLeftIcon />
-            </button>
-          ) : (
-            <div className="w-10 shrink-0" />
-          )}
+          {mode === "single" &&
+            (hasPrev ? (
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="Previous page"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+              >
+                <ChevronLeftIcon />
+              </button>
+            ) : (
+              <div className="w-10 shrink-0" />
+            ))}
 
           <div
             ref={containerRef}
             className="flex h-full min-w-0 flex-1 items-center justify-center overflow-hidden"
           >
-            {state.status === "ready" && (
+            {state.status === "ready" && mode === "single" && (
               <PdfPageCanvas
                 pdf={state.pdf}
                 pageNumber={page}
                 targetWidth={Math.min(targetWidth, 900)}
                 className="max-h-full w-auto max-w-full rounded shadow-2xl"
+              />
+            )}
+            {state.status === "ready" && mode === "spread" && (
+              <BookSpread
+                ref={bookRef}
+                pdf={state.pdf}
+                pageCount={state.pageCount}
+                containerWidth={targetWidth}
+                containerHeight={containerHeight}
+                jumpTo={jumpSignal}
+                onPagesChange={setSpreadPages}
               />
             )}
             {state.status === "loading" && (
@@ -280,18 +330,19 @@ function PdfReaderModal({
             )}
           </div>
 
-          {hasNext ? (
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(state.pageCount, p + 1))}
-              aria-label="Next page"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
-            >
-              <ChevronRightIcon />
-            </button>
-          ) : (
-            <div className="w-10 shrink-0" />
-          )}
+          {mode === "single" &&
+            (hasNext ? (
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(state.pageCount, p + 1))}
+                aria-label="Next page"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+              >
+                <ChevronRightIcon />
+              </button>
+            ) : (
+              <div className="w-10 shrink-0" />
+            ))}
         </div>
 
         {ready && state.pageCount > 1 && (
@@ -300,28 +351,39 @@ function PdfReaderModal({
             aria-label="Pages"
             className="mt-3 flex justify-center gap-2 overflow-x-auto px-1 py-1"
           >
-            {Array.from({ length: state.pageCount }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="tab"
-                aria-selected={n === page}
-                aria-label={`Page ${n}`}
-                onClick={() => setPage(n)}
-                className={`shrink-0 overflow-hidden rounded transition-opacity ${
-                  n === page
-                    ? "opacity-100 ring-2 ring-white"
-                    : "opacity-50 ring-1 ring-white/30 hover:opacity-90"
-                }`}
-              >
-                <PdfPageCanvas pdf={state.pdf} pageNumber={n} targetWidth={64} className="w-16" />
-              </button>
-            ))}
+            {Array.from({ length: state.pageCount }, (_, i) => i + 1).map((n) => {
+              const active = mode === "spread" ? spreadPages.includes(n) : n === page;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-label={`Page ${n}`}
+                  onClick={() =>
+                    mode === "spread"
+                      ? setJumpSignal({ page: n, nonce: Date.now() })
+                      : setPage(n)
+                  }
+                  className={`shrink-0 overflow-hidden rounded transition-opacity ${
+                    active
+                      ? "opacity-100 ring-2 ring-white"
+                      : "opacity-50 ring-1 ring-white/30 hover:opacity-90"
+                  }`}
+                >
+                  <PdfPageCanvas pdf={state.pdf} pageNumber={n} targetWidth={64} className="w-16" />
+                </button>
+              );
+            })}
           </div>
         )}
 
         <p className="sr-only" aria-live="polite">
-          {ready ? `Page ${page} of ${state.pageCount}` : ""}
+          {ready
+            ? mode === "spread"
+              ? `Pages ${spreadPages.join(", ")} of ${state.pageCount}`
+              : `Page ${page} of ${state.pageCount}`
+            : ""}
         </p>
       </div>
     </div>
