@@ -10,13 +10,21 @@ import { useDraggableBox } from "./useDraggableBox";
 // lines, fine to duplicate (KISS over DRY for something this small and
 // this stable).
 function slotStyle(pos: SlotPosition): CSSProperties {
+  const id = (pos as DesignerSlotState).id;
+  const rotate = pos.rotate ? `rotate(${pos.rotate}deg)` : "";
   return {
     position: "absolute",
     left: pos.left,
     top: pos.top,
     width: pos.width,
-    aspectRatio: pos.aspect ?? DEFAULT_PREVIEW_ASPECT[(pos as DesignerSlotState).id],
-    transform: pos.rotate ? `rotate(${pos.rotate}deg)` : undefined,
+    aspectRatio: pos.aspect ?? DEFAULT_PREVIEW_ASPECT[id],
+    // The pen graphic is mirrored at the real render site (DeskScene.tsx)
+    // to point the opposite way from how the source photo naturally
+    // reads -- without matching that here, this box's rotation reads
+    // backwards from how the real page actually renders it, exactly
+    // the mismatch reported live: a positive rotate here looks like the
+    // mirror-image angle once flipped, not the angle actually shown.
+    transform: id === "pen" ? `scaleX(-1) ${rotate}`.trim() : rotate || undefined,
   };
 }
 
