@@ -1,9 +1,102 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
 import { MagazineSlot, DocumentLink } from "./DocumentViewer";
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[1.6cqw] w-[1.6cqw]">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-[1.6cqw] w-[1.6cqw]">
+      <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+    </svg>
+  );
+}
+
+/**
+ * The audio slot: a photoreal "iPhone playing a voice memo" graphic (a
+ * built-in app asset, public/desk-scene/audio-phone.webp -- not a
+ * per-tenant uploadable asset, since it's the audio slot's own visual
+ * treatment, not content someone picks; every tenant's real audio content
+ * still comes from `audio.url` same as before). The graphic's own
+ * waveform/play-button/progress bar are a fixed illustration, not live --
+ * real playback state is a small corner badge instead of trying to align
+ * custom controls on top of specific pixels in an AI-generated image,
+ * which would be fragile and image-generation-dependent.
+ */
+function AudioSlot({
+  url,
+  style,
+  onPlay,
+}: {
+  url: string;
+  style?: React.CSSProperties;
+  onPlay: () => void;
+}) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const playedOnceRef = useRef(false);
+
+  function toggle() {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) el.play();
+    else el.pause();
+  }
+
+  return (
+    <div style={style}>
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={playing ? "Pause audio message" : "Play audio message"}
+        className="relative block aspect-square w-full overflow-hidden rounded-[1cqw] shadow-2xl transition-transform hover:scale-105"
+      >
+        {/* The source graphic's own canvas is a tall, generously-padded
+            product shot (896x1216, lots of surrounding white); cropped to
+            square via object-cover instead of shown at its native aspect
+            so the slot's on-desk footprint doesn't balloon far past what
+            every layout budgeted for this position (verified live against
+            all 3 layouts -- an uncropped tall render collided with the
+            nameplate/magazine in every one of them). Center crop keeps the
+            whole tilted phone in frame; only the excess white margin above
+            and below it is trimmed. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- static public asset, not a content image */}
+        <img
+          src="/desk-scene/audio-phone.webp"
+          alt=""
+          className="h-full w-full object-cover"
+        />
+        <span className="absolute right-[6%] bottom-[6%] flex h-[3cqw] w-[3cqw] items-center justify-center rounded-full bg-black/60 text-white">
+          {playing ? <PauseIcon /> : <PlayIcon />}
+        </span>
+      </button>
+      <audio
+        ref={audioRef}
+        src={url}
+        className="hidden"
+        onPlay={() => {
+          setPlaying(true);
+          if (!playedOnceRef.current) {
+            playedOnceRef.current = true;
+            onPlay();
+          }
+        }}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+      />
+    </div>
+  );
+}
 
 // Layout positions come from a per-template config (src/lib/packages/layouts.ts)
 // as inline styles rather than Tailwind arbitrary-value classes -- Tailwind v4
@@ -53,6 +146,7 @@ export function DeskScene({
   video,
   video2,
   audio,
+  pen,
   businessCard,
   magazine,
   letterBody,
@@ -66,6 +160,7 @@ export function DeskScene({
   video: SlotAsset | undefined;
   video2: SlotAsset | undefined;
   audio: SlotAsset | undefined;
+  pen: SlotAsset | undefined;
   businessCard: SlotAsset | undefined;
   magazine: SlotAsset | undefined;
   letterBody: string | null;
@@ -133,18 +228,24 @@ export function DeskScene({
       )}
 
       {audio && (
-        <div
+        <AudioSlot
+          url={audio.url}
           style={slotStyle(layout.slots.audio)}
-          className="rounded-[1cqw] bg-neutral-900 p-[0.6cqw] shadow-xl"
-        >
-          <audio
-            controls
-            src={audio.url}
-            className="w-full"
-            style={{ height: "4.5cqw" }}
-            onPlay={() => onTrack("audio", "asset_played")}
-          />
-        </div>
+          onPlay={() => onTrack("audio", "asset_played")}
+        />
+      )}
+
+      {/* Purely decorative desk prop -- no click handler, matches
+          PACKAGE_SLOTS' "pen" comment. Optional like video_2: an older
+          layout that doesn't define layout.slots.pen simply renders none. */}
+      {pen && layout.slots.pen && (
+        // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
+        <img
+          src={pen.url}
+          alt=""
+          style={slotStyle(layout.slots.pen)}
+          className="pointer-events-none drop-shadow-2xl"
+        />
       )}
 
       {magazine && magazine.kind === "document" && (

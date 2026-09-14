@@ -4,7 +4,8 @@ export type AssetKind =
   | "image"
   | "document"
   | "business_card"
-  | "logo";
+  | "logo"
+  | "pen";
 
 export type AssetScope = "personal" | "company";
 
@@ -30,6 +31,7 @@ export const ASSET_KINDS: { value: AssetKind; label: string }[] = [
   { value: "document", label: "Documents" },
   { value: "business_card", label: "Business Cards" },
   { value: "logo", label: "Logo" },
+  { value: "pen", label: "Pen" },
 ];
 
 export function isLinkKind(kind: AssetKind): boolean {

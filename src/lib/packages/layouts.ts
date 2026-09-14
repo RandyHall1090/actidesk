@@ -27,6 +27,10 @@ export type DeskLayout = {
     audio: SlotPosition;
     business_card: SlotPosition;
     magazine: SlotPosition;
+    // Optional decorative prop (a pen resting on the desk) -- same
+    // optional-slot pattern as video_2, an older layout simply doesn't
+    // define a position for it and DeskScene won't render one.
+    pen?: SlotPosition;
   };
   // Only a layout with real estate for these (desk-v3+) sets them -- when
   // absent, PackageView falls back to rendering the letter/brochures as
@@ -52,9 +56,14 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     slots: {
       video: { left: "29%", top: "5%", width: "34%" },
       video_2: { left: "64%", top: "5%", width: "34%" },
-      audio: { left: "6%", top: "26%", width: "17%", rotate: -6 },
+      // Width kept smaller than the old plain-audio-bar slot (was 17%) --
+      // the iPhone-graphic AudioSlot is a square crop, and 17% would push
+      // its bottom edge into the magazine slot below (verified live).
+      audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
       magazine: { left: "2%", top: "54%", width: "17%", rotate: -6 },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      // Open middle-bottom area, clear of every other slot.
+      pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
   {
@@ -72,9 +81,15 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     slots: {
       video: { left: "33%", top: "23%", width: "28%" },
       video_2: { left: "64%", top: "23%", width: "28%" },
-      audio: { left: "10%", top: "44%", width: "14%", rotate: -6 },
+      // Narrower than desk-v1's -- this pocket (between the nameplate and
+      // magazine) is shorter here, so the square AudioSlot needs a smaller
+      // width to keep its bottom edge clear of the magazine (verified live).
+      audio: { left: "10%", top: "44%", width: "6%", rotate: -6 },
       magazine: { left: "9%", top: "58%", width: "13%", rotate: -6 },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
+      // Open middle-bottom area of the tabletop, between magazine and
+      // business_card, below the video row.
+      pen: { left: "42%", top: "62%", width: "10%", rotate: -20 },
     },
   },
   {
@@ -100,9 +115,19 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // (below Audio, above the brochures' blotter row), found and verified
       // live via the Layout Designer, not a guessed value.
       video_2: { left: "17%", top: "43%", width: "10%" },
-      audio: { left: "6%", top: "33%", width: "10%", rotate: -6 },
+      // top moved down from the nameplate's own original 33% (the
+      // 3-line-wrapped nameplate label in this layout's narrow column
+      // extends past that -- measured live at ~40%) and width shrunk for
+      // the square AudioSlot's smaller footprint budget in this pocket,
+      // clear of both the nameplate above and the brochures row below --
+      // both verified live via real element bounding boxes, not eyeballed.
+      audio: { left: "6%", top: "42%", width: "6%", rotate: -6 },
       magazine: { left: "68%", top: "19%", width: "11%", rotate: -6 },
       business_card: { left: "80%", top: "20%", width: "10%", rotate: 6 },
+      // Smaller than the other layouts' pen -- desk-v3 is already the
+      // densest layout. The one open pocket left: below business_card,
+      // right of the letter, above the brochures' blotter row.
+      pen: { left: "78%", top: "38%", width: "8%", rotate: -20 },
     },
     // Wider/shorter (landscape-ish) rather than strictly letter-proportioned
     // -- cqw sizing is relative to the whole scene's width, so a wider box

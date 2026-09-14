@@ -5,6 +5,7 @@ export type SlotId =
   | "video"
   | "video_2"
   | "audio"
+  | "pen"
   | "business_card"
   | "magazine"
   | "letter"
@@ -26,6 +27,7 @@ const SLOT_DEFS: SlotDef[] = [
   { id: "video", label: "Video", optional: false },
   { id: "video_2", label: "Video 2", optional: true },
   { id: "audio", label: "Audio", optional: false },
+  { id: "pen", label: "Pen", optional: true },
   { id: "magazine", label: "Magazine", optional: false },
   { id: "business_card", label: "Business Card", optional: false },
   { id: "letter", label: "Letter", optional: true },

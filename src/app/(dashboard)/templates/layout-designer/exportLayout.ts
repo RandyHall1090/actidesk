@@ -52,6 +52,7 @@ export function formatDeskLayout(args: {
     `    audio: ${fmtSlot(get("audio"))},`,
     `    magazine: ${fmtSlot(get("magazine"))},`,
     `    business_card: ${fmtSlot(get("business_card"))},`,
+    `    pen: ${fmtSlot(get("pen"))},`,
     `  },`,
   ];
   if (args.includeLetterAndBrochures) {
@@ -84,6 +85,7 @@ export function toDeskLayoutFields(
       audio: get("audio"),
       magazine: get("magazine"),
       business_card: get("business_card"),
+      pen: get("pen"),
     },
   };
   if (!includeLetterAndBrochures) {

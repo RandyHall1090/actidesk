@@ -49,6 +49,7 @@ export function PackageView({
   const video = bySlot("video");
   const video2 = bySlot("video_2");
   const audio = bySlot("audio");
+  const pen = bySlot("pen");
   const businessCard = bySlot("business_card");
   const magazine = bySlot("magazine");
   const brochures = slots.filter((s) => s.slot.startsWith("brochure_"));
@@ -93,6 +94,7 @@ export function PackageView({
           video={video}
           video2={video2}
           audio={audio}
+          pen={pen}
           businessCard={businessCard}
           magazine={magazine}
           letterBody={letterBody}

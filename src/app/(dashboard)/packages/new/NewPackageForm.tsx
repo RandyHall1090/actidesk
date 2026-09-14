@@ -396,6 +396,7 @@ export function NewPackageForm({
           video={toSlotAsset("video", slotAssets.video)}
           video2={toSlotAsset("video_2", slotAssets.video_2)}
           audio={toSlotAsset("audio", slotAssets.audio)}
+          pen={toSlotAsset("pen", slotAssets.pen)}
           businessCard={toSlotAsset("business_card", slotAssets.business_card)}
           magazine={toSlotAsset("magazine", slotAssets.magazine)}
           letterBody={letterBody || null}

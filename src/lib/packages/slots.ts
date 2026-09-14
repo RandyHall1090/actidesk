@@ -14,6 +14,11 @@ export const PACKAGE_SLOTS: PackageSlot[] = [
   { slot: "video_2", label: "Video 2", kind: "video" },
   { slot: "audio", label: "Audio Message", kind: "audio" },
   { slot: "business_card", label: "Business Card", kind: "business_card" },
+  // Purely decorative desk dressing -- no click behavior (DeskScene.tsx
+  // renders it as a plain image, unlike every other slot here). "Show/hide
+  // per package" falls out of the existing optional-slot mechanism: picking
+  // one shows it, leaving it blank doesn't -- no separate boolean needed.
+  { slot: "pen", label: "Pen", kind: "pen" },
   // "document" (a PDF), not "image" -- the magazine is a real page-by-page
   // flip-reader (see DeskScene.tsx's MagazineSlot), not a single cover
   // photo. A pre-existing image-kind magazine asset already attached to a
