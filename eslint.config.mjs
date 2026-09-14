@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, minified third-party file (a manual copy of
+    // pdfjs-dist's build output, served statically) -- not our source.
+    "public/pdf.worker.min.mjs",
   ]),
 ]);
 

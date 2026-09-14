@@ -3,6 +3,7 @@
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
+import { MagazineSlot } from "./MagazineViewer";
 
 // Layout positions come from a per-template config (src/lib/packages/layouts.ts)
 // as inline styles rather than Tailwind arbitrary-value classes -- Tailwind v4
@@ -146,7 +147,20 @@ export function DeskScene({
         </div>
       )}
 
-      {magazine && (
+      {magazine && magazine.kind === "document" && (
+        <MagazineSlot
+          url={magazine.url}
+          name={magazine.name}
+          style={slotStyle(layout.slots.magazine)}
+          onOpen={() => onTrack("magazine")}
+        />
+      )}
+
+      {/* Legacy path for any magazine slot still pointing at a plain image
+          asset (kind "image", how this slot used to work before the PDF
+          flip-reader) -- kept so an already-sent package with an
+          image-based magazine keeps rendering exactly as it always has. */}
+      {magazine && magazine.kind !== "document" && (
         <a
           href={magazine.url}
           target="_blank"
