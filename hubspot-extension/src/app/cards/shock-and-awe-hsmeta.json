@@ -1,0 +1,10 @@
+{
+  "uid": "shock-and-awe-card",
+  "type": "card",
+  "config": {
+    "name": "Shock-and-Awe Package",
+    "description": "Opens a prefilled Online Shock-and-Awe package for this contact.",
+    "entrypoint": "/app/cards/ShockAndAwe.tsx",
+    "objectTypes": ["contacts"]
+  }
+}
