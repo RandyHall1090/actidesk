@@ -166,7 +166,7 @@ Expected: no errors.
 
 Run: `npm run dev`, then in a separate terminal (no browser session/cookies attached):
 `curl -i -X POST http://localhost:3000/api/help-chat -H "Content-Type: application/json" -d "{\"messages\":[]}"`
-Expected: `HTTP/1.1 401`. (Full end-to-end streaming as a signed-in rep is verified from the browser in Task 4, once the widget exists to drive it.)
+Expected: `HTTP/1.1 307` redirecting to `/login` — **not** a bare 401. This app's existing middleware (`src/proxy.ts` + `src/lib/supabase/middleware.ts`) already redirects every unauthenticated request to `/login` before any route handler runs (an explicit allowlist covers only `/s/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`); `/api/help-chat` is correctly not on that list, so it's fully protected the same way every other route in this app is. Do NOT modify `src/proxy.ts` to "fix" this — that would be a security-sensitive, cross-cutting change to the app's auth gate for every route, not something this task should touch. The route handler's own `getCurrentProfile()`/`is_active` check stays exactly as written above: it's real defense-in-depth for a signed-in-but-deactivated user (a valid session cookie that shouldn't pass), not for the zero-cookie case, which middleware already closes off. (Full end-to-end streaming as a signed-in rep is verified from the browser in Task 4, once the widget exists to drive it.)
 
 - [ ] **Step 4: Commit**
 
