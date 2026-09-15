@@ -7,7 +7,7 @@ import { DefaultChatTransport } from "ai";
 export function HelpChatWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/help-chat" }),
   });
 
@@ -55,6 +55,11 @@ export function HelpChatWidget() {
               </div>
             ))}
           </div>
+          {error && (
+            <p className="px-3 pt-2 text-xs text-red-600">
+              Something went wrong — try again.
+            </p>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();

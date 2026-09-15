@@ -301,3 +301,4 @@ All three of the above workaround attempts were reverted (`next.config.ts` back 
 - Whether to gate who can create a *brand-new* tenant (e.g. block free email providers) — none exists today, revisit if it becomes a real problem
 - Per-tenant custom domain support (matching TMT's model more closely) — explicitly deferred past v1
 - T30's Vercel AI Gateway needs enabling on this project before build (env var/OIDC setup, real Anthropic usage billed through the Vercel account) — a one-time setup step to confirm with Randy at that point, not decided here
+- `/api/help-chat` has no per-user rate limit or spend cap beyond the Gateway key's own budget (if one was set), and each request resends the full growing conversation history — revisit if usage grows
