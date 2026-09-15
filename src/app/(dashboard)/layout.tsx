@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
 import { getOrg } from "@/lib/org";
 import { signOut } from "./actions";
+import { HelpChatWidget } from "@/components/HelpChatWidget";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
@@ -86,6 +87,7 @@ export default async function DashboardLayout({
         </nav>
       </header>
       <main className="flex-1 p-6">{children}</main>
+      <HelpChatWidget />
     </div>
   );
 }
