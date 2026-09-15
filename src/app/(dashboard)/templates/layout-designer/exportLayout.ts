@@ -55,6 +55,9 @@ export function formatDeskLayout(args: {
     `    magazine_3: ${fmtSlot(get("magazine_3"))},`,
     `    magazine_4: ${fmtSlot(get("magazine_4"))},`,
     `    business_card: ${fmtSlot(get("business_card"))},`,
+    `    book_image_1: ${fmtSlot(get("book_image_1"))},`,
+    `    book_image_2: ${fmtSlot(get("book_image_2"))},`,
+    `    book_image_3: ${fmtSlot(get("book_image_3"))},`,
     `    pen: ${fmtSlot(get("pen"))},`,
     `  },`,
   ];
@@ -91,6 +94,9 @@ export function toDeskLayoutFields(
       magazine_3: get("magazine_3"),
       magazine_4: get("magazine_4"),
       business_card: get("business_card"),
+      book_image_1: get("book_image_1"),
+      book_image_2: get("book_image_2"),
+      book_image_3: get("book_image_3"),
       pen: get("pen"),
     },
   };

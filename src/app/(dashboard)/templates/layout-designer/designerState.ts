@@ -7,6 +7,9 @@ export type SlotId =
   | "audio"
   | "pen"
   | "business_card"
+  | "book_image_1"
+  | "book_image_2"
+  | "book_image_3"
   | "magazine"
   | "magazine_2"
   | "magazine_3"
@@ -36,6 +39,9 @@ const SLOT_DEFS: SlotDef[] = [
   { id: "magazine_3", label: "Magazine 3", optional: true },
   { id: "magazine_4", label: "Magazine 4", optional: true },
   { id: "business_card", label: "Business Card", optional: false },
+  { id: "book_image_1", label: "Book Image 1", optional: true },
+  { id: "book_image_2", label: "Book Image 2", optional: true },
+  { id: "book_image_3", label: "Book Image 3", optional: true },
   { id: "letter", label: "Letter", optional: true },
   { id: "brochure_1", label: "Brochure 1", optional: true },
   { id: "brochure_2", label: "Brochure 2", optional: true },

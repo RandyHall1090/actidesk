@@ -428,6 +428,9 @@ export function NewPackageForm({
           magazine2={toSlotAsset("magazine_2", slotAssets.magazine_2)}
           magazine3={toSlotAsset("magazine_3", slotAssets.magazine_3)}
           magazine4={toSlotAsset("magazine_4", slotAssets.magazine_4)}
+          bookImage1={toSlotAsset("book_image_1", slotAssets.book_image_1)}
+          bookImage2={toSlotAsset("book_image_2", slotAssets.book_image_2)}
+          bookImage3={toSlotAsset("book_image_3", slotAssets.book_image_3)}
           letterBody={letterBody || null}
           brochures={brochureSlots}
           orgName={orgName}

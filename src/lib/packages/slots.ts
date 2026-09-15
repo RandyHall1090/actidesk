@@ -37,4 +37,11 @@ export const PACKAGE_SLOTS: PackageSlot[] = [
   { slot: "brochure_2", label: "Brochure 2", kind: "document" },
   { slot: "brochure_3", label: "Brochure 3", kind: "document" },
   { slot: "brochure_4", label: "Brochure 4", kind: "document" },
+  // Plain photos of a physical book (kind "image", not "document" -- a
+  // single picture, not a page-by-page PDF like magazine/brochure).
+  // Clickable like business_card: opens the full image in a new tab, no
+  // PDF reader involved.
+  { slot: "book_image_1", label: "Book Image 1", kind: "image" },
+  { slot: "book_image_2", label: "Book Image 2", kind: "image" },
+  { slot: "book_image_3", label: "Book Image 3", kind: "image" },
 ];

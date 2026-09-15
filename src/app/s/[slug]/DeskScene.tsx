@@ -181,6 +181,9 @@ export function DeskScene({
   magazine2,
   magazine3,
   magazine4,
+  bookImage1,
+  bookImage2,
+  bookImage3,
   letterBody,
   brochures,
   orgName,
@@ -198,6 +201,9 @@ export function DeskScene({
   magazine2: SlotAsset | undefined;
   magazine3: SlotAsset | undefined;
   magazine4: SlotAsset | undefined;
+  bookImage1: SlotAsset | undefined;
+  bookImage2: SlotAsset | undefined;
+  bookImage3: SlotAsset | undefined;
   letterBody: string | null;
   brochures: SlotAsset[];
   orgName: string;
@@ -369,6 +375,50 @@ export function DeskScene({
             alt="Business card"
             className="w-full"
           />
+        </a>
+      )}
+
+      {/* Plain clickable book photos -- optional, like magazine_2/3/4: only
+          rendered once a layout actually defines a position for them. */}
+      {bookImage1 && layout.slots.book_image_1 && (
+        <a
+          href={bookImage1.url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => onTrack("book_image_1")}
+          style={slotStyle(layout.slots.book_image_1)}
+          className="overflow-hidden rounded-[0.6cqw] shadow-2xl ring-1 ring-black/10 transition-transform hover:scale-105"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset */}
+          <img src={bookImage1.url} alt="Book image 1" className="w-full" />
+        </a>
+      )}
+
+      {bookImage2 && layout.slots.book_image_2 && (
+        <a
+          href={bookImage2.url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => onTrack("book_image_2")}
+          style={slotStyle(layout.slots.book_image_2)}
+          className="overflow-hidden rounded-[0.6cqw] shadow-2xl ring-1 ring-black/10 transition-transform hover:scale-105"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset */}
+          <img src={bookImage2.url} alt="Book image 2" className="w-full" />
+        </a>
+      )}
+
+      {bookImage3 && layout.slots.book_image_3 && (
+        <a
+          href={bookImage3.url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => onTrack("book_image_3")}
+          style={slotStyle(layout.slots.book_image_3)}
+          className="overflow-hidden rounded-[0.6cqw] shadow-2xl ring-1 ring-black/10 transition-transform hover:scale-105"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset */}
+          <img src={bookImage3.url} alt="Book image 3" className="w-full" />
         </a>
       )}
 

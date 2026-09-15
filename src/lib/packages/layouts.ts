@@ -39,6 +39,15 @@ export type DeskLayout = {
     magazine_2?: SlotPosition;
     magazine_3?: SlotPosition;
     magazine_4?: SlotPosition;
+    // Three plain clickable book photos -- same optional-slot pattern as
+    // video_2/pen/magazine_2-4. No built-in layout below defines a
+    // position for these yet (no real desk photo has been checked for a
+    // clear pocket); an org's own admin positions them per layout via the
+    // Layout Designer, or a developer adds a real position to DESK_LAYOUTS
+    // below, once there's room.
+    book_image_1?: SlotPosition;
+    book_image_2?: SlotPosition;
+    book_image_3?: SlotPosition;
   };
   // Only a layout with real estate for these (desk-v3+) sets them -- when
   // absent, PackageView falls back to rendering the letter/brochures as
@@ -87,6 +96,15 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // slot reaches past ~83% left).
       magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      // Three side-by-side in the open pocket below video and right of
+      // audio, above the pen -- real bounding boxes confirmed live via a
+      // fully-populated test package (first attempt at top:"27%" looked
+      // clear by eye but real boxes showed it overlapping video's own
+      // footprint, which extends to x:63%/y:38.5%; corrected to start
+      // below video's bottom edge instead).
+      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
       // Open middle-bottom area, clear of every other slot.
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
@@ -120,6 +138,14 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // the real tabletop (this layout's usable area stops around y 80%).
       magazine_3: { left: "83%", top: "53%", width: "11%", rotate: 6, aspect: "0.77" },
       business_card: { left: "70%", top: "58%", width: "12%", rotate: 6 },
+      // Two side by side in the open pocket between the pen and
+      // business_card, below video_2 (confirmed live via real bounding
+      // boxes). No clean third pocket exists on this layout without either
+      // shrinking an already-tuned element or a sliver too narrow to read
+      // as a real image -- same "flag it, don't force it" call as T27 made
+      // for Magazine 3 on desk-v3; book_image_3 is simply unavailable here.
+      book_image_1: { left: "55%", top: "52%", width: "5.5%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "62%", top: "52%", width: "5.5%", rotate: 6, aspect: "0.77" },
       // Open middle-bottom area of the tabletop, between magazine and
       // business_card, below the video row.
       pen: { left: "42%", top: "62%", width: "10%", rotate: -20 },
