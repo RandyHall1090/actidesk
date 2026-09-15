@@ -1,17 +1,26 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 /*
- * This app is fixed light-theme everywhere (bg-white, text-neutral-900,
- * etc. throughout) — there's no dark-mode design. `color-scheme: light`
- * stops browsers from auto-dark-styling native form controls (inputs,
- * selects) when the OS is in dark mode, which is what made typed text in
- * the login field unreadable: the browser gave inputs a dark native
- * background while our color-inheriting text stayed near-white.
+ * Light is the default (:root). Dark values apply only when [data-theme=dark]
+ * is set on <html> by ThemeToggle.tsx / the pre-paint script in layout.tsx --
+ * never by prefers-color-scheme, so the choice is explicit, not OS-driven.
+ * `color-scheme` still flips with the theme so native form controls (inputs,
+ * selects) stay legible in both -- this is the same login-field bug this
+ * file's fixed-light setup originally existed to avoid, now solved for both
+ * themes instead of by locking out dark mode entirely.
  */
 :root {
   color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
