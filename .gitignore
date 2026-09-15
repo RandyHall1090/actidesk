@@ -61,3 +61,8 @@ design/template-candidates/
 
 # Subagent-driven-development scratch (ledgers, briefs, review packages)
 .superpowers/
+
+# HubSpot extension project
+hubspot-extension/node_modules/
+hubspot-extension/dist/
+hubspot-extension/.hs-cache/
