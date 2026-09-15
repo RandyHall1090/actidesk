@@ -64,7 +64,7 @@ export default async function PackagePage({
         .from("assets")
         .createSignedUrl(
           row.storage_path,
-          60 * 60, // regenerated on every page load
+          60 * 60 * 24 * 365, // 1 year -- matches the org logo below
           row.kind === "document" ? { download: `${row.name}.pdf` } : undefined,
         );
       url = signed?.signedUrl ?? null;
@@ -76,9 +76,14 @@ export default async function PackagePage({
 
   let orgLogoUrl: string | null = null;
   if (pkg.org_logo_storage_path) {
+    // A logo isn't secret (see 0012's RLS policy comment), and this page
+    // re-signs on every load anyway, so there's no reason to tie it to the
+    // same short TTL as the actual prospect documents below -- a long TTL
+    // just avoids the logo going stale if this HTML ever ends up cached or
+    // viewed well after the page was rendered.
     const { data: signed } = await supabase.storage
       .from("assets")
-      .createSignedUrl(pkg.org_logo_storage_path, 60 * 60);
+      .createSignedUrl(pkg.org_logo_storage_path, 60 * 60 * 24 * 365);
     orgLogoUrl = signed?.signedUrl ?? null;
   }
 
