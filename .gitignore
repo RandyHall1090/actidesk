@@ -62,7 +62,8 @@ design/template-candidates/
 # Subagent-driven-development scratch (ledgers, briefs, review packages)
 .superpowers/
 
-# HubSpot extension project
-hubspot-extension/node_modules/
-hubspot-extension/dist/
+# HubSpot extension project — dependencies install per-component
+# (e.g. hubspot-extension/src/app/cards/node_modules/), not just at the root
+hubspot-extension/**/node_modules/
+hubspot-extension/**/dist/
 hubspot-extension/.hs-cache/
