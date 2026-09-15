@@ -28,22 +28,22 @@ export function OneTimePasswordBanner({
   }
 
   return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-      <p className="text-sm font-medium text-amber-900">
+    <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 p-4">
+      <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
         Temporary password for {email}
       </p>
-      <p className="mt-1 text-xs text-amber-700">
+      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
         Shown once — copy it now and relay it directly. It won&apos;t be
         shown again.
       </p>
       <div className="mt-2 flex items-center gap-2">
-        <code className="flex-1 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm text-neutral-900">
+        <code className="flex-1 rounded-md border border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100">
           {password}
         </code>
         <button
           type="button"
           onClick={handleCopy}
-          className="rounded-md border border-amber-300 bg-white px-3 py-2 text-xs font-medium text-amber-900 hover:bg-amber-100"
+          className="rounded-md border border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-medium text-amber-900 dark:text-amber-200 hover:bg-amber-100"
         >
           {copied ? "Copied!" : "Copy"}
         </button>
@@ -51,7 +51,7 @@ export function OneTimePasswordBanner({
       <button
         type="button"
         onClick={onDismiss}
-        className="mt-2 text-xs font-medium text-amber-700 underline hover:text-amber-900"
+        className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300 underline hover:text-amber-900 dark:text-amber-200"
       >
         Dismiss
       </button>
