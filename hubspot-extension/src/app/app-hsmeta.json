@@ -1,0 +1,23 @@
+{
+  "uid": "shock_and_awe_hubspot_launcher",
+  "type": "app",
+  "config": {
+    "name": "Shock-and-Awe Launcher",
+    "description": "Opens a prefilled Online Shock-and-Awe package for the current HubSpot contact.",
+    "distribution": "private",
+    "auth": {
+      "type": "static",
+      "requiredScopes": ["crm.objects.contacts.read"],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "rhall@securafy.com"
+    }
+  }
+}
