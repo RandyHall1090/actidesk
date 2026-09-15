@@ -8,8 +8,8 @@ export default async function AccountPage() {
 
   return (
     <div className="max-w-sm">
-      <h2 className="text-xl font-semibold text-neutral-900">Account</h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">{profile.email}</p>
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Account</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">{profile.email}</p>
       <ChangePasswordForm />
     </div>
   );

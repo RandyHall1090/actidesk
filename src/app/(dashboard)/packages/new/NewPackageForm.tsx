@@ -228,15 +228,15 @@ export function NewPackageForm({
         )}
 
         {presets.length > 0 && (
-          <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-            <legend className="px-1 text-sm font-semibold text-neutral-700">
+          <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+            <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
               Start from a template
             </legend>
             <select
               ref={presetSelectRef}
               defaultValue=""
               onChange={(e) => handlePresetChange(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             >
               <option value="">— Blank —</option>
               {presets.map((p) => (
@@ -245,15 +245,15 @@ export function NewPackageForm({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               Pre-fills the assets and letter below — you can still edit
               anything before saving.
             </p>
           </fieldset>
         )}
 
-        <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-neutral-700">
+        <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Layout
           </legend>
           <select
@@ -264,7 +264,7 @@ export function NewPackageForm({
               currentRef.current.templateId = e.target.value;
               setTemplateId(e.target.value);
             }}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
           >
             {layouts.map((l) => (
               <option key={l.id} value={l.id}>
@@ -274,8 +274,8 @@ export function NewPackageForm({
           </select>
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-neutral-700">
+        <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Prospect
           </legend>
           <input
@@ -288,7 +288,7 @@ export function NewPackageForm({
               currentRef.current.prospectName = e.target.value;
               setProspectName(e.target.value);
             }}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
           />
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -299,7 +299,7 @@ export function NewPackageForm({
               onChange={(e) => {
                 currentRef.current.prospectCompany = e.target.value;
               }}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
             />
             <input
               ref={prospectEmailRef}
@@ -310,20 +310,20 @@ export function NewPackageForm({
               onChange={(e) => {
                 currentRef.current.prospectEmail = e.target.value;
               }}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
             />
           </div>
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-neutral-700">
+        <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Assets
           </legend>
           {PACKAGE_SLOTS.map((s) => {
             const options = assets.filter((a) => a.kind === s.kind);
             return (
               <label key={s.slot} className="block text-sm">
-                <span className="mb-1 block font-medium text-neutral-700">
+                <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
                   {s.label}
                 </span>
                 <select
@@ -336,7 +336,7 @@ export function NewPackageForm({
                     currentRef.current.slots[s.slot] = e.target.value;
                     setSlot(s.slot, e.target.value);
                   }}
-                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
                 >
                   <option value="">— None —</option>
                   {options.map((a) => (
@@ -351,8 +351,8 @@ export function NewPackageForm({
           })}
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-neutral-700">
+        <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Letter
           </legend>
           <textarea
@@ -365,12 +365,12 @@ export function NewPackageForm({
               currentRef.current.letterBody = e.target.value;
               setLetterBody(e.target.value);
             }}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
           />
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
-          <legend className="px-1 text-sm font-semibold text-neutral-700">
+        <fieldset className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <legend className="px-1 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Private note (not shown to the prospect)
           </legend>
           <textarea
@@ -381,17 +381,17 @@ export function NewPackageForm({
             onChange={(e) => {
               currentRef.current.privateNote = e.target.value;
             }}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
           />
         </fieldset>
 
-        {!state.ok && <p className="text-sm text-red-600">{state.error}</p>}
+        {!state.ok && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
 
         <div className="flex items-center gap-3">
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
           >
             {pending
               ? initialPackage
@@ -404,7 +404,7 @@ export function NewPackageForm({
           {initialPackage && (
             <a
               href={`/packages/${initialPackage.slug}`}
-              className="text-sm text-neutral-500 hover:text-neutral-700"
+              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:text-neutral-300"
             >
               Cancel
             </a>
@@ -413,7 +413,7 @@ export function NewPackageForm({
       </form>
 
       <div className="lg:sticky lg:top-6">
-        <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+        <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
           Live Preview
         </h3>
         <DeskScene
@@ -437,7 +437,7 @@ export function NewPackageForm({
           orgLogoUrl={slotAssets[ORG_LOGO_SLOT]?.url ?? null}
           onTrack={() => {}}
         />
-        <p className="mt-2 text-xs text-neutral-400">
+        <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">
           Preview only — links shown here are temporary and won&apos;t work
           outside this session.
         </p>

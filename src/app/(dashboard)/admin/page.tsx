@@ -8,7 +8,7 @@ export default async function AdminPage() {
   if (!profile) redirect("/login");
   if (!profile.is_platform_admin) {
     return (
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
         Only Securafy platform admins can access this page.
       </p>
     );
@@ -29,7 +29,7 @@ export default async function AdminPage() {
   const error = orgsError ?? profilesError;
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load cross-tenant data: {error.message}
       </p>
     );
@@ -37,8 +37,8 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">Admin</h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Admin</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Securafy platform admin — manage users across every tenant on the
         platform.
       </p>

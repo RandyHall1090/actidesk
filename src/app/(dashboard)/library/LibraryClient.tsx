@@ -45,7 +45,7 @@ export function LibraryClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-3">
         {ASSET_KINDS.map((k) => (
           <button
             key={k.value}
@@ -53,8 +53,8 @@ export function LibraryClient({
             onClick={() => setActiveKind(k.value)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               activeKind === k.value
-                ? "bg-neutral-900 text-white"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:bg-neutral-700"
             }`}
           >
             {k.label}
@@ -177,7 +177,7 @@ function UploadForm({
   return (
     <form
       action={formAction}
-      className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+      className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4"
     >
       <input type="hidden" name="kind" value={kind} />
       <div className="grid gap-3 sm:grid-cols-2">
@@ -185,7 +185,7 @@ function UploadForm({
           name="name"
           required
           placeholder="Name"
-          className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+          className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
         />
         {isLink ? (
           <input
@@ -193,14 +193,14 @@ function UploadForm({
             required
             type="url"
             placeholder="https://vimeo.com/..."
-            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+            className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
           />
         ) : (
           <input
             name="file"
             required
             type="file"
-            className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm text-neutral-900 file:mr-3 file:rounded file:border-0 file:bg-neutral-100 file:px-2 file:py-1 file:text-sm"
+            className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm text-neutral-900 dark:text-neutral-100 file:mr-3 file:rounded file:border-0 file:bg-neutral-100 dark:bg-neutral-800 file:px-2 file:py-1 file:text-sm"
           />
         )}
       </div>
@@ -213,7 +213,7 @@ function UploadForm({
             onScopeChange(event.target.value as AssetScope)
           }
           disabled={!isAdmin}
-          className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 disabled:bg-neutral-100 disabled:text-neutral-400"
+          className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm text-neutral-900 dark:text-neutral-100 disabled:bg-neutral-100 dark:bg-neutral-800 disabled:text-neutral-400 dark:text-neutral-500"
         >
           <option value="personal">My library</option>
           {isAdmin && <option value="company">Company library</option>}
@@ -221,13 +221,13 @@ function UploadForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
         >
           {pending ? "Adding…" : "Add"}
         </button>
       </div>
       {!state.ok && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
       )}
     </form>
   );
@@ -244,22 +244,22 @@ function AssetColumn({
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold text-neutral-700">{title}</h3>
+      <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{title}</h3>
       {assets.length === 0 ? (
-        <p className="text-sm text-neutral-400">Nothing here yet.</p>
+        <p className="text-sm text-neutral-400 dark:text-neutral-500">Nothing here yet.</p>
       ) : (
         <ul className="space-y-2">
           {assets.map((asset) => (
             <li
               key={asset.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm"
+              className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
             >
               <span className="truncate">{asset.name}</span>
               {canDelete && (
                 <form action={deleteAssetFormAction.bind(null, asset.id)}>
                   <button
                     type="submit"
-                    className="shrink-0 text-xs text-red-600 hover:underline"
+                    className="shrink-0 text-xs text-red-600 dark:text-red-400 hover:underline"
                   >
                     Delete
                   </button>

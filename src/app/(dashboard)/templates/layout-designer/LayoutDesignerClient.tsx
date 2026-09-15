@@ -220,8 +220,8 @@ export function LayoutDesignerClient({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
       <div className="space-y-4">
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+        <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Background
           </h3>
           <div className="flex flex-wrap gap-4 text-sm">
@@ -256,7 +256,7 @@ export function LayoutDesignerClient({
               <select
                 defaultValue=""
                 onChange={(e) => loadExistingLayout(e.target.value)}
-                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+                className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
               >
                 <option value="" disabled>
                   Pick a layout…
@@ -272,7 +272,7 @@ export function LayoutDesignerClient({
               <select
                 defaultValue=""
                 onChange={(e) => loadExistingBackground(e.target.value)}
-                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+                className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
               >
                 <option value="" disabled>
                   Pick a background…
@@ -293,9 +293,9 @@ export function LayoutDesignerClient({
                     const file = e.target.files?.[0];
                     if (file) loadUploadedFile(file);
                   }}
-                  className="block w-full text-sm text-neutral-700"
+                  className="block w-full text-sm text-neutral-700 dark:text-neutral-300"
                 />
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                   Previewed locally while you position everything — nothing
                   is uploaded until you click <strong>Save</strong> below.
                 </p>
@@ -304,12 +304,12 @@ export function LayoutDesignerClient({
           </div>
         </div>
 
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+        <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Canvas — drag to move, corner handle to resize
           </h3>
           {!backgroundImage ? (
-            <div className="flex aspect-video items-center justify-center rounded-md border-2 border-dashed border-neutral-300 text-sm text-neutral-400">
+            <div className="flex aspect-video items-center justify-center rounded-md border-2 border-dashed border-neutral-300 dark:border-neutral-600 text-sm text-neutral-400 dark:text-neutral-500">
               Choose a background above to begin.
             </div>
           ) : (
@@ -348,13 +348,13 @@ export function LayoutDesignerClient({
         </div>
 
         {slots.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white p-4">
-            <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
               Slot values
             </h3>
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="text-neutral-500">
+                <tr className="text-neutral-500 dark:text-neutral-400">
                   <th className="py-1 pr-2">Slot</th>
                   <th className="py-1 pr-2">Left</th>
                   <th className="py-1 pr-2">Top</th>
@@ -365,8 +365,8 @@ export function LayoutDesignerClient({
               </thead>
               <tbody>
                 {slots.map((slot) => (
-                  <tr key={slot.id} className="border-t border-neutral-100">
-                    <td className="py-1 pr-2 font-medium text-neutral-700">
+                  <tr key={slot.id} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="py-1 pr-2 font-medium text-neutral-700 dark:text-neutral-300">
                       {slot.label}
                     </td>
                     <td className="py-1 pr-2">
@@ -375,7 +375,7 @@ export function LayoutDesignerClient({
                         onChange={(e) =>
                           updateSlot({ ...slot, left: e.target.value })
                         }
-                        className="w-16 rounded border border-neutral-300 px-1 py-0.5"
+                        className="w-16 rounded border border-neutral-300 dark:border-neutral-600 px-1 py-0.5"
                       />
                     </td>
                     <td className="py-1 pr-2">
@@ -384,7 +384,7 @@ export function LayoutDesignerClient({
                         onChange={(e) =>
                           updateSlot({ ...slot, top: e.target.value })
                         }
-                        className="w-16 rounded border border-neutral-300 px-1 py-0.5"
+                        className="w-16 rounded border border-neutral-300 dark:border-neutral-600 px-1 py-0.5"
                       />
                     </td>
                     <td className="py-1 pr-2">
@@ -393,7 +393,7 @@ export function LayoutDesignerClient({
                         onChange={(e) =>
                           updateSlot({ ...slot, width: e.target.value })
                         }
-                        className="w-16 rounded border border-neutral-300 px-1 py-0.5"
+                        className="w-16 rounded border border-neutral-300 dark:border-neutral-600 px-1 py-0.5"
                       />
                     </td>
                     <td className="py-1 pr-2">
@@ -408,7 +408,7 @@ export function LayoutDesignerClient({
                             rotate: Number(e.target.value) || undefined,
                           })
                         }
-                        className="w-14 rounded border border-neutral-300 px-1 py-0.5"
+                        className="w-14 rounded border border-neutral-300 dark:border-neutral-600 px-1 py-0.5"
                       />
                     </td>
                     <td className="py-1 pr-2">
@@ -421,7 +421,7 @@ export function LayoutDesignerClient({
                             aspect: e.target.value || undefined,
                           })
                         }
-                        className="w-16 rounded border border-neutral-300 px-1 py-0.5"
+                        className="w-16 rounded border border-neutral-300 dark:border-neutral-600 px-1 py-0.5"
                       />
                     </td>
                   </tr>
@@ -433,12 +433,12 @@ export function LayoutDesignerClient({
       </div>
 
       <div className="space-y-4">
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+        <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Save
           </h3>
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">
+            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
               label
             </span>
             <input
@@ -448,17 +448,17 @@ export function LayoutDesignerClient({
                 resetSaveFeedback();
               }}
               placeholder="New Layout"
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             />
           </label>
           <label className="mt-2 block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">
+            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
               aspectRatio
             </span>
             <input
               value={exportAspectRatio}
               onChange={(e) => setExportAspectRatio(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             />
           </label>
           <label className="mt-2 flex items-center gap-2 text-sm">
@@ -474,7 +474,7 @@ export function LayoutDesignerClient({
             type="button"
             onClick={handleSave}
             disabled={slots.length === 0 || saveState === "saving"}
-            className="mt-3 w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            className="mt-3 w-full rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
           >
             {saveState === "saving"
               ? "Saving…"
@@ -483,14 +483,14 @@ export function LayoutDesignerClient({
                 : "Save as a new layout"}
           </button>
           {saveState === "saved" && (
-            <p className="mt-2 text-sm text-green-600">
+            <p className="mt-2 text-sm text-green-600 dark:text-green-400">
               Saved — selectable now in New Package and Templates.
             </p>
           )}
           {saveState === "error" && (
-            <p className="mt-2 text-sm text-red-600">{saveError}</p>
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>
           )}
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             {loadedCustomLayoutId
               ? "Updates this saved layout in place."
               : "Creates a new layout owned by your organization — nobody else sees it."}
@@ -498,24 +498,24 @@ export function LayoutDesignerClient({
         </div>
 
         {customLayouts.length > 0 && (
-          <div className="rounded-lg border border-neutral-200 bg-white p-4">
-            <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
               Your saved layouts
             </h3>
             <ul className="space-y-2">
               {customLayouts.map((l) => (
                 <li
                   key={l.id}
-                  className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 px-3 py-2 text-sm"
+                  className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm"
                 >
-                  <span className="min-w-0 truncate font-medium text-neutral-800">
+                  <span className="min-w-0 truncate font-medium text-neutral-800 dark:text-neutral-200">
                     {l.label}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleDelete(l.id)}
                     disabled={deletingId === l.id}
-                    className="shrink-0 text-xs text-red-600 hover:underline disabled:opacity-50"
+                    className="shrink-0 text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
                   >
                     {deletingId === l.id ? "Deleting…" : "Delete"}
                   </button>
@@ -525,40 +525,40 @@ export function LayoutDesignerClient({
           </div>
         )}
 
-        <details className="rounded-lg border border-neutral-200 bg-white p-4">
-          <summary className="cursor-pointer text-sm font-semibold text-neutral-700">
+        <details className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Developer: ship as a new built-in layout instead
           </summary>
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             For a layout every tenant should have (not just your own org),
             copy the code below and paste it into <code>DESK_LAYOUTS</code>{" "}
             in <code>src/lib/packages/layouts.ts</code> for a developer to
             deploy, instead of clicking Save.
           </p>
           <label className="mt-3 block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">
+            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
               id
             </span>
             <input
               value={exportId}
               onChange={(e) => setExportId(e.target.value)}
               placeholder="desk-v4"
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             />
           </label>
           {idCollision && (
-            <p className="mt-1 text-xs text-red-600">
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
               &ldquo;{exportId}&rdquo; already exists — pick a different id.
             </p>
           )}
-          <pre className="mt-3 max-h-96 overflow-auto rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs text-neutral-800">
+          <pre className="mt-3 max-h-96 overflow-auto rounded-md border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 p-3 text-xs text-neutral-800 dark:text-neutral-200">
             {exportText()}
           </pre>
           <button
             type="button"
             onClick={handleCopy}
             disabled={slots.length === 0}
-            className="mt-2 w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-opacity hover:bg-neutral-50 disabled:opacity-50"
+            className="mt-2 w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-opacity hover:bg-neutral-50 dark:bg-neutral-950 disabled:opacity-50"
           >
             {copied ? "Copied!" : "Copy to clipboard"}
           </button>

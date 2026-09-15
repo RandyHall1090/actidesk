@@ -17,7 +17,7 @@ export default async function PackagesPage() {
 
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load packages: {error.message}
       </p>
     );
@@ -46,18 +46,18 @@ export default async function PackagesPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-neutral-900">My Sites</h2>
+        <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">My Sites</h2>
         <Link
           href="/packages/new"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+          className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900"
         >
           New Package
         </Link>
       </div>
       {(packages ?? []).length === 0 ? (
-        <p className="text-sm text-neutral-500">No packages sent yet.</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">No packages sent yet.</p>
       ) : (
-        <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+        <ul className="divide-y divide-neutral-200 dark:divide-neutral-700 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900">
           {(packages ?? []).map((p) => {
             const stats = viewsByPackage.get(p.id);
             return (
@@ -68,17 +68,17 @@ export default async function PackagesPage() {
                 <div>
                   <Link
                     href={`/packages/${p.slug}`}
-                    className="font-medium text-neutral-900 hover:underline"
+                    className="font-medium text-neutral-900 dark:text-neutral-100 hover:underline"
                   >
                     {p.prospect_name}
                   </Link>
                   {p.prospect_company && (
-                    <span className="ml-2 text-sm text-neutral-500">
+                    <span className="ml-2 text-sm text-neutral-500 dark:text-neutral-400">
                       {p.prospect_company}
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-neutral-500">
+                <div className="text-sm text-neutral-500 dark:text-neutral-400">
                   {stats
                     ? `Opened ${stats.count}× — last ${new Date(stats.last).toLocaleDateString()}`
                     : "Not opened yet"}

@@ -49,9 +49,9 @@ export function ChangePasswordForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+      className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4"
     >
-      <h3 className="text-sm font-semibold text-neutral-700">
+      <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
         Change password
       </h3>
       <input
@@ -61,7 +61,7 @@ export function ChangePasswordForm() {
         value={newPassword}
         onChange={(event) => setNewPassword(event.target.value)}
         placeholder="New password (min. 8 characters)"
-        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
       />
       <input
         type="password"
@@ -70,20 +70,20 @@ export function ChangePasswordForm() {
         value={confirmPassword}
         onChange={(event) => setConfirmPassword(event.target.value)}
         placeholder="Confirm new password"
-        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
       />
       <button
         type="submit"
         disabled={status === "sending"}
-        className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+        className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
       >
         {status === "sending" ? "Updating…" : "Update password"}
       </button>
       {status === "error" && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
       )}
       {status === "done" && (
-        <p className="text-sm text-green-600">Password updated.</p>
+        <p className="text-sm text-green-600 dark:text-green-400">Password updated.</p>
       )}
     </form>
   );

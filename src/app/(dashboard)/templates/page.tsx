@@ -37,7 +37,7 @@ export default async function TemplatesPage() {
   const error = assetsError ?? presetsError;
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load templates: {error.message}
       </p>
     );
@@ -45,8 +45,8 @@ export default async function TemplatesPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">Templates</h2>
-      <p className="mt-1 mb-2 text-sm text-neutral-600">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Templates</h2>
+      <p className="mt-1 mb-2 text-sm text-neutral-600 dark:text-neutral-400">
         Content presets you can start a new package from — a saved set of
         asset picks and letter text. Keep your own private, or share one with
         your team; clone anyone&apos;s shared template to make your own
@@ -56,7 +56,7 @@ export default async function TemplatesPage() {
         <p className="mb-6 text-sm">
           <Link
             href="/templates/layout-designer"
-            className="font-medium text-neutral-700 underline hover:text-neutral-900"
+            className="font-medium text-neutral-700 dark:text-neutral-300 underline hover:text-neutral-900 dark:text-neutral-100"
           >
             Manage desk layouts →
           </Link>

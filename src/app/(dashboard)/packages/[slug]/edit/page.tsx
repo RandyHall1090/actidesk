@@ -44,7 +44,7 @@ export default async function EditPackagePage({
   // form whose Save button would just silently fail under RLS.
   if (pkg.created_by !== profile.id) {
     return (
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
         Only the rep who created this package can edit it.
       </p>
     );
@@ -73,7 +73,7 @@ export default async function EditPackagePage({
   const error = assetsError ?? presetsError ?? slotsError;
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load this package: {error.message}
       </p>
     );
@@ -110,10 +110,10 @@ export default async function EditPackagePage({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
         Edit Package — {pkg.prospect_name}
       </h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Saving keeps the same link — anyone who already has it sees your
         changes next time they open it.
       </p>

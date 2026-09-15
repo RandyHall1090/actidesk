@@ -8,7 +8,7 @@ export default async function LayoutDesignerPage() {
   if (!profile) redirect("/login");
   if (profile.role !== "admin") {
     return (
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
         Only admins can manage desk layouts.
       </p>
     );
@@ -18,10 +18,10 @@ export default async function LayoutDesignerPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
         Layout Designer
       </h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Drag content onto a desk background to work out positions visually,
         then click <strong>Save</strong> to make it selectable for your own
         organization&apos;s packages right away — no developer needed.

@@ -60,7 +60,7 @@ export default async function NewPackagePage({
   const error = assetsError ?? presetsError;
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load your assets: {error.message}
       </p>
     );
@@ -81,8 +81,8 @@ export default async function NewPackagePage({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">New Package</h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">New Package</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Pick assets for this prospect, then send them the link yourself once
         it&apos;s created.
       </p>

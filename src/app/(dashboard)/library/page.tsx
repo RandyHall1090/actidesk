@@ -18,7 +18,7 @@ export default async function LibraryPage() {
 
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load the asset library: {error.message}
       </p>
     );
@@ -26,10 +26,10 @@ export default async function LibraryPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-neutral-900">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
         Asset Library
       </h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Video and audio are Vimeo links. Images, documents, business cards,
         and your logo are uploaded here.
       </p>

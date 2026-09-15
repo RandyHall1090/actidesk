@@ -72,22 +72,22 @@ const SECTIONS = [
 export default function HelpPage() {
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl font-semibold text-neutral-900">Help</h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Help</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         How to build and send an Online Shock-and-Awe package, end to end.
       </p>
       <div className="space-y-6">
         {SECTIONS.map((section) => (
           <section
             key={section.title}
-            className="rounded-lg border border-neutral-200 bg-white p-4"
+            className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4"
           >
-            <h3 className="mb-2 text-sm font-semibold text-neutral-900">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {section.title}
             </h3>
             <div className="space-y-2">
               {section.body.map((paragraph, i) => (
-                <p key={i} className="text-sm text-neutral-600">
+                <p key={i} className="text-sm text-neutral-600 dark:text-neutral-400">
                   {paragraph}
                 </p>
               ))}

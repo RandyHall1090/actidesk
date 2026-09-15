@@ -8,7 +8,7 @@ export default async function TeamPage() {
   if (!profile) redirect("/login");
   if (profile.role !== "admin") {
     return (
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
         Only admins can manage the team.
       </p>
     );
@@ -22,7 +22,7 @@ export default async function TeamPage() {
 
   if (error) {
     return (
-      <p className="text-sm text-red-600">
+      <p className="text-sm text-red-600 dark:text-red-400">
         Couldn&apos;t load the team: {error.message}
       </p>
     );
@@ -32,8 +32,8 @@ export default async function TeamPage() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-xl font-semibold text-neutral-900">Team</h2>
-      <p className="mt-1 mb-6 text-sm text-neutral-600">
+      <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Team</h2>
+      <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         Manage who&apos;s on your team, their role, and their access.
       </p>
       <TeamClient

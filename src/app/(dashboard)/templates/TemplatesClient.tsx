@@ -235,25 +235,25 @@ export function TemplatesClient({
         <form
           ref={formRef}
           action={formAction}
-          className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4"
+          className="space-y-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4"
         >
           <input ref={presetIdInputRef} type="hidden" name="preset_id" />
           {editingName && (
-            <p className="flex items-center justify-between rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+            <p className="flex items-center justify-between rounded-md border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-xs text-neutral-700 dark:text-neutral-300">
               <span>
                 Editing <strong>{editingName}</strong>
               </span>
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="font-medium text-neutral-600 hover:underline"
+                className="font-medium text-neutral-600 dark:text-neutral-400 hover:underline"
               >
                 Cancel
               </button>
             </p>
           )}
           {cloneWarning && (
-            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <p className="rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-3 py-2 text-xs text-amber-900 dark:text-amber-200">
               {cloneWarning}
             </p>
           )}
@@ -262,18 +262,18 @@ export function TemplatesClient({
             name="name"
             required
             placeholder="Template name (e.g. Enterprise pitch)"
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
           />
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">
+            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
               Visibility
             </span>
             <select
               name="scope"
               ref={scopeSelectRef}
               defaultValue="personal"
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             >
               <option value="personal">Personal — only you</option>
               <option value="company">Shared with your team</option>
@@ -284,7 +284,7 @@ export function TemplatesClient({
             const options = assets.filter((a) => a.kind === s.kind);
             return (
               <label key={s.slot} className="block text-sm">
-                <span className="mb-1 block font-medium text-neutral-700">
+                <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
                   {s.label}
                 </span>
                 <select
@@ -294,7 +294,7 @@ export function TemplatesClient({
                     slotRefs.current[s.slot] = el ?? undefined;
                   }}
                   onChange={(e) => setSlot(s.slot, e.target.value)}
-                  className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+                  className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
                 >
                   <option value="">— None —</option>
                   {options.map((a) => (
@@ -309,7 +309,7 @@ export function TemplatesClient({
           })}
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-700">
+            <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
               Letter
             </span>
             <textarea
@@ -318,23 +318,23 @@ export function TemplatesClient({
               rows={5}
               placeholder="Hi [Name], ..."
               onChange={(e) => setLetterBody(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
             />
           </label>
 
-          {!state.ok && <p className="text-sm text-red-600">{state.error}</p>}
+          {!state.ok && <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>}
 
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+            className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
           >
             {pending ? "Saving…" : editingName ? "Save changes" : "Save Template"}
           </button>
         </form>
 
         <div className="lg:sticky lg:top-6">
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Live Preview
           </h3>
           <DeskScene
@@ -358,7 +358,7 @@ export function TemplatesClient({
             orgLogoUrl={slotAssets[ORG_LOGO_SLOT]?.url ?? null}
             onTrack={() => {}}
           />
-          <p className="mt-2 text-xs text-neutral-400">
+          <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">
             Preview only — a rep can pick a different layout when they
             actually create a package from this template.
           </p>
@@ -367,11 +367,11 @@ export function TemplatesClient({
 
       <div className="space-y-6">
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             My Templates
           </h3>
           {myPresets.length === 0 ? (
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-neutral-400 dark:text-neutral-500">
               No templates of your own yet.
             </p>
           ) : (
@@ -390,11 +390,11 @@ export function TemplatesClient({
         </div>
 
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-neutral-700">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Shared by your team
           </h3>
           {sharedPresets.length === 0 ? (
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-neutral-400 dark:text-neutral-500">
               No one has shared a template yet.
             </p>
           ) : (
@@ -432,10 +432,10 @@ function PresetRow({
 }) {
   const filledSlots = preset.preset_assets.filter((pa) => pa.asset_id);
   return (
-    <li className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm">
+    <li className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm">
       <div className="min-w-0">
-        <p className="font-medium text-neutral-900">{preset.name}</p>
-        <p className="mt-0.5 text-xs text-neutral-500">
+        <p className="font-medium text-neutral-900 dark:text-neutral-100">{preset.name}</p>
+        <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {filledSlots.length > 0
             ? `${filledSlots.length} asset${filledSlots.length === 1 ? "" : "s"} selected`
             : "No assets selected"}
@@ -447,7 +447,7 @@ function PresetRow({
           <button
             type="button"
             onClick={() => onEdit(preset)}
-            className="text-xs text-neutral-700 hover:underline"
+            className="text-xs text-neutral-700 dark:text-neutral-300 hover:underline"
           >
             Edit
           </button>
@@ -455,7 +455,7 @@ function PresetRow({
         <button
           type="button"
           onClick={() => onClone(preset)}
-          className="text-xs text-neutral-700 hover:underline"
+          className="text-xs text-neutral-700 dark:text-neutral-300 hover:underline"
         >
           Clone
         </button>
@@ -463,7 +463,7 @@ function PresetRow({
           <form action={deletePresetFormAction.bind(null, preset.id)}>
             <button
               type="submit"
-              className="text-xs text-red-600 hover:underline"
+              className="text-xs text-red-600 dark:text-red-400 hover:underline"
             >
               Delete
             </button>

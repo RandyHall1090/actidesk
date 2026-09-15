@@ -55,18 +55,18 @@ export function DesignerBox({
         boxHandlers.onPointerDown(e);
       }}
       style={{ ...slotStyle(slot), zIndex: isActive ? 20 : 10 }}
-      className="touch-none cursor-move select-none rounded border-2 border-dashed border-blue-500 bg-blue-500/20 px-1 py-0.5 text-center shadow"
+      className="touch-none cursor-move select-none rounded border-2 border-dashed border-blue-500 dark:border-blue-400 bg-blue-500/20 dark:bg-blue-600/20 px-1 py-0.5 text-center shadow"
     >
       {/* An opaque chip, not plain text on the translucent box fill --
           slots sit on top of real (often dark) desk photos, and dark-blue
           text over a 20%-opacity tint had no reliable contrast against
           whatever photo pixels happened to be underneath. */}
-      <span className="inline-block rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-blue-900 shadow-sm">
+      <span className="inline-block rounded bg-white dark:bg-neutral-900 px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-blue-900 dark:text-blue-200 shadow-sm">
         {slot.label}
       </span>
       <div
         {...handleHandlers}
-        className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize touch-none rounded-sm border border-blue-700 bg-white"
+        className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize touch-none rounded-sm border border-blue-700 dark:border-blue-400 bg-white dark:bg-neutral-900"
       />
     </div>
   );
