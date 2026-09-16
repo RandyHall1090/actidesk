@@ -26,6 +26,7 @@
 **Files:**
 - Create: `src/app/api/packages/route.ts`
 - Modify: `src/app/(dashboard)/packages/new/actions.ts:22` (add `export` to `resolveTemplateId` — no other change to that function)
+- Modify: `src/lib/supabase/middleware.ts` (added mid-implementation, approved by Randy directly — see Step 5 below; this app's global auth middleware redirects every cookieless request to `/login` unless the path is on a small hardcoded allowlist, and a bearer-token server-to-server caller never has a session cookie)
 
 **Interfaces:**
 - Consumes: `resolveTemplateId(supabase, orgId, rawTemplateId): Promise<string>` (exported by this task from `packages/new/actions.ts`); `createAdminClient()` from `src/lib/supabase/admin.ts`; `slugify`/`randomSuffix` from `src/lib/packages/slug.ts`; `SECURAFY_ORG_ID` from `src/lib/hubspot.ts`.
@@ -169,7 +170,38 @@ export async function POST(req: Request) {
 Run: `npx tsc --noEmit`
 Expected: no errors. **If `resolveTemplateId`'s call in Step 3 raises a type error on the `admin` client argument:** the fix is to widen `resolveTemplateId`'s first parameter type in `packages/new/actions.ts` to a type both clients satisfy — e.g. import `SupabaseClient` from `@supabase/supabase-js` and type the parameter as `SupabaseClient` (dropping the specific `Awaited<ReturnType<typeof createClient>>` alias), since both `createClient()` (server.ts) and `createAdminClient()` (admin.ts) return instances of that same underlying class. Re-run `npx tsc --noEmit` after making that change and confirm it's clean everywhere (`packages/new/actions.ts`'s own existing call site included, not just the new route).
 
-- [ ] **Step 5: Real manual verification — auth gate**
+- [ ] **Step 5: Exempt `/api/packages` from the session-cookie redirect**
+
+**Discovered mid-implementation, approved by Randy directly (not a step the original plan anticipated):** this app's existing global auth middleware (`src/lib/supabase/middleware.ts`) redirects any request with no Supabase session cookie to `/login`, unless the request path is on a small hardcoded allowlist. A bearer-token server-to-server caller (Gate Desk) never has a session cookie, so without this change every request to `/api/packages` gets redirected before the route's own token check ever runs.
+
+In `src/lib/supabase/middleware.ts`, find the `isPublicRoute` check:
+
+```ts
+const isPublicRoute =
+  pathname.startsWith("/s/") ||
+  pathname.startsWith("/login") ||
+  pathname.startsWith("/signup") ||
+  pathname.startsWith("/forgot-password") ||
+  pathname.startsWith("/reset-password");
+```
+
+Add exactly one more line:
+
+```ts
+const isPublicRoute =
+  pathname.startsWith("/s/") ||
+  pathname.startsWith("/login") ||
+  pathname.startsWith("/signup") ||
+  pathname.startsWith("/forgot-password") ||
+  pathname.startsWith("/reset-password") ||
+  pathname.startsWith("/api/packages");
+```
+
+Do not change anything else in this file — in particular, do not touch the file's own list of static-asset extensions or the `/api/help-chat` route's behavior (that route is untouched by this change and must stay exactly as already shipped in T30).
+
+Typecheck: run `npx tsc --noEmit`, expect clean.
+
+- [ ] **Step 6: Real manual verification — auth gate**
 
 Run: `npm run dev` (background).
 
@@ -187,7 +219,7 @@ curl -i -X POST http://localhost:3000/api/packages -H "Authorization: Bearer wro
 ```
 Expected: `HTTP/1.1 401`.
 
-- [ ] **Step 6: Real manual verification — validation and success**
+- [ ] **Step 7: Real manual verification — validation and success**
 
 Get the real key value from the local environment without echoing it into chat — e.g. read it via a short script/command that uses it directly rather than printing it (for example, in the same terminal session where the dev server's env is loaded, reference `$env:GATE_DESK_API_KEY` / `process.env.GATE_DESK_API_KEY` directly in the curl invocation rather than typing the literal secret value anywhere in your report).
 
@@ -203,14 +235,14 @@ curl -i -X POST http://localhost:3000/api/packages -H "Authorization: Bearer $GA
 ```
 Expected: `HTTP/1.1 200` with a real JSON body `{"slug":"...","url":"http://localhost:3000/s/..."}` (the `url` will show `NEXT_PUBLIC_SITE_URL`'s locally-configured value, not necessarily the production domain — that's expected for a local run).
 
-- [ ] **Step 7: Verify the database side directly**
+- [ ] **Step 8: Verify the database side directly**
 
 Using `mcp__supabase__execute_sql` (project_id `fywmrqbxjlocjsdopjep`), confirm the row this created:
 
 ```sql
 select id, org_id, created_by, slug, prospect_name, prospect_company, prospect_email, template_id, created_at
 from public.packages
-where slug = '<the real slug from Step 6''s response>';
+where slug = '<the real slug from Step 7''s response>';
 ```
 
 Expected: one row, `org_id` = `00000000-0000-0000-0000-000000000001`, `created_by` = `f97e0b1c-5b3d-4ee5-94a4-51314ceadc21`, `prospect_name`/`prospect_company`/`prospect_email` matching what was sent.
@@ -222,9 +254,9 @@ Delete the test package afterward:
 delete from public.packages where slug = '<the real slug>';
 ```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add "src/app/api/packages/route.ts" "src/app/(dashboard)/packages/new/actions.ts"
+git add "src/app/api/packages/route.ts" "src/app/(dashboard)/packages/new/actions.ts" "src/lib/supabase/middleware.ts"
 git commit -m "feat: Gate Desk server-to-server package creation (T33)"
 ```
