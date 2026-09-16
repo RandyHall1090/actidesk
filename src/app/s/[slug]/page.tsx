@@ -12,6 +12,7 @@ type PackageRow = {
   template_id: string;
   org_name: string;
   org_logo_storage_path: string | null;
+  calendar_url: string | null;
 };
 
 type SlotRow = {
@@ -98,6 +99,7 @@ export default async function PackagePage({
       slots={slots}
       orgName={pkg.org_name}
       orgLogoUrl={orgLogoUrl}
+      calendarUrl={pkg.calendar_url}
     />
   );
 }

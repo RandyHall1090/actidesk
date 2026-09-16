@@ -21,6 +21,7 @@ export function PackageView({
   slots,
   orgName,
   orgLogoUrl,
+  calendarUrl,
 }: {
   packageId: string;
   // Resolved server-side (getLayoutForPublicPage) -- built-in or a custom
@@ -31,6 +32,7 @@ export function PackageView({
   slots: SlotAsset[];
   orgName: string;
   orgLogoUrl: string | null;
+  calendarUrl: string | null;
 }) {
   useEffect(() => {
     logTrackingEvent(packageId, "page_view");
@@ -116,6 +118,19 @@ export function PackageView({
           onTrack={track}
         />
       </div>
+
+      {calendarUrl && (
+        <div className="mb-8 text-center">
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Schedule a meeting
+          </a>
+        </div>
+      )}
 
       <div className="mx-auto max-w-3xl">
         {!layout.letter && letterBody && (
