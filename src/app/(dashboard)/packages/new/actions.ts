@@ -11,6 +11,20 @@ import { syncPackageToHubSpot } from "@/lib/hubspot";
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const MAX_SLUG_ATTEMPTS = 3;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Free-text fields were previously unbounded, limited only by whatever the
+// platform/Postgres allowed, not by this code (2026-09-16 security audit).
+function validateLength(
+  value: string | null,
+  label: string,
+  maxLength: number,
+): string | null {
+  if (value && value.length > maxLength) {
+    return `${label} must be ${maxLength} characters or fewer.`;
+  }
+  return null;
+}
 
 /**
  * A template_id is either a built-in DESK_LAYOUTS id (checked first, no DB
@@ -68,6 +82,18 @@ export async function savePackage(
     (formData.get("private_note") as string | null)?.trim() || null;
   const rawTemplateId = (formData.get("template_id") as string | null)?.trim();
   const packageId = (formData.get("package_id") as string | null)?.trim() || "";
+
+  const lengthError =
+    validateLength(prospectName, "Prospect name", 200) ??
+    validateLength(prospectCompany, "Company", 200) ??
+    validateLength(prospectEmail, "Email", 320) ??
+    validateLength(letterBody, "Letter", 20000) ??
+    validateLength(privateNote, "Private note", 20000);
+  if (lengthError) return { ok: false, error: lengthError };
+  if (prospectEmail && !EMAIL_RE.test(prospectEmail)) {
+    return { ok: false, error: "Please enter a valid email address." };
+  }
+
   const supabase = await createClient();
   const templateId = await resolveTemplateId(supabase, profile.org_id, rawTemplateId);
 
@@ -91,7 +117,8 @@ export async function savePackage(
       .single();
 
     if (error || !updated) {
-      return { ok: false, error: error?.message ?? "Couldn't save changes." };
+      if (error) console.error("savePackage update failed:", error);
+      return { ok: false, error: "Couldn't save changes." };
     }
 
     // Replace the full slot set (delete then insert) rather than diff
@@ -102,7 +129,10 @@ export async function savePackage(
       .from("package_assets")
       .delete()
       .eq("package_id", updated.id);
-    if (deleteError) return { ok: false, error: deleteError.message };
+    if (deleteError) {
+      console.error("savePackage slot-reset failed:", deleteError);
+      return { ok: false, error: "Couldn't save changes." };
+    }
 
     const editSlotRows = PACKAGE_SLOTS.map((s) => ({
       slot: s.slot,
@@ -119,7 +149,10 @@ export async function savePackage(
       const { error: slotsError } = await supabase
         .from("package_assets")
         .insert(editSlotRows);
-      if (slotsError) return { ok: false, error: slotsError.message };
+      if (slotsError) {
+        console.error("savePackage slot-save failed:", slotsError);
+        return { ok: false, error: "Couldn't save changes." };
+      }
     }
 
     redirect(`/packages/${updated.slug}`);
@@ -157,9 +190,10 @@ export async function savePackage(
   }
 
   if (!inserted) {
+    if (lastError) console.error("savePackage create failed:", lastError);
     return {
       ok: false,
-      error: lastError ?? "Couldn't create the package. Try again.",
+      error: "Couldn't create the package. Try again.",
     };
   }
 
@@ -179,7 +213,8 @@ export async function savePackage(
       .from("package_assets")
       .insert(slotRows);
     if (slotsError) {
-      return { ok: false, error: slotsError.message };
+      console.error("savePackage slot-save failed:", slotsError);
+      return { ok: false, error: "Couldn't create the package. Try again." };
     }
   }
 

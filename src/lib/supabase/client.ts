@@ -9,5 +9,11 @@ export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      // See server.ts for why `secure` is set explicitly here.
+      cookieOptions: {
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   );
 }

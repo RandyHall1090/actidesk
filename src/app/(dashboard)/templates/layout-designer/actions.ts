@@ -24,6 +24,48 @@ export type LayoutActionResult =
   | { ok: false; error: string };
 
 /**
+ * Lightweight runtime shape check for a SlotPosition before it's stored in
+ * a JSONB column -- this isn't a security boundary (JSONB storage is
+ * parameterized, so there's no injection risk, and these values are only
+ * ever consumed as React inline `style` properties, never raw HTML), just
+ * data-integrity defense-in-depth so a malformed shape fails at save time
+ * instead of silently breaking the desk-scene renderer later.
+ */
+function isValidSlotPosition(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  if (typeof v.left !== "string" || typeof v.top !== "string" || typeof v.width !== "string") {
+    return false;
+  }
+  if (v.rotate !== undefined && typeof v.rotate !== "number") return false;
+  if (v.aspect !== undefined && typeof v.aspect !== "string") return false;
+  return true;
+}
+
+function validateLayoutShape(input: SaveLayoutInput): string | null {
+  if (!isValidSlotPosition(input.nameplate)) {
+    return "The nameplate position is malformed.";
+  }
+  if (!input.slots || typeof input.slots !== "object") {
+    return "Slot positions are malformed.";
+  }
+  for (const slot of Object.values(input.slots)) {
+    if (slot !== undefined && !isValidSlotPosition(slot)) {
+      return "One or more slot positions are malformed.";
+    }
+  }
+  if (input.letter !== undefined && !isValidSlotPosition(input.letter)) {
+    return "The letter position is malformed.";
+  }
+  if (input.brochures !== undefined) {
+    if (!Array.isArray(input.brochures) || input.brochures.some((b) => !isValidSlotPosition(b))) {
+      return "One or more brochure positions are malformed.";
+    }
+  }
+  return null;
+}
+
+/**
  * Self-service save for an org's own custom desk layout (T15) -- the
  * counterpart to this tool's original "copy the code, a developer pastes
  * it into layouts.ts and deploys" path, which stays available (for
@@ -46,6 +88,8 @@ export async function saveLayout(
   if (!input.backgroundImage) {
     return { ok: false, error: "A background image is required." };
   }
+  const shapeError = validateLayoutShape(input);
+  if (shapeError) return { ok: false, error: shapeError };
 
   const supabase = await createClient();
   const sharedFields = {
@@ -68,7 +112,8 @@ export async function saveLayout(
       .select("id")
       .single();
     if (error || !data) {
-      return { ok: false, error: error?.message ?? "Couldn't update the layout." };
+      if (error) console.error("saveLayout update failed:", error);
+      return { ok: false, error: "Couldn't update the layout." };
     }
     revalidatePath("/templates/layout-designer");
     revalidatePath("/templates");
@@ -82,7 +127,8 @@ export async function saveLayout(
     .select("id")
     .single();
   if (error || !data) {
-    return { ok: false, error: error?.message ?? "Couldn't save the layout." };
+    if (error) console.error("saveLayout insert failed:", error);
+    return { ok: false, error: "Couldn't save the layout." };
   }
   revalidatePath("/templates/layout-designer");
   revalidatePath("/templates");
@@ -98,12 +144,20 @@ export async function deleteLayout(id: string): Promise<LayoutActionResult> {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // count check: without it, a stale/nonexistent/cross-org id would still
+  // report { ok: true } even though nothing was actually deleted.
+  const { error, count } = await supabase
     .from("layouts")
-    .delete()
+    .delete({ count: "exact" })
     .eq("id", id)
     .eq("org_id", profile.org_id);
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("deleteLayout failed:", error);
+    return { ok: false, error: "Couldn't delete the layout." };
+  }
+  if (!count) {
+    return { ok: false, error: "Couldn't delete the layout — it may not exist." };
+  }
 
   revalidatePath("/templates/layout-designer");
   revalidatePath("/templates");

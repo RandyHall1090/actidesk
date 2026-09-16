@@ -9,18 +9,25 @@ export type TrackingEventType = "page_view" | "asset_opened" | "asset_played";
  * (network hiccup, ad blocker, etc.) must never break the prospect's
  * viewing experience, so they're logged to the console rather than thrown —
  * this is a non-critical side channel, not the page's actual content.
+ *
+ * Routed through the record_tracking_event RPC (not a direct table insert)
+ * so a caller can only ever record an event against the ONE package
+ * matching the slug they're actually viewing -- a direct insert would
+ * accept any existing package_id from any org, since there's no RLS
+ * relationship between "the slug in this browser tab" and "the package_id
+ * in the request body" for a raw insert. See migration 0025.
  */
 export async function logTrackingEvent(
-  packageId: string,
+  slug: string,
   eventType: TrackingEventType,
   slotName?: string,
 ) {
   try {
     const supabase = createClient();
-    const { error } = await supabase.from("tracking_events").insert({
-      package_id: packageId,
-      event_type: eventType,
-      slot_name: slotName ?? null,
+    const { error } = await supabase.rpc("record_tracking_event", {
+      p_slug: slug,
+      p_event_type: eventType,
+      p_slot_name: slotName ?? null,
     });
     if (error) console.warn("tracking event failed:", error.message);
   } catch (err) {

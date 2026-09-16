@@ -12,6 +12,15 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // @supabase/ssr's default cookie options omit `secure`, so the
+      // session cookie would still be sent over a plain-HTTP request if
+      // one ever reached the app's origin. `sameSite`/`httpOnly` are left
+      // at the library default (lax / readable) -- httpOnly:false is a
+      // required trade-off for the browser client to read the session,
+      // not something this app can safely override.
+      cookieOptions: {
+        secure: process.env.NODE_ENV === "production",
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll();

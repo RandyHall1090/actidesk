@@ -18,13 +18,26 @@ const MAX_SLUG_ATTEMPTS = 3;
 // despite the `as string` casts callers write against. Throws on anything
 // but undefined/null/string so the caller can turn that into a clean 400
 // instead of letting `.trim()` throw a TypeError that becomes an unhandled 500.
-function optionalString(value: unknown): string | null {
+// Also caps length -- unbounded free text was previously only limited by
+// whatever the platform/Postgres allowed, not by this code.
+function optionalString(
+  value: unknown,
+  fieldName: string,
+  maxLength = 500,
+): string | null {
   if (value === undefined || value === null) return null;
   if (typeof value !== "string") {
-    throw new Error("Expected a string");
+    throw new Error(`${fieldName} must be a string`);
   }
-  return value.trim() || null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > maxLength) {
+    throw new Error(`${fieldName} must be ${maxLength} characters or fewer`);
+  }
+  return trimmed;
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isValidBearerToken(header: string | null): boolean {
   const expected = process.env.GATE_DESK_API_KEY;
@@ -55,16 +68,19 @@ export async function POST(req: Request) {
   let prospectName: string | null;
   let prospectCompany: string | null;
   let prospectEmail: string | null;
+  let rawTemplateId: string | null;
   try {
-    prospectName = optionalString(body?.prospect_name);
-    prospectCompany = optionalString(body?.prospect_company);
-    prospectEmail = optionalString(body?.prospect_email);
-  } catch {
+    prospectName = optionalString(body?.prospect_name, "prospect_name", 200);
+    prospectCompany = optionalString(
+      body?.prospect_company,
+      "prospect_company",
+      200,
+    );
+    prospectEmail = optionalString(body?.prospect_email, "prospect_email", 320);
+    rawTemplateId = optionalString(body?.template_id, "template_id", 100);
+  } catch (err) {
     return NextResponse.json(
-      {
-        error:
-          "prospect_name, prospect_company, and prospect_email must be strings",
-      },
+      { error: err instanceof Error ? err.message : "Invalid input" },
       { status: 400 },
     );
   }
@@ -75,8 +91,12 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const rawTemplateId =
-    (body?.template_id as string | null | undefined) ?? undefined;
+  if (prospectEmail && !EMAIL_RE.test(prospectEmail)) {
+    return NextResponse.json(
+      { error: "prospect_email must be a valid email address" },
+      { status: 400 },
+    );
+  }
 
   const admin = createAdminClient();
   const templateId = await resolveTemplateId(

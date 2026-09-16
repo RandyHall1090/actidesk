@@ -35,8 +35,14 @@ export async function savePreset(
 
   const name = (formData.get("name") as string | null)?.trim();
   if (!name) return { ok: false, error: "Name is required." };
+  if (name.length > 200) {
+    return { ok: false, error: "Name must be 200 characters or fewer." };
+  }
   const letterBody =
     (formData.get("letter_body") as string | null)?.trim() || null;
+  if (letterBody && letterBody.length > 20000) {
+    return { ok: false, error: "Letter must be 20000 characters or fewer." };
+  }
   const presetId = (formData.get("preset_id") as string | null)?.trim() || null;
   const scope = formData.get("scope") === "company" ? "company" : "personal";
 
@@ -52,10 +58,10 @@ export async function savePreset(
       .select("id")
       .single();
     if (error || !data) {
+      if (error) console.error("savePreset update failed:", error);
       return {
         ok: false,
         error:
-          error?.message ??
           "Couldn't save changes — you may not have permission to edit this template.",
       };
     }
@@ -65,7 +71,10 @@ export async function savePreset(
       .from("preset_assets")
       .delete()
       .eq("preset_id", targetPresetId);
-    if (deleteError) return { ok: false, error: deleteError.message };
+    if (deleteError) {
+      console.error("savePreset slot-reset failed:", deleteError);
+      return { ok: false, error: "Couldn't save changes." };
+    }
   } else {
     const { data, error } = await supabase
       .from("presets")
@@ -79,9 +88,10 @@ export async function savePreset(
       .select("id")
       .single();
     if (error || !data) {
+      if (error) console.error("savePreset create failed:", error);
       return {
         ok: false,
-        error: error?.message ?? "Couldn't create the template.",
+        error: "Couldn't create the template.",
       };
     }
     targetPresetId = data.id;
@@ -102,7 +112,10 @@ export async function savePreset(
     const { error: slotsError } = await supabase
       .from("preset_assets")
       .insert(slotRows);
-    if (slotsError) return { ok: false, error: slotsError.message };
+    if (slotsError) {
+      console.error("savePreset slot-save failed:", slotsError);
+      return { ok: false, error: "Couldn't save the template." };
+    }
   }
 
   revalidatePath("/templates");
@@ -131,7 +144,10 @@ export async function deletePreset(presetId: string): Promise<ActionResult> {
     .from("presets")
     .delete({ count: "exact" })
     .eq("id", presetId);
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("deletePreset failed:", error);
+    return { ok: false, error: "Couldn't delete the template." };
+  }
   if (!count) {
     return {
       ok: false,

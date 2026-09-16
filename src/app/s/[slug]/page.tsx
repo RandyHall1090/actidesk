@@ -92,7 +92,7 @@ export default async function PackagePage({
 
   return (
     <PackageView
-      packageId={pkg.id}
+      slug={slug}
       layout={layout}
       prospectName={pkg.prospect_name}
       letterBody={pkg.letter_body}

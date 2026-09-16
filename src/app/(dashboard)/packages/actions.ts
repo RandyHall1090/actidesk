@@ -21,7 +21,10 @@ export async function deletePackage(packageId: string): Promise<ActionResult> {
     .from("packages")
     .delete({ count: "exact" })
     .eq("id", packageId);
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("deletePackage failed:", error);
+    return { ok: false, error: "Couldn't delete the package." };
+  }
   if (!count) {
     return {
       ok: false,

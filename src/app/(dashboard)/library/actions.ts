@@ -45,6 +45,15 @@ export async function createLinkAsset(
   if (!name || !externalUrl) {
     return { ok: false, error: "Name and a URL are both required." };
   }
+  if (name.length > 200) {
+    return { ok: false, error: "Name must be 200 characters or fewer." };
+  }
+  // Only http(s) is accepted -- an unvalidated scheme (javascript:, data:,
+  // etc.) stored as a "link asset" could later be rendered as a link/embed
+  // source. 2000 chars covers any real-world URL with room to spare.
+  if (externalUrl.length > 2000 || !/^https?:\/\//i.test(externalUrl)) {
+    return { ok: false, error: "Please enter a valid http:// or https:// URL." };
+  }
   if (scope === "company" && profile.role !== "admin") {
     return { ok: false, error: "Only admins can add to the company library." };
   }
@@ -58,7 +67,10 @@ export async function createLinkAsset(
     name,
     external_url: externalUrl,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("createLinkAsset failed:", error);
+    return { ok: false, error: "Couldn't add the link." };
+  }
 
   revalidatePath("/library");
   return { ok: true };
@@ -98,6 +110,9 @@ export async function createFileAssetRecord(
       error: "Name and an uploaded file are both required.",
     };
   }
+  if (name.length > 200) {
+    return { ok: false, error: "Name must be 200 characters or fewer." };
+  }
   if (scope === "company" && profile.role !== "admin") {
     return { ok: false, error: "Only admins can add to the company library." };
   }
@@ -115,7 +130,8 @@ export async function createFileAssetRecord(
   if (error) {
     // Roll back the upload so we don't leak an orphaned storage object.
     await supabase.storage.from("assets").remove([storagePath]);
-    return { ok: false, error: error.message };
+    console.error("createFileAssetRecord failed:", error);
+    return { ok: false, error: "Couldn't save the uploaded file." };
   }
 
   revalidatePath("/library");
@@ -142,7 +158,10 @@ export async function deleteAsset(assetId: string): Promise<ActionResult> {
     .select("storage_path")
     .eq("id", assetId)
     .single();
-  if (fetchError) return { ok: false, error: fetchError.message };
+  if (fetchError) {
+    console.error("deleteAsset lookup failed:", fetchError);
+    return { ok: false, error: "Couldn't delete the asset." };
+  }
 
   // RLS silently deletes 0 rows rather than erroring when the caller isn't
   // the owner or an admin in that org -- the count check is what turns
@@ -152,7 +171,10 @@ export async function deleteAsset(assetId: string): Promise<ActionResult> {
     .from("assets")
     .delete({ count: "exact" })
     .eq("id", assetId);
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("deleteAsset delete failed:", error);
+    return { ok: false, error: "Couldn't delete the asset." };
+  }
   if (!count) {
     return { ok: false, error: "You don't have permission to delete this asset." };
   }

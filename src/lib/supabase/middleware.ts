@@ -13,6 +13,10 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // See lib/supabase/server.ts for why `secure` is set explicitly.
+      cookieOptions: {
+        secure: process.env.NODE_ENV === "production",
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -35,13 +39,19 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  // Boundary-safe: a bare `startsWith("/login")` would also match a future
+  // route like `/login-history` and silently make it public. `/s/` is the
+  // one legitimate prefix (it's meant to match many slugs); every other
+  // public route is matched exactly or as an explicit sub-path.
+  const isPublicPath = (base: string) =>
+    pathname === base || pathname.startsWith(`${base}/`);
   const isPublicRoute =
     pathname.startsWith("/s/") ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password") ||
-    pathname.startsWith("/api/packages");
+    isPublicPath("/login") ||
+    isPublicPath("/signup") ||
+    isPublicPath("/forgot-password") ||
+    isPublicPath("/reset-password") ||
+    isPublicPath("/api/packages");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's

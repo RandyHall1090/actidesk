@@ -14,7 +14,7 @@ export type SlotAsset = {
 };
 
 export function PackageView({
-  packageId,
+  slug,
   layout,
   prospectName,
   letterBody,
@@ -23,7 +23,7 @@ export function PackageView({
   orgLogoUrl,
   calendarUrl,
 }: {
-  packageId: string;
+  slug: string;
   // Resolved server-side (getLayoutForPublicPage) -- built-in or a custom
   // org layout, PackageView doesn't need to know which.
   layout: DeskLayout;
@@ -35,8 +35,8 @@ export function PackageView({
   calendarUrl: string | null;
 }) {
   useEffect(() => {
-    logTrackingEvent(packageId, "page_view");
-    // Only log once per page load, regardless of packageId identity churn.
+    logTrackingEvent(slug, "page_view");
+    // Only log once per page load, regardless of slug identity churn.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -44,7 +44,7 @@ export function PackageView({
     slot: string,
     kind: "asset_opened" | "asset_played" = "asset_opened",
   ) {
-    logTrackingEvent(packageId, kind, slot);
+    logTrackingEvent(slug, kind, slot);
   }
 
   const bySlot = (name: string) => slots.find((s) => s.slot === name);
