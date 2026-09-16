@@ -40,7 +40,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password");
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/api/packages");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's

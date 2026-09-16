@@ -19,7 +19,7 @@ const MAX_SLUG_ATTEMPTS = 3;
  * silently accepted. Falls back to the default rather than reject the
  * whole submission outright for a stale/tampered value.
  */
-async function resolveTemplateId(
+export async function resolveTemplateId(
   supabase: Awaited<ReturnType<typeof createClient>>,
   orgId: string,
   rawTemplateId: string | undefined,
