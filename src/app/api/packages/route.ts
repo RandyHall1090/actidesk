@@ -14,6 +14,18 @@ const GATE_DESK_SERVICE_PROFILE_ID = "f97e0b1c-5b3d-4ee5-94a4-51314ceadc21";
 
 const MAX_SLUG_ATTEMPTS = 3;
 
+// Gate Desk's request body is untrusted JSON -- a field can be any JSON type
+// despite the `as string` casts callers write against. Throws on anything
+// but undefined/null/string so the caller can turn that into a clean 400
+// instead of letting `.trim()` throw a TypeError that becomes an unhandled 500.
+function optionalString(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") {
+    throw new Error("Expected a string");
+  }
+  return value.trim() || null;
+}
+
 function isValidBearerToken(header: string | null): boolean {
   const expected = process.env.GATE_DESK_API_KEY;
   if (!expected || !header) return false;
@@ -39,17 +51,30 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null);
-  const prospectName = (body?.prospect_name as string | undefined)?.trim();
+
+  let prospectName: string | null;
+  let prospectCompany: string | null;
+  let prospectEmail: string | null;
+  try {
+    prospectName = optionalString(body?.prospect_name);
+    prospectCompany = optionalString(body?.prospect_company);
+    prospectEmail = optionalString(body?.prospect_email);
+  } catch {
+    return NextResponse.json(
+      {
+        error:
+          "prospect_name, prospect_company, and prospect_email must be strings",
+      },
+      { status: 400 },
+    );
+  }
+
   if (!prospectName) {
     return NextResponse.json(
       { error: "prospect_name is required" },
       { status: 400 },
     );
   }
-  const prospectCompany =
-    (body?.prospect_company as string | null | undefined)?.trim() || null;
-  const prospectEmail =
-    (body?.prospect_email as string | null | undefined)?.trim() || null;
   const rawTemplateId =
     (body?.template_id as string | null | undefined) ?? undefined;
 
