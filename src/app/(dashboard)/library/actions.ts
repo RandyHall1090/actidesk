@@ -132,6 +132,9 @@ export async function deleteAssetFormAction(assetId: string): Promise<void> {
 }
 
 export async function deleteAsset(assetId: string): Promise<ActionResult> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Not signed in." };
+
   const supabase = await createClient();
 
   const { data: asset, error: fetchError } = await supabase
@@ -141,8 +144,18 @@ export async function deleteAsset(assetId: string): Promise<ActionResult> {
     .single();
   if (fetchError) return { ok: false, error: fetchError.message };
 
-  const { error } = await supabase.from("assets").delete().eq("id", assetId);
+  // RLS silently deletes 0 rows rather than erroring when the caller isn't
+  // the owner or an admin in that org -- the count check is what turns
+  // that into a real, visible error, and is also what gates the storage
+  // removal below so a denied DB delete can never still delete the file.
+  const { error, count } = await supabase
+    .from("assets")
+    .delete({ count: "exact" })
+    .eq("id", assetId);
   if (error) return { ok: false, error: error.message };
+  if (!count) {
+    return { ok: false, error: "You don't have permission to delete this asset." };
+  }
 
   if (asset?.storage_path) {
     await supabase.storage.from("assets").remove([asset.storage_path]);
