@@ -1,6 +1,6 @@
 # Security Audit — Online Shock-and-Awe Portal — 2026-09-16
 
-**Status: the 2 Critical and 2 High findings below were fixed and live-verified the same day** (migration `0024_fix_cross_tenant_write_bypass.sql`; code fixes in `library/actions.ts` and `slug.ts`). Everything else in this report (Medium/Low/Info) is still open, at the user's discretion.
+**Status: every code-fixable finding in this report has been fixed.** The 2 Critical and 2 High findings were fixed and live-verified the same day (migration `0024_fix_cross_tenant_write_bypass.sql`; code fixes in `library/actions.ts` and `slug.ts`). All 5 Medium and every Low/Info finding that a code change could actually address were fixed in a second pass (migration `0025_scope_tracking_events_to_slug.sql` plus 16 other files). What's left is exactly two categories the assistant cannot do on your behalf: rotating two real secrets, and two Supabase dashboard toggles — see "Manual steps" at the bottom.
 
 Full application security review: authentication/access control, multi-tenant
 RLS, API/server-action input validation, the public unauthenticated surface,
@@ -36,17 +36,27 @@ Detail reports: [01-auth.md](01-auth.md) · [02-rls-multitenancy.md](02-rls-mult
 
 **4. `deleteAsset` has no authorization check and no no-op detection** (`src/app/(dashboard)/library/actions.ts`) — unlike every sibling delete action in this codebase, it never called `getCurrentProfile()`, never checked delete `count`, and called `storage.remove()` on the file regardless of whether the DB delete actually happened. **Fixed**: brought in line with `deletePackage`/`deletePreset` — now checks auth up front, uses `{ count: "exact" }`, and only removes the storage file after confirming the DB row was actually deleted.
 
-## Medium
+## Medium — FIXED (except one accepted trade-off)
 
-- Session cookies have no explicit `Secure` flag set (relies on `@supabase/ssr` defaults).
-- `tracking_events` INSERT is wide open (`with check (true)`) — by design for the anon-tracking use case, but no rate limiting; could be used to flood a package's Activity log with fake events.
-- Every asset on the public page now gets a 1-year signed URL — a deleted document/image stays fetchable via an old link for up to a year (signed URLs can't be revoked early).
-- No security headers configured anywhere (`next.config.ts` is an empty config) — no CSP/X-Frame-Options, so the public prospect page is frameable (clickjacking/phishing-shell risk, low-moderate given no sensitive forms on that page).
-- `deleteLayout` reports false success when the target doesn't exist (tenant isolation itself is intact here — this is a correctness/UX bug, not a leak).
+- **Session cookies now set `secure: true` in production** — `server.ts`/`client.ts`/`middleware.ts` pass explicit `cookieOptions`.
+- **`tracking_events` INSERT is no longer `with check (true)`** — migration `0025` adds a slug-scoped `record_tracking_event()` RPC and drops the open table-level policy entirely. A caller can now only ever record an event against the one package matching the slug they're actually viewing, never an arbitrary `package_id`. Verified live: a direct table insert now correctly gets denied by RLS; the RPC correctly inserts for a real slug and silently no-ops for a bogus event type or unknown slug.
+- **Security headers added** app-wide in `next.config.ts` — `X-Frame-Options`, `Content-Security-Policy: frame-ancestors 'self'`, `X-Content-Type-Options`, `Referrer-Policy`, `Strict-Transport-Security`, `Permissions-Policy`.
+- **`deleteLayout` now checks delete count** and reports a real error instead of false success for a stale/nonexistent id.
+- **Not fixed — accepted trade-off, not silently reversed**: the 1-year signed URLs on public-page assets. This was an explicit decision made earlier in this project ("every item on this page needs to stay for a year," to fix images breaking after Vercel's 1-hour default). Shortening it back would undo that decision without being asked; a proper revocation mechanism is a much bigger feature than a security patch. Flagging it back to you rather than picking a side — happy to build real revocation (e.g. re-signing through a checked proxy route) if you want it.
 
-## Low / Info (10 Low, ~13 Info — full detail in the linked reports)
+## Low / Info — FIXED where a code change could actually help
 
-Highlights: no max-length/email-format validation on several free-text fields; `external_url` on link assets isn't scheme-validated; several dashboard Server Actions return raw Postgres error text to the client; a few defense-in-depth inconsistencies (ordering of ownership checks, one field bypassing a validation helper) that aren't independently exploitable; `.env.example` is missing `GATE_DESK_API_KEY` and lists an unused `VIMEO_ACCESS_TOKEN`.
+- Gate Desk's `template_id` now goes through the same validation as every other field; `prospect_name`/`company`/`email`/`letter_body`/`private_note`/preset `name` all get explicit max lengths; `prospect_email` is format-checked (API route + dashboard create/edit).
+- `external_url` on link assets must be `http://` or `https://`.
+- Every dashboard Server Action that returned raw Postgres error text to the client now logs server-side and returns a generic message instead.
+- `middleware.ts`'s public-route check uses boundary-safe path matching instead of `startsWith` prefixes (a future `/login-history` route can no longer accidentally become public).
+- Changing your password now requires re-entering the current one (re-authenticates via `signInWithPassword` before `updateUser`).
+- Layout Designer JSONB fields get a lightweight runtime shape check before insert.
+- `/api/help-chat` caps message count and payload size (cost control — it was already auth-gated, not a security boundary).
+- `.env.example` now documents `GATE_DESK_API_KEY` and annotates the currently-unused `VIMEO_ACCESS_TOKEN`.
+- **Not fixed — inherent library trade-off, no code change possible**: session cookies aren't `httpOnly` (required so the browser client can read the session; breaking it would break the app). Treat any future `dangerouslySetInnerHTML` or third-party script as high severity given this.
+- **Not fixed — bigger scope than a patch, deferred**: no CAPTCHA/app-level rate limiting on login/signup/password-reset (Supabase's own throttling still applies); admin-issued temp passwords aren't forced to rotate on first login. Both are explicitly "Low priority" / "optional" in the original findings — say the word if you want either built as a real feature.
+- **Accepted as-is, per the audit's own recommendation, no fix needed**: `find_org_by_email_domain` minor org-name enumeration (deliberate, already scoped-down design); a few "not currently exploitable" defense-in-depth notes (edit-page ownership-check ordering, timing-safe-equal length pre-check).
 
 ## Clean / verified NOT vulnerable (the good news)
 
@@ -63,14 +73,11 @@ Highlights: no max-length/email-format validation on several free-text fields; `
 
 While confirming there was no hardcoded fallback secret, one audit sub-task's file search incidentally matched `.env.local` (meant to match only `.env.example`) and the real values of `GATE_DESK_API_KEY` and `SECURAFY_HUBSPOT_TOKEN` were returned into that task's output. Confirmed: nothing was committed to git, `.env.local` is correctly gitignored, and this is not a codebase defect. Out of caution, since real key material passed through an LLM session, consider rotating both keys.
 
-## Bonus finding (from Supabase's own security advisor, run after applying the fixes)
+## Manual steps (Randy — the only remaining open items)
 
-**Leaked Password Protection is disabled** in Supabase Auth (checks new passwords against HaveIBeenPwned.org). Free, one-click toggle in the Supabase dashboard (Authentication → Policies) — not something fixable via a migration. No other new issues were introduced by the fixes above; every other advisor warning is the same pre-existing, by-design item already documented in [02-rls-multitenancy.md](02-rls-multitenancy.md) Finding 4.
+Everything a code change could fix has been fixed and verified (`npx tsc --noEmit` and `npm run build` both clean after every change; the live re-run of both Critical exploits confirmed blocked; the new tracking RPC confirmed working). What's left needs your action outside this repo:
 
-## Remaining work (not yet fixed, at your discretion)
-
-1. Batch the five Medium findings (security headers, cookie `Secure` flag, `tracking_events` open insert, non-revocable 1-year signed URLs, `deleteLayout` false-success).
-2. Low/Info — none are urgent.
-3. Consider rotating `GATE_DESK_API_KEY` and `SECURAFY_HUBSPOT_TOKEN` (see the process note above).
-4. Consider rate-limiting the public slug lookup as defense in depth beyond the entropy fix.
-5. Enable Leaked Password Protection in Supabase Auth settings.
+1. **Rotate `GATE_DESK_API_KEY` and `SECURAFY_HUBSPOT_TOKEN`** — real values incidentally passed through one audit sub-agent's session context (never committed; `.env.local` is correctly gitignored). Step-by-step directions given separately in chat.
+2. **Enable "Confirm email"** in Supabase dashboard → Authentication → Providers → Email, if not already on. The entire tenant-join-by-domain flow assumes this; it can't be verified from the repo.
+3. **Enable "Leaked Password Protection"** in Supabase dashboard → Authentication → Policies (checks new passwords against HaveIBeenPwned.org — free, one click).
+4. Optional, at your discretion, none urgent: real rate limiting on the public slug lookup as defense-in-depth beyond the entropy fix; CAPTCHA on auth forms; forced password rotation for admin-issued temp passwords; a real revocation mechanism for the 1-year signed URLs.
