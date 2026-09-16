@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
+import { deletePackageFormAction } from "./actions";
 
 type ViewStats = { count: number; last: string };
 
@@ -12,7 +13,7 @@ export default async function PackagesPage() {
   const supabase = await createClient();
   const { data: packages, error } = await supabase
     .from("packages")
-    .select("id, slug, prospect_name, prospect_company, created_at")
+    .select("id, slug, prospect_name, prospect_company, created_at, created_by")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -78,10 +79,22 @@ export default async function PackagesPage() {
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {stats
-                    ? `Opened ${stats.count}× — last ${new Date(stats.last).toLocaleDateString()}`
-                    : "Not opened yet"}
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {stats
+                      ? `Opened ${stats.count}× — last ${new Date(stats.last).toLocaleDateString()}`
+                      : "Not opened yet"}
+                  </div>
+                  {(p.created_by === profile.id || profile.role === "admin") && (
+                    <form action={deletePackageFormAction.bind(null, p.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  )}
                 </div>
               </li>
             );

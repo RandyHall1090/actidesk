@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { deletePackageAndRedirectFormAction } from "../actions";
 
 export default async function PackageDetailPage({
   params,
@@ -45,14 +46,26 @@ export default async function PackageDetailPage({
             <p className="text-sm text-neutral-500 dark:text-neutral-400">{pkg.prospect_company}</p>
           )}
         </div>
-        {pkg.created_by === profile.id && (
-          <Link
-            href={`/packages/${pkg.slug}/edit`}
-            className="shrink-0 rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500"
-          >
-            Edit
-          </Link>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {pkg.created_by === profile.id && (
+            <Link
+              href={`/packages/${pkg.slug}/edit`}
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500"
+            >
+              Edit
+            </Link>
+          )}
+          {(pkg.created_by === profile.id || profile.role === "admin") && (
+            <form action={deletePackageAndRedirectFormAction.bind(null, pkg.id)}>
+              <button
+                type="submit"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:border-neutral-400 dark:border-neutral-500"
+              >
+                Delete
+              </button>
+            </form>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3">
