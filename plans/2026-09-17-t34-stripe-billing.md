@@ -37,13 +37,25 @@ This plan was written before pricing was decided and assumes one flat per-seat `
 
 **Business rule that must be enforced in code, not just in the Stripe Dashboard**: the $19 add-on seat can only be attached to a subscription on the Business tier. Solo and Team orgs cannot buy add-on seats — going over their included seat count means upgrading to the next tier, not stacking add-ons. This is what keeps per-seat cost falling monotonically ($49 → $39.50 → $25.80 → $19) and avoids an arbitrage where a customer undercuts Team/Business by stacking cheap add-ons onto Solo. Accepted tradeoff: a 3-4 rep org must buy 5-seat Business and pay for unused headroom — deliberate, not a bug.
 
-**What this changes before implementation resumes:**
-- **Task 1** needs 3 Stripe Products (Solo/Team/Business), each with a monthly Price and an annual Price (or 6 Prices total across the two intervals), plus one per-unit Price for the add-on seat — not the single `STRIPE_PRICE_ID` this plan currently creates.
-- **Task 3**'s Checkout Session creation (`createCheckoutSession`) needs a tier selector (which of the 3 base Prices to use) and, for Business only, an optional add-on-seat line item — not the current flat `quantity: seatCount` against one Price.
-- **Task 5**'s seat-sync logic (`syncOrgSeatCount`) needs to become tier-aware: syncing "seat count" now means syncing the *add-on seat quantity above the tier's included count* (e.g., Business + 7 active reps = 2 add-on seats), and must never run for Solo/Team orgs at all.
-- `orgs` likely needs a `billing_tier` column (`'solo' | 'team' | 'business'`) alongside the existing `subscription_status`/etc. columns Task 1 already adds.
+### ✅ Stripe-side setup DONE (2026-09-17, live mode) — real Products/Prices already exist
 
-This plan's remaining tasks are still structurally correct (webhook sync, Customer Portal, trial, soft-block gating, promo codes) — only the pricing-shape-specific pieces above need a revision pass before building. Do that revision pass first; don't build Task 1 as currently written.
+Created directly via the Stripe MCP in Randy's live Stripe account ("Securafy Inc", `acct_1U18xcAuT4LPyEyv`) — confirmed with Randy first that livemode was the only account connected (no sandbox available) and he chose to proceed live rather than wait for a sandbox. Each tier is its own Product (per Stripe's own guidance: never put multiple tiers' prices on one Product), each with a monthly and an annual Price. Real IDs, not placeholders:
+
+| Product | Product ID | Monthly Price (lookup_key) | Annual Price (lookup_key) |
+|---|---|---|---|
+| ActiDesk Solo | `prod_VHKEr2uSvjuquS` | `price_1UGlarAuT4LPyEyvcVeMYAL4` (`actidesk_solo_monthly`) | `price_1UGlatAuT4LPyEyvLlOKILXU` (`actidesk_solo_annual`) |
+| ActiDesk Team | `prod_VHKECEgz7TRwk3` | `price_1UGlavAuT4LPyEyvzdj5lQYD` (`actidesk_team_monthly`) | `price_1UGlaxAuT4LPyEyv8HO5ZyC2` (`actidesk_team_annual`) |
+| ActiDesk Business | `prod_VHKEGDGTgS67NW` | `price_1UGlbCAuT4LPyEyvfXrxUEgD` (`actidesk_business_monthly`) | `price_1UGlbEAuT4LPyEyv1g1CwCto` (`actidesk_business_annual`) |
+| ActiDesk Add-on Seat | `prod_VHKEBD5UCq8Yah` | `price_1UGlbGAuT4LPyEyvIknZPd4D` (`actidesk_addon_seat_monthly`) | `price_1UGlbWAuT4LPyEyvicu1BmKu` (`actidesk_addon_seat_annual`) |
+
+Each product's `default_price` is set to its monthly Price. All 8 Prices use `lookup_key`s (shown above) so app code should resolve Prices by lookup key via `stripe.prices.list({ lookup_keys: [...] })`, not by hardcoding these Price IDs directly — that keeps a future price change (Stripe Prices are immutable; a "change" means creating a new Price and re-pointing the lookup_key) from requiring a code deploy. **This account has no test-mode/sandbox equivalent of these objects** — until a sandbox is connected, testing the Checkout flow means either testing carefully against these real live Prices (e.g., $0 via a 100%-off test coupon) or standing up a separate sandbox first and re-creating the same 4 Products/8 Prices there.
+
+**What still needs building (Task 1's remaining DB/env-var pieces, plus Tasks 3/5):**
+- **Task 1**: still needs the `orgs` billing-columns migration (`subscription_status`, `trial_ends_at`, `stripe_customer_id`, `stripe_subscription_id`, `billing_exempt`) *plus a new `billing_tier` column* (`'solo' | 'team' | 'business'`); `STRIPE_PRICE_ID` (singular) as originally planned is no longer the right env-var shape — the app should look up Prices by the lookup_keys above instead of a single hardcoded ID.
+- **Task 3**'s Checkout Session creation (`createCheckoutSession`) needs a tier selector (which of the 3 base Prices to use, by lookup_key) and, for Business only, an optional add-on-seat line item — not the current flat `quantity: seatCount` against one Price.
+- **Task 5**'s seat-sync logic (`syncOrgSeatCount`) needs to become tier-aware: syncing "seat count" now means syncing the *add-on seat quantity above the tier's included count* (e.g., Business + 7 active reps = 2 add-on seats), and must never run for Solo/Team orgs at all.
+
+This plan's remaining tasks are still structurally correct (webhook sync, Customer Portal, trial, soft-block gating, promo codes) — only the pricing-shape-specific pieces above need a revision pass before building. Do that revision pass first; don't build the rest of Task 1 (and Tasks 3/5) as currently written.
 
 ---
 
