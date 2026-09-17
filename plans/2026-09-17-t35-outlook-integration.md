@@ -27,7 +27,7 @@
 ### Task 1: `integrations`/`integration_requests` tables + credential encryption helper
 
 **Files:**
-- Create: `supabase/migrations/0029_integrations.sql`
+- Create: `supabase/migrations/0030_integrations.sql`
 - Create: `src/lib/integrations/crypto.ts`
 
 **Interfaces:**
@@ -103,7 +103,7 @@ export function decryptCredentials<T = unknown>(encoded: string): T {
 - [ ] **Step 3: Write and apply the migration**
 
 ```sql
--- 0029_integrations.sql
+-- 0030_integrations.sql
 create table public.integrations (
   id uuid primary key default gen_random_uuid(),
   org_id uuid not null references public.orgs (id) on delete cascade,
@@ -191,7 +191,7 @@ where table_schema = 'public' and table_name in ('integrations', 'integration_re
 - [ ] **Step 5: Commit**
 
 ```bash
-git add supabase/migrations/0029_integrations.sql src/lib/integrations/crypto.ts .env.example
+git add supabase/migrations/0030_integrations.sql src/lib/integrations/crypto.ts .env.example
 git commit -m "feat: add integrations table and credential encryption helper"
 ```
 

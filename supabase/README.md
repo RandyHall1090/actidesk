@@ -1,6 +1,6 @@
 # supabase/
 
-`migrations/` contains every SQL migration applied to the live `shock-and-awe`
+`migrations/` contains every SQL migration applied to the live `actidesk`
 Supabase project (ref `fywmrqbxjlocjsdopjep`, Securafy org, `us-east-1`), in
 order. This directory is the source of truth for what the schema *should* be —
 if you change the live project directly in the Supabase dashboard, add a
