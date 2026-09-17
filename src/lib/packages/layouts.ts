@@ -137,6 +137,33 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
+  {
+    id: "desk-blotter",
+    label: "Empty Blotter Desk",
+    // Real Recraft-generated background: a bounded leather blotter pad on a
+    // light wood desk (real desk context visible around it -- a book,
+    // laptop, chair -- same "bounded, not full-bleed" spirit as the
+    // original desk-v2/v3), per the request for a blotter-style option.
+    // Unlike desk-oak, this is a genuine photographic perspective shot
+    // (the pad is rotated/skewed in frame, not a flat overhead texture),
+    // so desk-v1's positions don't transfer cleanly. Slots below are an
+    // UNREFINED FIRST PASS, placed to sit on the pad's visible surface --
+    // this needs a real pass through the Layout Designer (drag-and-drop,
+    // live preview) before relying on it for a real send, the same way
+    // every other layout's positions were actually tuned.
+    backgroundImage: "/desk-scene/desk-background-blotter.webp",
+    aspectRatio: "1344 / 768",
+    nameplate: { left: "6%", top: "10%", width: "20%", rotate: -8 },
+    slots: {
+      video: { left: "22%", top: "22%", width: "30%", rotate: -4 },
+      video_2: { left: "58%", top: "16%", width: "26%", rotate: -4 },
+      audio: { left: "14%", top: "48%", width: "12%", rotate: -6 },
+      magazine: { left: "30%", top: "50%", width: "16%", rotate: -6, aspect: "0.77" },
+      magazine_2: { left: "50%", top: "44%", width: "14%", rotate: -4, aspect: "0.77" },
+      business_card: { left: "68%", top: "40%", width: "14%", rotate: -4 },
+      pen: { left: "40%", top: "68%", width: "10%", rotate: -24 },
+    },
+  },
 ];
 
 export function getLayout(templateId: string | null | undefined): DeskLayout {
