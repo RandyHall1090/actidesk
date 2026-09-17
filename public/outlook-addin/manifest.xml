@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="MailApp">
+  <Id>a1b2c3d4-e5f6-4789-a123-456789abcdef</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Securafy</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="ActiDesk" />
+  <Description DefaultValue="Create a personalized ActiDesk package for the current contact." />
+  <IconUrl DefaultValue="https://premeeting.actiforge.ai/favicon.ico" />
+  <SupportUrl DefaultValue="https://premeeting.actiforge.ai/help" />
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.5" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://premeeting.actiforge.ai/outlook-addin/taskpane" />
+        <RequestedHeight>450</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadItem</Permissions>
+</OfficeApp>
