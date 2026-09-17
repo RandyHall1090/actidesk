@@ -19,6 +19,7 @@ export function IntegrationsClient({ integrations }: { integrations: Integration
   const [message, setMessage] = useState<string | null>(null);
 
   const byProvider = new Map(integrations.map((i) => [i.provider, i]));
+  const outlookConnected = byProvider.has("outlook");
 
   async function handleRequest(providerName: string) {
     const result = await requestIntegration(providerName, requestNote);
@@ -34,7 +35,12 @@ export function IntegrationsClient({ integrations }: { integrations: Integration
       </h2>
       <p className="mt-1 mb-4 text-sm text-neutral-600 dark:text-neutral-400">
         Connect a CRM/mailbox to create ActiDesk packages from within it and
-        bulk-generate personalized packages for a contact list.
+        bulk-generate personalized packages for a contact list.{" "}
+        {outlookConnected && (
+          <a href="/integrations/list-merge" className="text-blue-600 underline">
+            Go to List Merge
+          </a>
+        )}
       </p>
       {message && <p className="mt-2 mb-2 text-sm text-blue-600">{message}</p>}
       <ul className="space-y-3">
