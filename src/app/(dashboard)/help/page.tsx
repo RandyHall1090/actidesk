@@ -1,3 +1,10 @@
+const GETTING_STARTED_STEPS = [
+  "Add a few assets to your Library — at least one video link and one image or document to start.",
+  "Create your first package from New Package, using those assets.",
+  "Copy the link and send it to yourself (or a colleague) to see what a prospect sees.",
+  "Come back to that package's detail page afterward to see the page view logged in Activity.",
+];
+
 const SECTIONS = [
   {
     title: "1. Add assets to the Library",
@@ -76,6 +83,29 @@ export default function HelpPage() {
       <p className="mt-1 mb-6 text-sm text-neutral-600 dark:text-neutral-400">
         How to build and send an Online Shock-and-Awe package, end to end.
       </p>
+
+      <section className="mb-6 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 p-4">
+        <h3 className="mb-1 text-sm font-semibold text-blue-900 dark:text-blue-200">
+          New here? Start here
+        </h3>
+        <p className="mb-3 text-sm text-blue-800 dark:text-blue-300">
+          The fastest way to get a feel for the tool is to actually build and send yourself a package. In order:
+        </p>
+        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-blue-800 dark:text-blue-300">
+          {GETTING_STARTED_STEPS.map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
+        </ol>
+        <div className="mt-4 aspect-video overflow-hidden rounded-md">
+          <iframe
+            src="https://player.vimeo.com/video/1227721612?h=5b3830854b"
+            className="h-full w-full"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            title="Online Shock-and-Awe Portal: Sales Rep Onboarding"
+          />
+        </div>
+      </section>
+
       <div className="space-y-6">
         {SECTIONS.map((section) => (
           <section
