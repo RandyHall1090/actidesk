@@ -1,9 +1,9 @@
-# CLAUDE.md — Online Shock-and-Awe Portal
+# CLAUDE.md — ActiDesk
 
 @AGENTS.md
 
 ## What this is
-A **multi-tenant** portal for sales reps to create personalized, trackable "Online Shock-and-Awe" pages for prospects ahead of meetings — video, audio, business card, magazine, letter, and brochures rendered on a branded desk-scene template — with engagement tracking. Modeled on TMT's Shockbox tool, but Securafy is the platform operator (and its first tenant), reselling the same tool to its own clients. Every tenant gets fully isolated data and its own logo/branding; see PRD.md and spec/plan.md for the tenant model.
+**ActiDesk** (renamed 2026-09-17 from "Online Shock-and-Awe Portal" — see spec/plan.md Tech decisions) is a **multi-tenant** portal for sales reps to create personalized, trackable prospect pages ahead of meetings — video, audio, business card, magazine, letter, and brochures rendered on a branded desk-scene template — with engagement tracking. Modeled on TMT's Shockbox tool, but Securafy is the platform operator (and its first tenant), reselling the same tool to its own clients. Every tenant gets fully isolated data and its own logo/branding; see PRD.md and spec/plan.md for the tenant model.
 
 ## Stack
 - Language: TypeScript

@@ -1,9 +1,11 @@
-# PRD — Online Shock-and-Awe Portal
+# PRD — ActiDesk
 
 > Product Requirements Document.
+>
+> Renamed 2026-09-17 from "Online Shock-and-Awe Portal" to **ActiDesk** — see spec/plan.md Tech decisions for the naming/trademark research behind the rename.
 
 ## 1. Summary
-A **multi-tenant** portal — Securafy is both the platform operator and its first customer — that lets any company's sales reps build and send a fully personalized, trackable "Online Shock-and-Awe" package to a prospect ahead of a meeting — a branded, photoreal desk-flat-lay page containing a video, audio message, business card, magazine feature, personal letter, and brochures — then see when and how the prospect engages with it. Modeled on TMT's Shockbox tool, but positioned the same way TMT is to Securafy today: Securafy becomes the provider, reselling the tool to its own clients, each with fully separated data and their own branding.
+A **multi-tenant** portal — Securafy is both the platform operator and its first customer — that lets any company's sales reps build and send a fully personalized, trackable prospect package ahead of a meeting — a branded, photoreal desk-flat-lay page containing a video, audio message, business card, magazine feature, personal letter, and brochures — then see when and how the prospect engages with it. Modeled on TMT's Shockbox tool, but positioned the same way TMT is to Securafy today: Securafy becomes the provider, reselling the tool to its own clients, each with fully separated data and their own branding.
 
 ## 2. Problem
 Reps have no fast way to send a prospect a rich, credibility-building package before a first meeting. TMT's Shockbox tool (dashboard.technologymarketingtoolkit.com/shockbox) proves the format works — a personalized "pre-meeting materials" site, sold multi-tenant to TMT's member companies (Securafy included). Securafy wants to build and own the same kind of tool, use it internally, and resell it to its own clients.

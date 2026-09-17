@@ -101,7 +101,7 @@ export default function HelpPage() {
             src="https://player.vimeo.com/video/1227721612?h=5b3830854b"
             className="h-full w-full"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-            title="Online Shock-and-Awe Portal: Sales Rep Onboarding"
+            title="ActiDesk: Sales Rep Onboarding"
           />
         </div>
       </section>

@@ -59,9 +59,9 @@ export default async function DashboardLayout({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-              {org?.name ?? "Shock-and-Awe Portal"}
+              {org?.name ?? "ActiDesk"}
             </h1>
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">Shock-and-Awe Portal</p>
+            <p className="text-xs text-neutral-400 dark:text-neutral-500">ActiDesk</p>
           </div>
           <div className="flex items-center gap-3">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">{profile.email}</p>

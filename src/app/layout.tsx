@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shock-and-Awe Portal",
+  title: "ActiDesk",
   description: "Personalized, trackable pre-meeting packages for prospects.",
 };
 

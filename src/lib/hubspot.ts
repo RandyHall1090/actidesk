@@ -117,7 +117,7 @@ async function logPackageNote(
     },
     body: JSON.stringify({
       properties: {
-        hs_note_body: `Sent an Online Shock-and-Awe package: ${packageUrl}`,
+        hs_note_body: `Sent an ActiDesk package: ${packageUrl}`,
         hs_timestamp: Date.now(),
       },
       associations: [
