@@ -24,6 +24,29 @@
 
 ---
 
+## ⚠️ Pricing finalized 2026-09-17 — supersedes this plan's single-price assumption
+
+This plan was written before pricing was decided and assumes one flat per-seat `STRIPE_PRICE_ID` (quantity = active rep count). **That assumption is now wrong.** The real, finalized pricing is three named tiers plus a restricted add-on seat:
+
+| Tier | Users | Monthly | Per-seat | Annual (20% off, paid upfront) |
+|---|---|---|---|---|
+| Solo | 1 | $49 | $49.00 | $470/yr |
+| Team | 2 | $79 | $39.50 | $758/yr |
+| Business | 5 | $129 | $25.80 | $1,238/yr |
+| Add-on seat | 6+ | +$19/user | $19.00 | +$182/yr per seat |
+
+**Business rule that must be enforced in code, not just in the Stripe Dashboard**: the $19 add-on seat can only be attached to a subscription on the Business tier. Solo and Team orgs cannot buy add-on seats — going over their included seat count means upgrading to the next tier, not stacking add-ons. This is what keeps per-seat cost falling monotonically ($49 → $39.50 → $25.80 → $19) and avoids an arbitrage where a customer undercuts Team/Business by stacking cheap add-ons onto Solo. Accepted tradeoff: a 3-4 rep org must buy 5-seat Business and pay for unused headroom — deliberate, not a bug.
+
+**What this changes before implementation resumes:**
+- **Task 1** needs 3 Stripe Products (Solo/Team/Business), each with a monthly Price and an annual Price (or 6 Prices total across the two intervals), plus one per-unit Price for the add-on seat — not the single `STRIPE_PRICE_ID` this plan currently creates.
+- **Task 3**'s Checkout Session creation (`createCheckoutSession`) needs a tier selector (which of the 3 base Prices to use) and, for Business only, an optional add-on-seat line item — not the current flat `quantity: seatCount` against one Price.
+- **Task 5**'s seat-sync logic (`syncOrgSeatCount`) needs to become tier-aware: syncing "seat count" now means syncing the *add-on seat quantity above the tier's included count* (e.g., Business + 7 active reps = 2 add-on seats), and must never run for Solo/Team orgs at all.
+- `orgs` likely needs a `billing_tier` column (`'solo' | 'team' | 'business'`) alongside the existing `subscription_status`/etc. columns Task 1 already adds.
+
+This plan's remaining tasks are still structurally correct (webhook sync, Customer Portal, trial, soft-block gating, promo codes) — only the pricing-shape-specific pieces above need a revision pass before building. Do that revision pass first; don't build Task 1 as currently written.
+
+---
+
 ### Task 1: Provision Stripe + billing columns migration
 
 **Files:**
