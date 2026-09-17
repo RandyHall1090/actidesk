@@ -27,7 +27,7 @@
 ### Task 1: Provision Stripe + billing columns migration
 
 **Files:**
-- Create: `supabase/migrations/0029_billing_columns.sql` (renumbered 2026-09-17: 0026/0027 were claimed by T36/T38, built first)
+- Create: `supabase/migrations/0030_billing_columns.sql` (renumbered 2026-09-17: 0026/0027 were claimed by T36/T38, built first)
 - Modify: `.env.example` (add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`)
 - Modify: `package.json` (new dependency: `stripe`)
 
@@ -97,7 +97,7 @@ npm install stripe
 - [ ] **Step 7: Write and apply the migration**
 
 ```sql
--- 0029_billing_columns.sql
+-- 0030_billing_columns.sql
 alter table public.orgs
   add column stripe_customer_id text,
   add column stripe_subscription_id text,
@@ -146,7 +146,7 @@ limit 5;
 - [ ] **Step 9: Commit**
 
 ```bash
-git add supabase/migrations/0029_billing_columns.sql .env.example package.json package-lock.json
+git add supabase/migrations/0030_billing_columns.sql .env.example package.json package-lock.json
 git commit -m "feat: add Stripe billing columns to orgs"
 ```
 
