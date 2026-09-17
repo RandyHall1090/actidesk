@@ -109,6 +109,34 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
+  {
+    id: "desk-oak",
+    label: "Light Oak Desk",
+    // Real Recraft-generated background, full-bleed like desk-v1 (no floor,
+    // legs, or other objects visible -- fills the entire frame edge to
+    // edge), per the request for more full-bleed layout options. Same
+    // canvas shape as desk-v1 (1344x768), so its slot positions are reused
+    // here as a starting point rather than re-derived from scratch --
+    // refine live via the Layout Designer if any slot needs nudging against
+    // this specific wood grain (e.g. a highlight streak behind a slot).
+    backgroundImage: "/desk-scene/desk-background-oak.webp",
+    aspectRatio: "1344 / 768",
+    nameplate: { left: "3%", top: "6%", width: "23%", rotate: -3 },
+    slots: {
+      video: { left: "29%", top: "5%", width: "34%" },
+      video_2: { left: "64%", top: "5%", width: "34%" },
+      audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
+      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6, aspect: "0.77" },
+      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6, aspect: "0.77" },
+      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
+      magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
+      business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
+    },
+  },
 ];
 
 export function getLayout(templateId: string | null | undefined): DeskLayout {
