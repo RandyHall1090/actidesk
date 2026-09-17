@@ -54,7 +54,7 @@ export function LibraryClient({
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               activeKind === k.value
                 ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
-                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:bg-neutral-700"
+                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
             }`}
           >
             {k.label}

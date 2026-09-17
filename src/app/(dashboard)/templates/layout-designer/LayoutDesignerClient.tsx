@@ -558,7 +558,7 @@ export function LayoutDesignerClient({
             type="button"
             onClick={handleCopy}
             disabled={slots.length === 0}
-            className="mt-2 w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-opacity hover:bg-neutral-50 dark:bg-neutral-950 disabled:opacity-50"
+            className="mt-2 w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-opacity hover:bg-neutral-50 dark:hover:bg-neutral-950 disabled:opacity-50"
           >
             {copied ? "Copied!" : "Copy to clipboard"}
           </button>

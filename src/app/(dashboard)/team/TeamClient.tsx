@@ -145,7 +145,7 @@ export function TeamClient({
               >
                 <button
                   type="submit"
-                  className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500"
+                  className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"
                 >
                   {p.role === "admin" ? "Admin — make rep" : "Rep — make admin"}
                 </button>
@@ -154,7 +154,7 @@ export function TeamClient({
                 type="button"
                 disabled={isPending}
                 onClick={() => handleReset(p.email ?? "", p.id)}
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500 disabled:opacity-50"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 disabled:opacity-50"
               >
                 Reset password
               </button>
@@ -162,7 +162,7 @@ export function TeamClient({
                 type="button"
                 disabled={isPending}
                 onClick={() => handleToggleActive(p.id, !p.is_active)}
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500 disabled:opacity-50"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 disabled:opacity-50"
               >
                 {p.is_active ? "Deactivate" : "Reactivate"}
               </button>

@@ -50,7 +50,7 @@ export default async function PackageDetailPage({
           {pkg.created_by === profile.id && (
             <Link
               href={`/packages/${pkg.slug}/edit`}
-              className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"
             >
               Edit
             </Link>
@@ -59,7 +59,7 @@ export default async function PackageDetailPage({
             <form action={deletePackageAndRedirectFormAction.bind(null, pkg.id)}>
               <button
                 type="submit"
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:border-neutral-400 dark:border-neutral-500"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:border-neutral-400 dark:hover:border-neutral-500"
               >
                 Delete
               </button>

@@ -404,7 +404,7 @@ export function NewPackageForm({
           {initialPackage && (
             <a
               href={`/packages/${initialPackage.slug}`}
-              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:text-neutral-300"
+              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300"
             >
               Cancel
             </a>

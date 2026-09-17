@@ -56,7 +56,7 @@ export default async function TemplatesPage() {
         <p className="mb-6 text-sm">
           <Link
             href="/templates/layout-designer"
-            className="font-medium text-neutral-700 dark:text-neutral-300 underline hover:text-neutral-900 dark:text-neutral-100"
+            className="font-medium text-neutral-700 dark:text-neutral-300 underline hover:text-neutral-900 dark:hover:text-neutral-100"
           >
             Manage desk layouts →
           </Link>

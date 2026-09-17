@@ -117,7 +117,7 @@ function OrgSection({
                 onClick={() =>
                   onToggleRole(p.id, p.role === "admin" ? "rep" : "admin")
                 }
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500 disabled:opacity-50"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 disabled:opacity-50"
               >
                 {p.role === "admin" ? "Admin — make rep" : "Rep — make admin"}
               </button>
@@ -125,7 +125,7 @@ function OrgSection({
                 type="button"
                 disabled={isPending}
                 onClick={() => onReset(p.email ?? "", p.id)}
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500 disabled:opacity-50"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 disabled:opacity-50"
               >
                 Reset password
               </button>
@@ -133,7 +133,7 @@ function OrgSection({
                 type="button"
                 disabled={isPending}
                 onClick={() => onToggleActive(p.id, !p.is_active)}
-                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:border-neutral-500 disabled:opacity-50"
+                className="rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 disabled:opacity-50"
               >
                 {p.is_active ? "Deactivate" : "Reactivate"}
               </button>
@@ -144,7 +144,7 @@ function OrgSection({
                   onClick={() =>
                     onTogglePlatformAdmin(p.id, !p.is_platform_admin)
                   }
-                  className="rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-3 py-1.5 text-xs font-medium text-amber-900 dark:text-amber-200 hover:border-amber-400 dark:border-amber-600 disabled:opacity-50"
+                  className="rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-3 py-1.5 text-xs font-medium text-amber-900 dark:text-amber-200 hover:border-amber-400 dark:hover:border-amber-600 disabled:opacity-50"
                 >
                   {p.is_platform_admin
                     ? "Revoke platform admin"

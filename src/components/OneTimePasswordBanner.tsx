@@ -43,7 +43,7 @@ export function OneTimePasswordBanner({
         <button
           type="button"
           onClick={handleCopy}
-          className="rounded-md border border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-medium text-amber-900 dark:text-amber-200 hover:bg-amber-100"
+          className="rounded-md border border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-medium text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950"
         >
           {copied ? "Copied!" : "Copy"}
         </button>
@@ -51,7 +51,7 @@ export function OneTimePasswordBanner({
       <button
         type="button"
         onClick={onDismiss}
-        className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300 underline hover:text-amber-900 dark:text-amber-200"
+        className="mt-2 text-xs font-medium text-amber-700 dark:text-amber-300 underline hover:text-amber-900 dark:hover:text-amber-200"
       >
         Dismiss
       </button>
