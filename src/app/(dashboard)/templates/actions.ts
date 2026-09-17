@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
+import { requireActiveBilling } from "@/lib/billing";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -76,6 +77,12 @@ export async function savePreset(
       return { ok: false, error: "Couldn't save changes." };
     }
   } else {
+    // Only the create branch is gated -- editing/cloning-into-edit an
+    // existing template a rep already owns is "existing content", not new
+    // creation (see requireActiveBilling).
+    const billingError = await requireActiveBilling(profile.org_id);
+    if (billingError) return { ok: false, error: billingError };
+
     const { data, error } = await supabase
       .from("presets")
       .insert({

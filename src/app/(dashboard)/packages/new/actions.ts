@@ -7,6 +7,7 @@ import { PACKAGE_SLOTS } from "@/lib/packages/slots";
 import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
 import { randomSuffix, slugify } from "@/lib/packages/slug";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
+import { requireActiveBilling } from "@/lib/billing";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -157,6 +158,11 @@ export async function savePackage(
 
     redirect(`/packages/${updated.slug}`);
   }
+
+  // Only the create path is gated -- editing a package a rep already made
+  // is "existing content", not new creation (see requireActiveBilling).
+  const billingError = await requireActiveBilling(profile.org_id);
+  if (billingError) return { ok: false, error: billingError };
 
   const base = slugify(prospectName) || "package";
 

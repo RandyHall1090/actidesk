@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { isLinkKind, type AssetKind, type AssetScope } from "@/lib/assets/types";
+import { requireActiveBilling } from "@/lib/billing";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -57,6 +58,9 @@ export async function createLinkAsset(
   if (scope === "company" && profile.role !== "admin") {
     return { ok: false, error: "Only admins can add to the company library." };
   }
+
+  const billingError = await requireActiveBilling(profile.org_id);
+  if (billingError) return { ok: false, error: billingError };
 
   const supabase = await createClient();
   const { error } = await supabase.from("assets").insert({
@@ -118,6 +122,17 @@ export async function createFileAssetRecord(
   }
 
   const supabase = await createClient();
+
+  const billingError = await requireActiveBilling(profile.org_id);
+  if (billingError) {
+    // The file itself is already uploaded (client-side, before this action
+    // runs) -- roll it back so a blocked record-creation doesn't leak an
+    // orphaned storage object, same reasoning as the DB-insert-error
+    // rollback just below.
+    await supabase.storage.from("assets").remove([storagePath]);
+    return { ok: false, error: billingError };
+  }
+
   const { error } = await supabase.from("assets").insert({
     org_id: profile.org_id,
     owner_id: profile.id,

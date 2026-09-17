@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
+import { requireActiveBilling } from "@/lib/billing";
 
 export type SaveLayoutInput = {
   // Present => update this org's existing custom layout; absent => create a
@@ -120,6 +121,11 @@ export async function saveLayout(
     revalidatePath("/packages/new");
     return { ok: true, id: data.id };
   }
+
+  // Only the create branch is gated -- refining an org's existing custom
+  // layout is "existing content", not new creation (see requireActiveBilling).
+  const billingError = await requireActiveBilling(profile.org_id);
+  if (billingError) return { ok: false, error: billingError };
 
   const { data, error } = await supabase
     .from("layouts")

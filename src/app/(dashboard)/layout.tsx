@@ -5,6 +5,7 @@ import { getOrg } from "@/lib/org";
 import { signOut } from "./actions";
 import { HelpChatWidget } from "@/components/HelpChatWidget";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { TrialBanner } from "./TrialBanner";
 
 const NAV_LINKS = [
   { href: "/", label: "Dashboard" },
@@ -90,6 +91,7 @@ export default async function DashboardLayout({
           ))}
         </nav>
       </header>
+      {org && <TrialBanner org={org} />}
       <main className="flex-1 p-6">{children}</main>
       <HelpChatWidget />
     </div>
