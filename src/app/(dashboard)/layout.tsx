@@ -45,6 +45,7 @@ export default async function DashboardLayout({
       ? [
           { href: "/templates", label: "Templates" },
           { href: "/team", label: "Team" },
+          { href: "/integrations", label: "Integrations" },
         ]
       : []),
     ...(profile.is_platform_admin
