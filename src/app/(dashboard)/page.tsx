@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { getRepStats, getOrgStats } from "@/lib/dashboard/stats";
+import { FollowUpSettings } from "./FollowUpSettings";
 
 export default async function DashboardPage() {
   const profile = await getCurrentProfile();
@@ -8,6 +10,17 @@ export default async function DashboardPage() {
 
   const repStats = await getRepStats(profile.id);
   const orgStats = profile.role === "admin" ? await getOrgStats(profile.org_id) : null;
+
+  let followUp: { follow_up_enabled: boolean; follow_up_days: number } | null = null;
+  if (profile.role === "admin") {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("orgs")
+      .select("follow_up_enabled, follow_up_days")
+      .eq("id", profile.org_id)
+      .single();
+    followUp = data;
+  }
 
   return (
     <div>
@@ -60,6 +73,13 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
+
+      {followUp && (
+        <FollowUpSettings
+          initialEnabled={followUp.follow_up_enabled}
+          initialDays={followUp.follow_up_days}
+        />
+      )}
 
       {orgStats && (
         <section>
