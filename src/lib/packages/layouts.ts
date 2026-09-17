@@ -144,24 +144,26 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     // light wood desk (real desk context visible around it -- a book,
     // laptop, chair -- same "bounded, not full-bleed" spirit as the
     // original desk-v2/v3), per the request for a blotter-style option.
-    // Unlike desk-oak, this is a genuine photographic perspective shot
-    // (the pad is rotated/skewed in frame, not a flat overhead texture),
-    // so desk-v1's positions don't transfer cleanly. Slots below are an
-    // UNREFINED FIRST PASS, placed to sit on the pad's visible surface --
-    // this needs a real pass through the Layout Designer (drag-and-drop,
-    // live preview) before relying on it for a real send, the same way
-    // every other layout's positions were actually tuned.
+    // Unlike desk-oak, this is a genuine photographic perspective shot --
+    // the pad itself is a rotated quadrilateral in frame (measured corners:
+    // top-left ~10%/38%, top-right ~64%/12%, bottom-right ~94%/42%,
+    // bottom-left ~37%/93%), roughly a -22 degree tilt, not a flat overhead
+    // texture -- so desk-v1's positions don't transfer. Slots below are
+    // placed inside that quadrilateral with rotation matched to its tilt.
+    // Still a first pass (measured from the static image, not confirmed
+    // live) -- refine further via the Layout Designer before relying on it
+    // for a real send.
     backgroundImage: "/desk-scene/desk-background-blotter.webp",
     aspectRatio: "1344 / 768",
-    nameplate: { left: "6%", top: "10%", width: "20%", rotate: -8 },
+    nameplate: { left: "3%", top: "4%", width: "18%", rotate: -10 },
     slots: {
-      video: { left: "22%", top: "22%", width: "30%", rotate: -4 },
-      video_2: { left: "58%", top: "16%", width: "26%", rotate: -4 },
-      audio: { left: "14%", top: "48%", width: "12%", rotate: -6 },
-      magazine: { left: "30%", top: "50%", width: "16%", rotate: -6, aspect: "0.77" },
-      magazine_2: { left: "50%", top: "44%", width: "14%", rotate: -4, aspect: "0.77" },
-      business_card: { left: "68%", top: "40%", width: "14%", rotate: -4 },
-      pen: { left: "40%", top: "68%", width: "10%", rotate: -24 },
+      video: { left: "16%", top: "34%", width: "28%", rotate: -22 },
+      video_2: { left: "50%", top: "22%", width: "26%", rotate: -22 },
+      audio: { left: "16%", top: "62%", width: "11%", rotate: -22 },
+      magazine: { left: "32%", top: "66%", width: "14%", rotate: -22, aspect: "0.77" },
+      magazine_2: { left: "50%", top: "54%", width: "13%", rotate: -22, aspect: "0.77" },
+      business_card: { left: "64%", top: "50%", width: "13%", rotate: -22 },
+      pen: { left: "44%", top: "80%", width: "9%", rotate: -40 },
     },
   },
 ];
