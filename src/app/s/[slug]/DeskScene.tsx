@@ -428,17 +428,22 @@ export function DeskScene({
           className="flex flex-col overflow-hidden rounded-[0.4cqw] bg-white p-[1.6cqw] shadow-2xl"
         >
           <div className="mb-[0.8cqw] flex items-center gap-[0.6cqw] border-b border-neutral-200 pb-[0.6cqw]">
-            {orgLogoUrl && (
+            {orgLogoUrl ? (
+              // The logo is a full wordmark (already includes the org's
+              // name) -- showing orgName as text alongside it just repeats
+              // the same brand name twice. Text-only fallback for an org
+              // with no logo yet.
               // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
               <img
                 src={orgLogoUrl}
-                alt=""
+                alt={orgName}
                 className="h-[1.8cqw] w-auto object-contain"
               />
+            ) : (
+              <span className="text-[0.9cqw] font-semibold text-neutral-700">
+                {orgName}
+              </span>
             )}
-            <span className="text-[0.9cqw] font-semibold text-neutral-700">
-              {orgName}
-            </span>
           </div>
           {/* Fallback for a letter longer than the paper's fixed space --
               cheapest safety net, not the primary plan (the paper is sized

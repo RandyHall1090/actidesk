@@ -85,15 +85,20 @@ export function PackageView({
     // looks better that big.
     <div className="mx-auto w-full min-h-full max-w-7xl px-4 py-12">
       <div className="mb-8 flex items-center gap-3">
-        {orgLogoUrl && (
+        {orgLogoUrl ? (
+          // The logo image is a full wordmark (already includes the org's
+          // name), so printing orgName as text alongside it just repeats
+          // the same brand name twice -- only fall back to plain text for
+          // an org that hasn't uploaded a logo yet.
           // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
           <img
             src={orgLogoUrl}
             alt={orgName}
             className="h-10 w-auto object-contain"
           />
+        ) : (
+          <p className="text-sm font-medium text-neutral-300">{orgName}</p>
         )}
-        <p className="text-sm font-medium text-neutral-300">{orgName}</p>
       </div>
       <div className="mb-8">
         <DeskScene
