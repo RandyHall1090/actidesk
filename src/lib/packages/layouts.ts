@@ -166,6 +166,53 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       pen: { left: "44%", top: "80%", width: "9%", rotate: -40 },
     },
   },
+  {
+    id: "desk-walnut",
+    label: "Walnut Executive Desk",
+    // Full-bleed, same canvas shape as desk-v1/desk-oak -- reuses desk-v1's
+    // slot positions verbatim rather than re-deriving them (see desk-oak's
+    // own comment for why that's a safe starting point here).
+    backgroundImage: "/desk-scene/desk-background-walnut.webp",
+    aspectRatio: "1344 / 768",
+    nameplate: { left: "3%", top: "6%", width: "23%", rotate: -3 },
+    slots: {
+      video: { left: "29%", top: "5%", width: "34%" },
+      video_2: { left: "64%", top: "5%", width: "34%" },
+      audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
+      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6, aspect: "0.77" },
+      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6, aspect: "0.77" },
+      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
+      magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
+      business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
+    },
+  },
+  {
+    id: "desk-ash",
+    label: "Ash Gray Desk",
+    // Full-bleed, same canvas shape as desk-v1/desk-oak/desk-walnut -- same
+    // slot-reuse reasoning as those.
+    backgroundImage: "/desk-scene/desk-background-ash.webp",
+    aspectRatio: "1344 / 768",
+    nameplate: { left: "3%", top: "6%", width: "23%", rotate: -3 },
+    slots: {
+      video: { left: "29%", top: "5%", width: "34%" },
+      video_2: { left: "64%", top: "5%", width: "34%" },
+      audio: { left: "6%", top: "26%", width: "13%", rotate: -6 },
+      magazine: { left: "2%", top: "54%", width: "17%", rotate: -6, aspect: "0.77" },
+      magazine_2: { left: "53%", top: "44%", width: "12%", rotate: 6, aspect: "0.77" },
+      magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
+      magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
+      business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
+      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
+    },
+  },
 ];
 
 export function getLayout(templateId: string | null | undefined): DeskLayout {
