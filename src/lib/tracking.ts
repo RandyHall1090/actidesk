@@ -33,4 +33,13 @@ export async function logTrackingEvent(
   } catch (err) {
     console.warn("tracking event failed:", err);
   }
+
+  // "Strike while hot" (T36): a best-effort, non-blocking notify-the-rep
+  // check. Deliberately not awaited into the caller and never throws --
+  // this must never slow down or break the prospect's page.
+  fetch("/api/notifications/hot-lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slug, eventType, slotName: slotName ?? null }),
+  }).catch(() => {});
 }
