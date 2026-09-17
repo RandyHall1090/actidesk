@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { getStripeClient } from "@/lib/stripe/client";
+import { getSiteUrl } from "@/lib/env";
 import {
   tierPriceLookupKey,
   resolvePriceId,
@@ -53,7 +54,7 @@ export async function createCheckoutSession(
   }
 
   const stripe = getStripeClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+  const siteUrl = getSiteUrl();
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -97,7 +98,7 @@ export async function createPortalSession(): Promise<
   const stripe = getStripeClient();
   const session = await stripe.billingPortal.sessions.create({
     customer: org.stripe_customer_id,
-    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/billing`,
+    return_url: `${getSiteUrl()}/billing`,
   });
 
   return { url: session.url };

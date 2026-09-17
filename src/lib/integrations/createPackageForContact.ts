@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify, randomSuffix } from "@/lib/packages/slug";
+import { getSiteUrl } from "@/lib/env";
 
 /**
  * Independent package-creation path for integration-originated packages
@@ -38,7 +39,7 @@ export async function createPackageForContact(input: {
       .single();
 
     if (!error && data) {
-      return { slug: data.slug, url: `${process.env.NEXT_PUBLIC_SITE_URL}/s/${data.slug}` };
+      return { slug: data.slug, url: `${getSiteUrl()}/s/${data.slug}` };
     }
     // Unique-violation on slug -- retry with a fresh suffix; any other
     // error is real and should surface, not be silently retried.

@@ -1,3 +1,5 @@
+import { getSiteUrl } from "@/lib/env";
+
 const AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 const TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 const SCOPES = "offline_access Contacts.Read Mail.Send User.Read";
@@ -9,7 +11,7 @@ export type OutlookTokens = {
 };
 
 function redirectUri(): string {
-  return `${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/outlook/callback`;
+  return `${getSiteUrl()}/api/integrations/outlook/callback`;
 }
 
 /** Builds the URL to send the admin to for Microsoft's consent screen. */

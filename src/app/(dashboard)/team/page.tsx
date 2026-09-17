@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { TeamClient, type TeamProfile } from "./TeamClient";
+import { getSiteUrl } from "@/lib/env";
 
 export default async function TeamPage() {
   const profile = await getCurrentProfile();
@@ -28,7 +29,7 @@ export default async function TeamPage() {
     );
   }
 
-  const signupUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/signup`;
+  const signupUrl = `${getSiteUrl()}/signup`;
 
   return (
     <div className="max-w-2xl">

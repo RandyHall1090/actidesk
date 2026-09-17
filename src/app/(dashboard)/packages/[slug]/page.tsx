@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { deletePackageAndRedirectFormAction } from "../actions";
+import { getSiteUrl } from "@/lib/env";
 
 export default async function PackageDetailPage({
   params,
@@ -32,8 +33,7 @@ export default async function PackageDetailPage({
     .eq("package_id", pkg.id)
     .order("occurred_at", { ascending: false });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const publicUrl = `${siteUrl}/s/${pkg.slug}`;
+  const publicUrl = `${getSiteUrl()}/s/${pkg.slug}`;
 
   return (
     <div className="max-w-2xl space-y-6">

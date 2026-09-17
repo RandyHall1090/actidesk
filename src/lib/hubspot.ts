@@ -5,6 +5,8 @@
 // is a single shared multi-tenant deployment, so an env var alone would sync
 // every tenant's prospects into Securafy's CRM.
 
+import { getSiteUrl } from "@/lib/env";
+
 const HUBSPOT_API_BASE = "https://api.hubapi.com";
 // HubSpot's default HUBSPOT_DEFINED association type id for note -> contact.
 const NOTE_TO_CONTACT_ASSOCIATION_TYPE_ID = 202;
@@ -106,8 +108,7 @@ async function logPackageNote(
   contactId: string,
   input: SyncPackageToHubSpotInput,
 ): Promise<void> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
-  const packageUrl = `${siteUrl}/s/${input.packageSlug}`;
+  const packageUrl = `${getSiteUrl()}/s/${input.packageSlug}`;
 
   const res = await fetch(`${HUBSPOT_API_BASE}/crm/v3/objects/notes`, {
     method: "POST",

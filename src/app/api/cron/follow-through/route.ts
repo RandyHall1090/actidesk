@@ -2,6 +2,7 @@ import { timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
 import { slugify, randomSuffix } from "@/lib/packages/slug";
+import { getSiteUrl } from "@/lib/env";
 
 /**
  * T38: automated follow-through, triggered daily by pg_cron/pg_net (see
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
         .eq("id", original.created_by)
         .single();
       if (rep?.email) {
-        const url = `${process.env.NEXT_PUBLIC_SITE_URL}/s/${slug}`;
+        const url = `${getSiteUrl()}/s/${slug}`;
         await sendEmail({
           to: rep.email,
           subject: `Follow-up ready for ${original.prospect_name}`,

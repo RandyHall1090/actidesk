@@ -1,12 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { exchangeCodeForTokens } from "@/lib/integrations/outlook/oauth";
 import { encryptCredentials } from "@/lib/integrations/crypto";
+import { getSiteUrl } from "@/lib/env";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const orgId = url.searchParams.get("state");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+  const siteUrl = getSiteUrl();
 
   if (!code || !orgId) {
     return Response.redirect(`${siteUrl}/integrations?error=missing_code`, 302);

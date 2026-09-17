@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
+import { getSiteUrl } from "@/lib/env";
 
 /**
  * T36 "strike while hot": notifies the creating rep the moment their
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     .single();
   if (!rep?.email) return new Response("ok", { status: 200 });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = getSiteUrl();
   const label = isFirstView ? "opened their package" : "played your video";
   await sendEmail({
     to: rep.email,

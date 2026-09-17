@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { SECURAFY_ORG_ID } from "@/lib/hubspot";
 import { slugify, randomSuffix } from "@/lib/packages/slug";
 import { resolveTemplateId } from "@/app/(dashboard)/packages/new/actions";
+import { getSiteUrl } from "@/lib/env";
 
 // Real profiles/auth.users row created directly this session (not by this
 // code) -- can never log in (encrypted_password is NULL), exists only as
@@ -141,9 +142,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   return NextResponse.json({
     slug: inserted.slug,
-    url: `${siteUrl}/s/${inserted.slug}`,
+    url: `${getSiteUrl()}/s/${inserted.slug}`,
   });
 }
