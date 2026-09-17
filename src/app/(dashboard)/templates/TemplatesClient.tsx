@@ -393,6 +393,10 @@ export function TemplatesClient({
           <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
             Shared by your team
           </h3>
+          <p className="mb-2 text-xs text-neutral-400 dark:text-neutral-500">
+            Templates your teammates marked "Shared with your team" — your own
+            shared templates appear above, in My Templates, tagged Shared.
+          </p>
           {sharedPresets.length === 0 ? (
             <p className="text-sm text-neutral-400 dark:text-neutral-500">
               No one has shared a template yet.
@@ -434,7 +438,14 @@ function PresetRow({
   return (
     <li className="flex items-start justify-between gap-3 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm">
       <div className="min-w-0">
-        <p className="font-medium text-neutral-900 dark:text-neutral-100">{preset.name}</p>
+        <p className="font-medium text-neutral-900 dark:text-neutral-100">
+          {preset.name}
+          {preset.scope === "company" && (
+            <span className="ml-2 rounded-full bg-blue-100 dark:bg-blue-900 px-2 py-0.5 text-xs font-normal text-blue-800 dark:text-blue-200">
+              Shared
+            </span>
+          )}
+        </p>
         <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {filledSlots.length > 0
             ? `${filledSlots.length} asset${filledSlots.length === 1 ? "" : "s"} selected`
