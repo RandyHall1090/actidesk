@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { syncSeatCountAfterJoin } from "./actions";
 
 type Step =
   | { name: "email" }
@@ -52,7 +53,7 @@ export default function SignupPage() {
     company?: string,
   ) {
     const supabase = createClient();
-    const { error } = await supabase.rpc("complete_signup", {
+    const { data, error } = await supabase.rpc("complete_signup", {
       p_action: action,
       p_company_name: company ?? null,
     });
@@ -61,6 +62,12 @@ export default function SignupPage() {
       setErrorMessage(error.message);
       setPendingAction({ action, company });
       return;
+    }
+    // Joining an existing org is the one seat-count change that doesn't
+    // go through team/actions.ts's own syncOrgSeatCount calls -- fire
+    // this without blocking the redirect on it finishing.
+    if (action === "join" && data?.org_id) {
+      void syncSeatCountAfterJoin(data.org_id);
     }
     router.replace("/");
     router.refresh();

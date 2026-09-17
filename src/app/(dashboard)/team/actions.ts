@@ -9,6 +9,7 @@ import {
   setUserActive,
   type UserManagementResult,
 } from "@/lib/user-management";
+import { syncOrgSeatCount } from "@/lib/stripe/seatSync";
 
 /**
  * Authorization is enforced by the database, not this action: the
@@ -42,7 +43,10 @@ export async function addTeamMember(
     return { ok: false, error: "Only admins can add users." };
   }
   const result = await createUserWithTempPassword(profile.org_id, email, role);
-  if (result.ok) revalidatePath("/team");
+  if (result.ok) {
+    revalidatePath("/team");
+    await syncOrgSeatCount(profile.org_id);
+  }
   return result;
 }
 
@@ -87,6 +91,9 @@ export async function setTeamMemberActive(
   const orgError = await assertSameOrgTarget(profile.org_id, userId);
   if (orgError) return { ok: false, error: orgError };
   const result = await setUserActive(userId, active);
-  if (result.ok) revalidatePath("/team");
+  if (result.ok) {
+    revalidatePath("/team");
+    await syncOrgSeatCount(profile.org_id);
+  }
   return result;
 }

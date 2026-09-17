@@ -45,6 +45,7 @@ export default async function DashboardLayout({
       ? [
           { href: "/templates", label: "Templates" },
           { href: "/team", label: "Team" },
+          { href: "/billing", label: "Billing" },
           { href: "/integrations", label: "Integrations" },
         ]
       : []),
