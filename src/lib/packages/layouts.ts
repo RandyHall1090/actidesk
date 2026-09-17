@@ -155,9 +155,9 @@ export const DESK_LAYOUTS: DeskLayout[] = [
     // for a real send.
     backgroundImage: "/desk-scene/desk-background-blotter.webp",
     aspectRatio: "1344 / 768",
-    nameplate: { left: "3%", top: "4%", width: "18%", rotate: -10 },
+    nameplate: { left: "3%", top: "4%", width: "22%", rotate: -10 },
     slots: {
-      video: { left: "16%", top: "34%", width: "28%", rotate: -22 },
+      video: { left: "20%", top: "38%", width: "26%", rotate: -22 },
       video_2: { left: "50%", top: "22%", width: "26%", rotate: -22 },
       audio: { left: "16%", top: "62%", width: "11%", rotate: -22 },
       magazine: { left: "32%", top: "66%", width: "14%", rotate: -22, aspect: "0.77" },
