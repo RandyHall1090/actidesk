@@ -25,6 +25,60 @@ async function assertPlatformAdmin(): Promise<string | null> {
   return null;
 }
 
+/**
+ * Creates a brand-new tenant: the org row plus its first admin user, in one
+ * action. The only other way an org gets created today is the self-service
+ * complete_signup() RPC's "create" branch -- this mirrors that exactly
+ * (email_domain derived from the admin's own email, same uniqueness
+ * behavior) but lets a platform admin do it directly, without that person
+ * having to sign up themselves first.
+ */
+export async function adminCreateOrg(
+  companyName: string,
+  adminEmail: string,
+  billingExempt: boolean,
+): Promise<UserManagementResult> {
+  const authError = await assertPlatformAdmin();
+  if (authError) return { ok: false, error: authError };
+
+  const creator = await getCurrentProfile();
+  const emailDomain = adminEmail.trim().toLowerCase().split("@")[1];
+  if (!emailDomain) return { ok: false, error: "Invalid email address." };
+
+  const admin = createAdminClient();
+  const { data: org, error: orgError } = await admin
+    .from("orgs")
+    .insert({
+      name: companyName.trim(),
+      email_domain: emailDomain,
+      created_by: creator!.id,
+      billing_exempt: billingExempt,
+      // Matches migration 0030's own precedent for Securafy's exempt org --
+      // exempt orgs are marked active, never left in the default "trialing".
+      ...(billingExempt ? { subscription_status: "active" } : {}),
+    })
+    .select("id")
+    .single();
+
+  if (orgError) {
+    if (orgError.code === "23505") {
+      return { ok: false, error: "An organization already exists for this email domain." };
+    }
+    return { ok: false, error: orgError.message };
+  }
+
+  const result = await createUserWithTempPassword(org.id, adminEmail, "admin");
+  if (!result.ok) {
+    // Don't leave an empty, unusable org behind if the first user couldn't
+    // be created.
+    await admin.from("orgs").delete().eq("id", org.id);
+    return result;
+  }
+
+  revalidatePath("/admin");
+  return result;
+}
+
 export async function adminAddUser(
   orgId: string,
   email: string,

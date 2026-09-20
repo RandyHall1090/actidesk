@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { OneTimePasswordBanner } from "@/components/OneTimePasswordBanner";
 import { SECURAFY_ORG_ID } from "@/lib/hubspot";
 import {
+  adminCreateOrg,
   adminAddUser,
   adminResetUserPassword,
   adminSetUserActive,
@@ -22,6 +23,63 @@ export type AdminProfile = {
   is_platform_admin: boolean;
   created_at: string;
 };
+
+function CreateOrgForm({
+  isPending,
+  onCreate,
+}: {
+  isPending: boolean;
+  onCreate: (companyName: string, adminEmail: string, billingExempt: boolean) => void;
+}) {
+  const [companyName, setCompanyName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [billingExempt, setBillingExempt] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+      <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+        Create new tenant
+      </h3>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <input
+          type="text"
+          value={companyName}
+          onChange={(event) => setCompanyName(event.target.value)}
+          placeholder="Company name"
+          className="min-w-0 flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
+        />
+        <input
+          type="email"
+          value={adminEmail}
+          onChange={(event) => setAdminEmail(event.target.value)}
+          placeholder="admin@company.com"
+          className="min-w-0 flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:border-neutral-500 dark:border-neutral-400 focus:outline-none"
+        />
+        <button
+          type="button"
+          disabled={isPending || !companyName || !adminEmail}
+          onClick={() => {
+            onCreate(companyName, adminEmail, billingExempt);
+            setCompanyName("");
+            setAdminEmail("");
+            setBillingExempt(false);
+          }}
+          className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition-opacity disabled:opacity-50"
+        >
+          Create
+        </button>
+      </div>
+      <label className="mt-2 flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+        <input
+          type="checkbox"
+          checked={billingExempt}
+          onChange={(event) => setBillingExempt(event.target.checked)}
+        />
+        Mark as billing-exempt (internal/demo tenant)
+      </label>
+    </div>
+  );
+}
 
 function OrgSection({
   org,
@@ -186,6 +244,15 @@ export function AdminClient({
     return map;
   }, [profiles]);
 
+  function handleCreateOrg(companyName: string, adminEmail: string, billingExempt: boolean) {
+    setError(null);
+    startTransition(async () => {
+      const result = await adminCreateOrg(companyName, adminEmail, billingExempt);
+      if (result.ok) setRevealed({ email: adminEmail, password: result.password! });
+      else setError(result.error);
+    });
+  }
+
   function handleAdd(orgId: string, email: string, role: "rep" | "admin") {
     setError(null);
     startTransition(async () => {
@@ -238,6 +305,8 @@ export function AdminClient({
         />
       )}
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+      <CreateOrgForm isPending={isPending} onCreate={handleCreateOrg} />
 
       {orgs.map((org) => (
         <OrgSection
