@@ -51,7 +51,14 @@ export async function updateSession(request: NextRequest) {
     isPublicPath("/signup") ||
     isPublicPath("/forgot-password") ||
     isPublicPath("/reset-password") ||
-    isPublicPath("/api/packages");
+    isPublicPath("/api/packages") ||
+    // Pre-existing gap found 2026-09-20 while testing the new pre-signup
+    // checkout flow: neither of these was ever in this allowlist, so
+    // Stripe's webhook calls (no user session) have been getting
+    // 307-redirected to /login instead of reaching the route handler --
+    // subscription status changes were never actually being applied.
+    isPublicPath("/api/webhooks/stripe") ||
+    isPublicPath("/api/checkout");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's
