@@ -17,6 +17,7 @@ function parseKind(formData: FormData): AssetKind | null {
     "document",
     "business_card",
     "logo",
+    "pen",
   ];
   return typeof kind === "string" && (valid as string[]).includes(kind)
     ? (kind as AssetKind)
