@@ -9,6 +9,7 @@ import {
   resolvePriceId,
   ADDON_SEAT_LOOKUP_KEY,
   TIER_INCLUDED_SEATS,
+  isAddonEligibleTier,
   type BillingTier,
   type BillingInterval,
 } from "@/lib/stripe/pricing";
@@ -41,14 +42,16 @@ export async function createCheckoutSession(
     { price: basePriceId, quantity: 1 },
   ];
 
-  // Add-on seats only exist on top of Business (see spec/plan.md's pricing
-  // decision) -- if the org already has more active reps than Business's
-  // included count, start the subscription with enough add-on seats
-  // already attached rather than under-provisioning it from invoice one.
-  if (tier === "business") {
-    const overage = Math.max(0, (seatCount ?? 1) - TIER_INCLUDED_SEATS.business);
+  // Add-on seats exist on top of Team and Business (see
+  // plans/2026-09-17-t34-stripe-billing.md's pricing decision, extended
+  // 2026-09-20 to include Team) -- if the org already has more active reps
+  // than the tier's included count, start the subscription with enough
+  // add-on seats already attached rather than under-provisioning it from
+  // invoice one.
+  if (isAddonEligibleTier(tier)) {
+    const overage = Math.max(0, (seatCount ?? 1) - TIER_INCLUDED_SEATS[tier]);
     if (overage > 0) {
-      const addonPriceId = await resolvePriceId(ADDON_SEAT_LOOKUP_KEY[billingInterval]);
+      const addonPriceId = await resolvePriceId(ADDON_SEAT_LOOKUP_KEY[tier][billingInterval]);
       lineItems.push({ price: addonPriceId, quantity: overage });
     }
   }

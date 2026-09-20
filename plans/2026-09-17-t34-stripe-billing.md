@@ -50,6 +50,16 @@ Created directly via the Stripe MCP in Randy's live Stripe account ("Securafy In
 
 Each product's `default_price` is set to its monthly Price. All 8 Prices use `lookup_key`s (shown above) so app code should resolve Prices by lookup key via `stripe.prices.list({ lookup_keys: [...] })`, not by hardcoding these Price IDs directly — that keeps a future price change (Stripe Prices are immutable; a "change" means creating a new Price and re-pointing the lookup_key) from requiring a code deploy. **This account has no test-mode/sandbox equivalent of these objects** — until a sandbox is connected, testing the Checkout flow means either testing carefully against these real live Prices (e.g., $0 via a 100%-off test coupon) or standing up a separate sandbox first and re-creating the same 4 Products/8 Prices there.
 
+#### 2026-09-20 addendum: Team add-on seats
+
+Randy decided the Business-only add-on restriction above should extend to Team too, at a Team-specific price of $39/seat (vs Business's $19/seat) — still monotonically decreasing per-seat cost ($49 → $39.50 → **$39 add-on** → $25.80 → $19 add-on), so the original anti-arbitrage rationale still holds; this is an extension of that design, not a reversal. Business's existing Product/Prices above are untouched. New Product/Prices, same conventions:
+
+| Product | Product ID | Monthly Price (lookup_key) | Annual Price (lookup_key) |
+|---|---|---|---|
+| ActiDesk Team Add-on Seat | `prod_VITgSFsOUUFvy1` | `price_1UHsjLAuT4LPyEyvm2po37hY` (`actidesk_addon_seat_team_monthly`) | `price_1UHsjMAuT4LPyEyvcrzv3VdZ` (`actidesk_addon_seat_team_annual`) |
+
+`ADDON_SEAT_LOOKUP_KEY` in `src/lib/stripe/pricing.ts` is now tier-keyed (`team` | `business`) instead of a flat monthly/annual pair; `createCheckoutSession` and `syncOrgSeatCount` both gate on `isAddonEligibleTier()` instead of `tier === "business"`.
+
 **What still needs building (Task 1's remaining DB/env-var pieces, plus Tasks 3/5):**
 - **Task 1**: still needs the `orgs` billing-columns migration (`subscription_status`, `trial_ends_at`, `stripe_customer_id`, `stripe_subscription_id`, `billing_exempt`) *plus a new `billing_tier` column* (`'solo' | 'team' | 'business'`); `STRIPE_PRICE_ID` (singular) as originally planned is no longer the right env-var shape — the app should look up Prices by the lookup_keys above instead of a single hardcoded ID.
 - **Task 3**'s Checkout Session creation (`createCheckoutSession`) needs a tier selector (which of the 3 base Prices to use, by lookup_key) and, for Business only, an optional add-on-seat line item — not the current flat `quantity: seatCount` against one Price.

@@ -19,7 +19,7 @@ const TIERS: {
   seats: string;
 }[] = [
   { id: "solo", label: "Solo", monthly: 49, annual: 470, seats: "1 seat" },
-  { id: "team", label: "Team", monthly: 79, annual: 758, seats: "2 seats" },
+  { id: "team", label: "Team", monthly: 79, annual: 758, seats: "2 seats, add-on seats available" },
   {
     id: "business",
     label: "Business",

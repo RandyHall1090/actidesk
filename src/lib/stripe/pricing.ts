@@ -24,9 +24,30 @@ export function tierPriceLookupKey(tier: BillingTier, interval: BillingInterval)
   return `actidesk_${tier}_${interval}`;
 }
 
-export const ADDON_SEAT_LOOKUP_KEY: Record<BillingInterval, string> = {
-  monthly: "actidesk_addon_seat_monthly",
-  annual: "actidesk_addon_seat_annual",
+/** Tiers that can attach add-on seats on top of their included count. */
+export const ADDON_ELIGIBLE_TIERS = ["team", "business"] as const;
+export type AddonEligibleTier = (typeof ADDON_ELIGIBLE_TIERS)[number];
+
+export function isAddonEligibleTier(tier: string | null | undefined): tier is AddonEligibleTier {
+  return !!tier && (ADDON_ELIGIBLE_TIERS as readonly string[]).includes(tier);
+}
+
+/**
+ * Team and Business each have their own add-on Price (2026-09-20: extended
+ * from Business-only) -- Team's add-on costs more per seat ($39 vs $19)
+ * since its base plan is cheaper, preserving the per-seat cost falling
+ * monotonically as tier increases (see plans/2026-09-17-t34-stripe-billing.md).
+ * Business's lookup keys are unchanged from the original setup.
+ */
+export const ADDON_SEAT_LOOKUP_KEY: Record<AddonEligibleTier, Record<BillingInterval, string>> = {
+  team: {
+    monthly: "actidesk_addon_seat_team_monthly",
+    annual: "actidesk_addon_seat_team_annual",
+  },
+  business: {
+    monthly: "actidesk_addon_seat_monthly",
+    annual: "actidesk_addon_seat_annual",
+  },
 };
 
 /** Reverses a lookup_key like "actidesk_business_monthly" back to its tier. */

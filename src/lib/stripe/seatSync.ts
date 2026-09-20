@@ -1,13 +1,19 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripeClient } from "@/lib/stripe/client";
-import { priceLookupKey, ADDON_SEAT_LOOKUP_KEY, TIER_INCLUDED_SEATS } from "@/lib/stripe/pricing";
+import {
+  priceLookupKey,
+  ADDON_SEAT_LOOKUP_KEY,
+  TIER_INCLUDED_SEATS,
+  isAddonEligibleTier,
+} from "@/lib/stripe/pricing";
 
 /**
  * Pushes the org's current add-on-seat count to Stripe. Add-on seats
- * only exist on top of Business (see spec/plan.md's pricing decision) --
- * this is a deliberate no-op for Solo/Team orgs and for any org with no
- * subscription yet (the correct initial add-on count is set at Checkout
- * time instead -- see billing/actions.ts createCheckoutSession).
+ * exist on top of Team and Business (see plans/2026-09-17-t34-stripe-billing.md's
+ * pricing decision, extended 2026-09-20 to include Team) -- this is a
+ * deliberate no-op for Solo orgs and for any org with no subscription yet
+ * (the correct initial add-on count is set at Checkout time instead --
+ * see billing/actions.ts createCheckoutSession).
  */
 export async function syncOrgSeatCount(orgId: string): Promise<void> {
   const supabase = createAdminClient();
@@ -16,7 +22,8 @@ export async function syncOrgSeatCount(orgId: string): Promise<void> {
     .select("stripe_subscription_id, billing_tier")
     .eq("id", orgId)
     .single();
-  if (!org?.stripe_subscription_id || org.billing_tier !== "business") return;
+  if (!org?.stripe_subscription_id || !isAddonEligibleTier(org.billing_tier)) return;
+  const tier = org.billing_tier;
 
   const { count } = await supabase
     .from("profiles")
@@ -24,7 +31,7 @@ export async function syncOrgSeatCount(orgId: string): Promise<void> {
     .eq("org_id", orgId)
     .eq("is_active", true);
 
-  const overage = Math.max(0, (count ?? 0) - TIER_INCLUDED_SEATS.business);
+  const overage = Math.max(0, (count ?? 0) - TIER_INCLUDED_SEATS[tier]);
 
   const stripe = getStripeClient();
   const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id, {
@@ -33,7 +40,7 @@ export async function syncOrgSeatCount(orgId: string): Promise<void> {
 
   const addonItem = subscription.items.data.find((item) => {
     const key = priceLookupKey(item.price);
-    return key === ADDON_SEAT_LOOKUP_KEY.monthly || key === ADDON_SEAT_LOOKUP_KEY.annual;
+    return key === ADDON_SEAT_LOOKUP_KEY[tier].monthly || key === ADDON_SEAT_LOOKUP_KEY[tier].annual;
   });
 
   if (overage === 0) {
@@ -60,7 +67,7 @@ export async function syncOrgSeatCount(orgId: string): Promise<void> {
   const interval =
     typeof baseInterval !== "string" ? baseInterval?.recurring?.interval : undefined;
   const addonLookupKey =
-    interval === "year" ? ADDON_SEAT_LOOKUP_KEY.annual : ADDON_SEAT_LOOKUP_KEY.monthly;
+    interval === "year" ? ADDON_SEAT_LOOKUP_KEY[tier].annual : ADDON_SEAT_LOOKUP_KEY[tier].monthly;
 
   const prices = await stripe.prices.list({ lookup_keys: [addonLookupKey], limit: 1 });
   const addonPrice = prices.data[0];
