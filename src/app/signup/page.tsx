@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { syncSeatCountAfterJoin } from "./actions";
+import { syncSeatCountAfterJoin, linkCheckoutSession } from "./actions";
 
 type Step =
   | { name: "email" }
@@ -12,7 +12,17 @@ type Step =
   | { name: "create"; email: string };
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkoutSessionId = searchParams.get("checkout_session_id");
   const [step, setStep] = useState<Step>({ name: "email" });
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -68,6 +78,16 @@ export default function SignupPage() {
     // this without blocking the redirect on it finishing.
     if (action === "join" && data?.org_id) {
       void syncSeatCountAfterJoin(data.org_id);
+    }
+    // Only the org creator owns billing -- a stray checkout_session_id on
+    // a "join" link is ignored. Await this so a paying signup lands on
+    // the dashboard already billed, but never block the account on it:
+    // any failure here just leaves the org on its normal free trial.
+    if (action === "create" && checkoutSessionId) {
+      const result = await linkCheckoutSession(checkoutSessionId);
+      if (!result.ok) {
+        console.warn("Could not link checkout session:", result.error);
+      }
     }
     router.replace("/");
     router.refresh();
