@@ -77,7 +77,7 @@ function SignupForm() {
     // go through team/actions.ts's own syncOrgSeatCount calls -- fire
     // this without blocking the redirect on it finishing.
     if (action === "join" && data?.org_id) {
-      void syncSeatCountAfterJoin(data.org_id);
+      void syncSeatCountAfterJoin();
     }
     // Only the org creator owns billing -- a stray checkout_session_id on
     // a "join" link is ignored. Await this so a paying signup lands on

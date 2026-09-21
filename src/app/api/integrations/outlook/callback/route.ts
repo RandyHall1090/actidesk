@@ -1,16 +1,24 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { exchangeCodeForTokens } from "@/lib/integrations/outlook/oauth";
+import { exchangeCodeForTokens, verifyState } from "@/lib/integrations/outlook/oauth";
 import { encryptCredentials } from "@/lib/integrations/crypto";
 import { getSiteUrl } from "@/lib/env";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const orgId = url.searchParams.get("state");
+  const state = url.searchParams.get("state");
   const siteUrl = getSiteUrl();
 
-  if (!code || !orgId) {
+  if (!code || !state) {
     return Response.redirect(`${siteUrl}/integrations?error=missing_code`, 302);
+  }
+
+  // state is signed by connect/route.ts and must verify intact + unexpired
+  // before its org_id is trusted -- see oauth.ts's signState() for why a
+  // bare, unverified state param is a cross-tenant hijack vector.
+  const orgId = verifyState(state);
+  if (!orgId) {
+    return Response.redirect(`${siteUrl}/integrations?error=invalid_state`, 302);
   }
 
   try {

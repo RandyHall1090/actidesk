@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
-import { getAuthorizationUrl } from "@/lib/integrations/outlook/oauth";
+import { getAuthorizationUrl, signState } from "@/lib/integrations/outlook/oauth";
 
 export async function GET() {
   const profile = await getCurrentProfile();
@@ -9,6 +9,7 @@ export async function GET() {
   }
   // state carries the org_id so the callback (which has no session context
   // of its own beyond what Microsoft echoes back) knows which org to
-  // attach the resulting tokens to.
-  redirect(getAuthorizationUrl(profile.org_id));
+  // attach the resulting tokens to. Signed + expiring, not the bare id --
+  // see oauth.ts's signState() for why.
+  redirect(getAuthorizationUrl(signState(profile.org_id)));
 }

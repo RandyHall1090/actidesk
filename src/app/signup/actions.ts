@@ -12,9 +12,18 @@ import { mapStripeStatus } from "@/lib/stripe/status";
  * client (no server action involved), so a self-service "join" -- the
  * one seat-count change that doesn't go through team/actions.ts -- has
  * no natural server-side hook of its own. This is that hook.
+ *
+ * Takes no orgId param (found 2026-09-21 during a security sweep: the
+ * caller had been passing one through, but nothing stopped a direct call
+ * to this action from supplying a different org's id -- low impact, since
+ * syncOrgSeatCount only ever pushes an org's *real* active-profile count
+ * to Stripe, never an attacker-chosen one, but there's no reason to trust
+ * a client-supplied id here when the caller's own session already has it).
  */
-export async function syncSeatCountAfterJoin(orgId: string): Promise<void> {
-  await syncOrgSeatCount(orgId);
+export async function syncSeatCountAfterJoin(): Promise<void> {
+  const profile = await getCurrentProfile();
+  if (!profile) return;
+  await syncOrgSeatCount(profile.org_id);
 }
 
 /**

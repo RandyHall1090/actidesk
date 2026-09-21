@@ -58,7 +58,18 @@ export async function updateSession(request: NextRequest) {
     // 307-redirected to /login instead of reaching the route handler --
     // subscription status changes were never actually being applied.
     isPublicPath("/api/webhooks/stripe") ||
-    isPublicPath("/api/checkout");
+    isPublicPath("/api/checkout") ||
+    // Same gap class, found 2026-09-21 during a full security/QA sweep:
+    // both of these are called with no Supabase session by design (pg_cron
+    // via a Bearer token; an anonymous prospect's own browser) and were
+    // getting redirected to /login before ever reaching their own auth
+    // checks -- the daily follow-through job and "prospect opened it" rep
+    // notifications have never actually fired in production. Each route
+    // still enforces its own authorization (constant-time bearer-token
+    // check / no sensitive data returned) -- this only lets the request
+    // reach that check instead of being turned away earlier.
+    isPublicPath("/api/cron/follow-through") ||
+    isPublicPath("/api/notifications/hot-lead");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's
