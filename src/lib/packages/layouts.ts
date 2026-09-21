@@ -96,15 +96,19 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       // slot reaches past ~83% left).
       magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
-      // Three side-by-side in the open pocket below video and right of
-      // audio, above the pen -- real bounding boxes confirmed live via a
-      // fully-populated test package (first attempt at top:"27%" looked
-      // clear by eye but real boxes showed it overlapping video's own
-      // footprint, which extends to x:63%/y:38.5%; corrected to start
-      // below video's bottom edge instead).
-      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
-      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
-      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      // Enlarged from the original 8% (real prospect feedback: the listing
+      // photo -- book_image_1 -- was unreadably small). book_image_2 stays
+      // narrower than 1/3 since its own image (a portrait-oriented card) has
+      // no object-cover crop applied (see DeskScene.tsx), so its rendered
+      // height comes from the uploaded image's own aspect, not this box's
+      // -- a wider box here would push it tall enough to reach the pen.
+      // book_image_3 drops to its own row below 1/2 rather than sitting
+      // beside them, confirmed live via a fully-populated test package to
+      // clear both video's footprint above and book_image_1's own bottom
+      // edge.
+      book_image_1: { left: "18%", top: "40%", width: "13%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "40%", width: "11%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "19%", top: "58%", width: "13%", rotate: -6, aspect: "0.77" },
       // Open middle-bottom area, clear of every other slot.
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
@@ -131,9 +135,9 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
       magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
-      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
-      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
-      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_1: { left: "18%", top: "40%", width: "13%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "40%", width: "11%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "19%", top: "58%", width: "13%", rotate: -6, aspect: "0.77" },
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
@@ -184,9 +188,9 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
       magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
-      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
-      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
-      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_1: { left: "18%", top: "40%", width: "13%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "40%", width: "11%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "19%", top: "58%", width: "13%", rotate: -6, aspect: "0.77" },
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
@@ -207,9 +211,9 @@ export const DESK_LAYOUTS: DeskLayout[] = [
       magazine_3: { left: "70%", top: "74%", width: "10%", rotate: -6, aspect: "0.77" },
       magazine_4: { left: "85%", top: "46%", width: "14%", rotate: 6, aspect: "0.77" },
       business_card: { left: "68%", top: "57%", width: "15%", rotate: 6 },
-      book_image_1: { left: "22%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
-      book_image_2: { left: "32%", top: "41%", width: "8%", rotate: 6, aspect: "0.77" },
-      book_image_3: { left: "42%", top: "41%", width: "8%", rotate: -6, aspect: "0.77" },
+      book_image_1: { left: "18%", top: "40%", width: "13%", rotate: -6, aspect: "0.77" },
+      book_image_2: { left: "32%", top: "40%", width: "11%", rotate: 6, aspect: "0.77" },
+      book_image_3: { left: "19%", top: "58%", width: "13%", rotate: -6, aspect: "0.77" },
       pen: { left: "38%", top: "68%", width: "12%", rotate: -20 },
     },
   },
