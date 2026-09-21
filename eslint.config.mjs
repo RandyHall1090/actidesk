@@ -15,6 +15,11 @@ const eslintConfig = defineConfig([
     // Vendored, minified third-party file (a manual copy of
     // pdfjs-dist's build output, served statically) -- not our source.
     "public/pdf.worker.min.mjs",
+    // Leftover isolated-agent worktrees (full duplicate source trees,
+    // including their own copy of the file above) -- gitignored, not
+    // part of this project's own source, but not excluded here before,
+    // so a full `npm run lint` was scanning every duplicate too.
+    ".claude/worktrees/**",
   ]),
 ]);
 

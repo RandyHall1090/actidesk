@@ -91,7 +91,12 @@ export default async function DashboardLayout({
           ))}
         </nav>
       </header>
-      {org && <TrialBanner org={org} />}
+      {/* react-hooks/purity flags Date.now() during render, but that rule
+          protects the React Compiler's client-side memoization -- this
+          layout is a Server Component, dynamically rendered fresh per
+          request with no memoization involved. */}
+      {/* eslint-disable-next-line react-hooks/purity */}
+      {org && <TrialBanner org={org} now={Date.now()} />}
       <main className="flex-1 p-6">{children}</main>
       <HelpChatWidget />
     </div>

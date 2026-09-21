@@ -15,5 +15,11 @@ export default async function BillingPage() {
     .eq("id", profile.org_id)
     .single();
 
-  return <BillingClient org={org} />;
+  // react-hooks/purity flags Date.now() during render, but that rule
+  // protects the React Compiler's client-side memoization -- this is a
+  // Server Component, dynamically rendered fresh per request with no
+  // memoization involved, so "now" genuinely is the correct request-time
+  // value to compute here and hand down as a plain prop.
+  // eslint-disable-next-line react-hooks/purity
+  return <BillingClient org={org} now={Date.now()} />;
 }

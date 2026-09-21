@@ -394,7 +394,7 @@ export function TemplatesClient({
             Shared by your team
           </h3>
           <p className="mb-2 text-xs text-neutral-400 dark:text-neutral-500">
-            Templates your teammates marked "Shared with your team" — your own
+            Templates your teammates marked &quot;Shared with your team&quot; — your own
             shared templates appear above, in My Templates, tagged Shared.
           </p>
           {sharedPresets.length === 0 ? (

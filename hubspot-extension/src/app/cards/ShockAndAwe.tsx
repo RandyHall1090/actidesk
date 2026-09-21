@@ -39,7 +39,7 @@ const ShockAndAweCard = () => {
   }
 
   if (error) {
-    return <Text>Couldn't load this contact's details: {error.message}</Text>;
+    return <Text>Couldn&apos;t load this contact&apos;s details: {error.message}</Text>;
   }
 
   const packageUrl = buildPackageUrl(properties);

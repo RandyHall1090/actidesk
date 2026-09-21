@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createCheckoutSession, createPortalSession } from "./actions";
 import type { BillingTier, BillingInterval } from "@/lib/stripe/pricing";
 
@@ -29,10 +29,19 @@ const TIERS: {
   },
 ];
 
-export function BillingClient({ org }: { org: OrgBilling }) {
+export function BillingClient({ org, now }: { org: OrgBilling; now: number }) {
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
+  // Navigation is a side effect, not something render itself should do --
+  // setting state and letting an effect react to it (rather than assigning
+  // window.location.href directly inside the click handler) is what the
+  // React Compiler's purity rules expect here.
+  useEffect(() => {
+    if (redirectUrl) window.location.href = redirectUrl;
+  }, [redirectUrl]);
 
   async function handleSubscribe(tier: BillingTier) {
     setLoading(tier);
@@ -43,7 +52,7 @@ export function BillingClient({ org }: { org: OrgBilling }) {
       setLoading(null);
       return;
     }
-    window.location.href = result.url;
+    setRedirectUrl(result.url);
   }
 
   async function handleManage() {
@@ -55,7 +64,7 @@ export function BillingClient({ org }: { org: OrgBilling }) {
       setLoading(null);
       return;
     }
-    window.location.href = result.url;
+    setRedirectUrl(result.url);
   }
 
   if (!org) return null;
@@ -63,7 +72,7 @@ export function BillingClient({ org }: { org: OrgBilling }) {
   const hasSubscription = org.subscription_status === "active";
   const trialDaysLeft = Math.max(
     0,
-    Math.ceil((new Date(org.trial_ends_at).getTime() - Date.now()) / 86_400_000),
+    Math.ceil((new Date(org.trial_ends_at).getTime() - now) / 86_400_000),
   );
 
   return (

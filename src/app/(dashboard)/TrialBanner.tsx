@@ -7,13 +7,13 @@ import type { Org } from "@/lib/org";
  * to actually enforce the soft-block, so what a rep sees here always
  * matches what they can/can't do.
  */
-export function TrialBanner({ org }: { org: Org }) {
+export function TrialBanner({ org, now }: { org: Org; now: number }) {
   if (org.billing_exempt) return null;
 
   if (org.subscription_status === "trialing") {
     const daysLeft = Math.max(
       0,
-      Math.ceil((new Date(org.trial_ends_at).getTime() - Date.now()) / 86_400_000),
+      Math.ceil((new Date(org.trial_ends_at).getTime() - now) / 86_400_000),
     );
     return (
       <div className="bg-blue-50 dark:bg-blue-950 px-4 py-2 text-center text-sm text-blue-800 dark:text-blue-300">
