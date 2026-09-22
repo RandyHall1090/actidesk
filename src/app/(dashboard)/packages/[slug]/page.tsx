@@ -47,7 +47,7 @@ export default async function PackageDetailPage({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {pkg.created_by === profile.id && (
+          {(pkg.created_by === profile.id || profile.role === "admin") && (
             <Link
               href={`/packages/${pkg.slug}/edit`}
               className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"

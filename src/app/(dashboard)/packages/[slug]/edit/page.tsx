@@ -39,17 +39,19 @@ export default async function EditPackagePage({
 
   if (pkgError || !pkg) notFound();
 
-  // packages_update_own (RLS, 0001) only ever lets the creating rep save
-  // changes -- gate the edit page itself the same way, rather than show a
-  // form whose Save button would just silently fail under RLS. (Not
-  // exploitable as written: profile.id already uniquely identifies one
-  // user, and no field of pkg renders before this check runs -- kept as a
-  // fetch-then-check rather than folding into the query above so a
-  // mistyped/deleted slug still 404s instead of showing "not yours".)
-  if (pkg.created_by !== profile.id) {
+  // packages_update_own_or_admin (RLS, 0035) lets the creating rep or an
+  // org admin save changes -- gate the edit page itself the same way,
+  // rather than show a form whose Save button would just silently fail
+  // under RLS. (Not exploitable as written: profile.id already uniquely
+  // identifies one user, profile.role comes from the caller's own
+  // session-authenticated profile row, and no field of pkg renders before
+  // this check runs -- kept as a fetch-then-check rather than folding
+  // into the query above so a mistyped/deleted slug still 404s instead
+  // of showing "not yours".)
+  if (pkg.created_by !== profile.id && profile.role !== "admin") {
     return (
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Only the rep who created this package can edit it.
+        Only the rep who created this package, or an admin, can edit it.
       </p>
     );
   }

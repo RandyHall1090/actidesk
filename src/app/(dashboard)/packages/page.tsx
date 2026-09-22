@@ -11,10 +11,18 @@ export default async function PackagesPage() {
   if (!profile) redirect("/login");
 
   const supabase = await createClient();
-  const { data: packages, error } = await supabase
+  let query = supabase
     .from("packages")
     .select("id, slug, prospect_name, prospect_company, created_at, created_by")
     .order("created_at", { ascending: false });
+  // Reps see only their own sites here; an org admin sees the whole
+  // org's (RLS -- packages_select_org -- already scopes this to the
+  // caller's own org either way, so an admin still can't see another
+  // tenant's packages).
+  if (profile.role !== "admin") {
+    query = query.eq("created_by", profile.id);
+  }
+  const { data: packages, error } = await query;
 
   if (error) {
     return (

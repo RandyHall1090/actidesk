@@ -99,10 +99,13 @@ export async function savePackage(
   const templateId = await resolveTemplateId(supabase, profile.org_id, rawTemplateId);
 
   if (packageId) {
-    // packages_update_own (0001) already scopes this to created_by =
-    // auth.uid() -- the explicit .eq here is defense in depth, not the
-    // only thing standing between a rep and someone else's package.
-    const { data: updated, error } = await supabase
+    // packages_update_own_or_admin (0035) already scopes this to the
+    // creator or an org admin -- the explicit .eq below is defense in
+    // depth for a non-admin, not the only thing standing between a rep
+    // and someone else's package. Skipped for an admin specifically
+    // because it would otherwise block the exact edit RLS now allows
+    // (someone else's package, still within the admin's own org).
+    let updateQuery = supabase
       .from("packages")
       .update({
         prospect_name: prospectName,
@@ -112,8 +115,11 @@ export async function savePackage(
         private_note: privateNote,
         template_id: templateId,
       })
-      .eq("id", packageId)
-      .eq("created_by", profile.id)
+      .eq("id", packageId);
+    if (profile.role !== "admin") {
+      updateQuery = updateQuery.eq("created_by", profile.id);
+    }
+    const { data: updated, error } = await updateQuery
       .select("id, slug")
       .single();
 
