@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { OneTimePasswordBanner } from "@/components/OneTimePasswordBanner";
 import {
   setProfileRole,
@@ -32,6 +32,16 @@ export function TeamClient({
   const [error, setError] = useState<string | null>(null);
   const [addEmail, setAddEmail] = useState("");
   const [addRole, setAddRole] = useState<"rep" | "admin">("rep");
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  // Same reasoning as AdminClient.tsx's identical effect: a reset/toggle
+  // triggered from a row far down a long team list shouldn't look like it
+  // did nothing just because the result renders above the fold.
+  useEffect(() => {
+    if (revealed || error) {
+      feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [revealed, error]);
 
   function handleAdd() {
     setError(null);
@@ -66,14 +76,16 @@ export function TeamClient({
 
   return (
     <div className="space-y-6">
-      {revealed && (
-        <OneTimePasswordBanner
-          email={revealed.email}
-          password={revealed.password}
-          onDismiss={() => setRevealed(null)}
-        />
-      )}
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      <div ref={feedbackRef}>
+        {revealed && (
+          <OneTimePasswordBanner
+            email={revealed.email}
+            password={revealed.password}
+            onDismiss={() => setRevealed(null)}
+          />
+        )}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      </div>
 
       <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
         <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-300">

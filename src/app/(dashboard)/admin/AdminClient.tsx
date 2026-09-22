@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { OneTimePasswordBanner } from "@/components/OneTimePasswordBanner";
 import { SECURAFY_ORG_ID } from "@/lib/hubspot";
 import {
@@ -233,6 +233,20 @@ export function AdminClient({
     password: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  // Every action here (reset password, toggle active, etc.) can be
+  // triggered from a row far down the page -- with 6+ orgs now on this
+  // page, Securafy's own section (where the platform's own team lives)
+  // sorts last alphabetically, so its buttons sit well below the fold.
+  // The result (this banner, or an error) renders at the top of the
+  // page; without scrolling it into view, clicking a button down there
+  // looks exactly like it did nothing.
+  useEffect(() => {
+    if (revealed || error) {
+      feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [revealed, error]);
 
   const profilesByOrg = useMemo(() => {
     const map = new Map<string, AdminProfile[]>();
@@ -297,14 +311,16 @@ export function AdminClient({
 
   return (
     <div className="space-y-6">
-      {revealed && (
-        <OneTimePasswordBanner
-          email={revealed.email}
-          password={revealed.password}
-          onDismiss={() => setRevealed(null)}
-        />
-      )}
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      <div ref={feedbackRef}>
+        {revealed && (
+          <OneTimePasswordBanner
+            email={revealed.email}
+            password={revealed.password}
+            onDismiss={() => setRevealed(null)}
+          />
+        )}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      </div>
 
       <CreateOrgForm isPending={isPending} onCreate={handleCreateOrg} />
 
