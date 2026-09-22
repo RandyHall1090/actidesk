@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
-import { MagazineSlot, DocumentLink } from "./DocumentViewer";
+import { MagazineSlot, DocumentLink, LetterSlot } from "./DocumentViewer";
 
 function PlayIcon() {
   return (
@@ -423,9 +423,13 @@ export function DeskScene({
       )}
 
       {layout.letter && letterBody && (
-        <div
+        <LetterSlot
+          body={letterBody}
+          orgName={orgName}
+          orgLogoUrl={orgLogoUrl}
           style={slotStyle(layout.letter)}
-          className="flex flex-col overflow-hidden rounded-[0.4cqw] bg-white p-[1.6cqw] shadow-2xl"
+          onOpen={() => onTrack("letter")}
+          className="flex flex-col overflow-hidden rounded-[0.4cqw] bg-white p-[1.6cqw] text-left shadow-2xl transition-transform hover:scale-105"
         >
           <div className="mb-[0.8cqw] flex items-center gap-[0.6cqw] border-b border-neutral-200 pb-[0.6cqw]">
             {orgLogoUrl ? (
@@ -445,15 +449,16 @@ export function DeskScene({
               </span>
             )}
           </div>
-          {/* Fallback for a letter longer than the paper's fixed space --
-              cheapest safety net, not the primary plan (the paper is sized
-              generously against the real desk-v3 art first). */}
-          <div className="relative flex-1 overflow-y-auto">
+          {/* Just a preview now -- LetterSlot opens the full, legible text
+              in a modal on click, same as every other on-desk asset, so
+              this no longer needs its own scroll/overflow handling for a
+              long letter. */}
+          <div className="relative flex-1 overflow-hidden">
             <p className="whitespace-pre-wrap text-[0.85cqw] leading-snug text-neutral-800">
               {letterBody}
             </p>
           </div>
-        </div>
+        </LetterSlot>
       )}
 
       {layout.brochures &&

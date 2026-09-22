@@ -521,3 +521,125 @@ export function DocumentLink({
     </>
   );
 }
+
+/**
+ * The letter's full-screen view -- everything else on the desk (magazine,
+ * brochures, book photos, business card) opens larger on click; the
+ * letter alone rendered as small, fixed on-desk text with no way to
+ * enlarge it. Same dialog shell as PdfReaderModal (dim backdrop,
+ * click-outside or Escape to close, a Close button) since the letter
+ * isn't a PDF, just plain text, so it gets its own lightweight modal
+ * instead of reusing the PDF reader.
+ */
+function LetterModal({
+  body,
+  orgName,
+  orgLogoUrl,
+  onClose,
+}: {
+  body: string;
+  orgName: string;
+  orgLogoUrl: string | null;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Letter"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-8"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-6 py-4">
+          {orgLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- dynamic signed Storage URL, not a static local asset
+            <img src={orgLogoUrl} alt={orgName} className="h-6 w-auto object-contain" />
+          ) : (
+            <span className="text-sm font-semibold text-neutral-700">{orgName}</span>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-6 py-6 sm:px-10 sm:py-8">
+          <p className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">
+            {body}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The letter's on-desk presence: the same small preview it always
+ * rendered as, now a click target that opens LetterModal above for a
+ * legible full-size read -- matching how every other on-desk asset
+ * (magazine, brochures, book photos, business card) already behaves.
+ */
+export function LetterSlot({
+  body,
+  orgName,
+  orgLogoUrl,
+  style,
+  className,
+  onOpen,
+  children,
+}: {
+  body: string;
+  orgName: string;
+  orgLogoUrl: string | null;
+  style?: CSSProperties;
+  className?: string;
+  onOpen?: () => void;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const openedOnceRef = useRef(false);
+
+  function handleClick() {
+    if (!openedOnceRef.current) {
+      openedOnceRef.current = true;
+      onOpen?.();
+    }
+    setOpen(true);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-label="Open letter"
+        style={style}
+        className={className}
+      >
+        {children}
+      </button>
+      {open && (
+        <LetterModal
+          body={body}
+          orgName={orgName}
+          orgLogoUrl={orgLogoUrl}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
