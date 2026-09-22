@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { OneTimePasswordBanner } from "@/components/OneTimePasswordBanner";
 import { SECURAFY_ORG_ID } from "@/lib/hubspot";
+import type { ContentDisposition } from "@/lib/user-management";
 import {
   adminCreateOrg,
   adminAddUser,
@@ -10,6 +11,7 @@ import {
   adminSetUserActive,
   adminSetProfileRole,
   adminSetPlatformAdmin,
+  adminDeleteUser,
 } from "./actions";
 
 export type AdminOrg = { id: string; name: string };
@@ -22,6 +24,12 @@ export type AdminProfile = {
   is_active: boolean;
   is_platform_admin: boolean;
   created_at: string;
+};
+export type ContentCounts = {
+  packages: number;
+  assets: number;
+  layouts: number;
+  presets: number;
 };
 
 function CreateOrgForm({
@@ -81,24 +89,160 @@ function CreateOrgForm({
   );
 }
 
+/**
+ * Confirms a permanent user delete and, if they created anything that
+ * would otherwise cascade-delete with them (packages/sites, assets,
+ * layouts, presets -- see user-management.ts), asks what should happen
+ * to it: transfer to another active user in their own org, or delete it
+ * along with the account. counts/otherOrgUsers are both already loaded
+ * (AdminPage computes counts up front; otherOrgUsers comes straight from
+ * the profiles this client already has), so opening this needs no
+ * extra round trip.
+ */
+function DeleteUserDialog({
+  profile,
+  counts,
+  otherOrgUsers,
+  isPending,
+  onConfirm,
+  onCancel,
+}: {
+  profile: AdminProfile;
+  counts: ContentCounts;
+  otherOrgUsers: AdminProfile[];
+  isPending: boolean;
+  onConfirm: (disposition: ContentDisposition) => void;
+  onCancel: () => void;
+}) {
+  const total = counts.packages + counts.assets + counts.layouts + counts.presets;
+  const canTransfer = otherOrgUsers.length > 0;
+  const [mode, setMode] = useState<"delete" | "transfer">(
+    total > 0 && canTransfer ? "transfer" : "delete",
+  );
+  const [targetUserId, setTargetUserId] = useState(otherOrgUsers[0]?.id ?? "");
+
+  const canConfirm = mode === "delete" || (mode === "transfer" && !!targetUserId);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Delete ${profile.email}`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+    >
+      <div className="w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 p-5 shadow-xl">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          Delete {profile.email}?
+        </h3>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          This permanently deletes their account. They won&apos;t be able to sign in again.
+        </p>
+
+        {total > 0 ? (
+          <>
+            <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
+              They created {counts.packages} package{counts.packages === 1 ? "" : "s"},{" "}
+              {counts.assets} asset{counts.assets === 1 ? "" : "s"}, {counts.layouts} layout
+              {counts.layouts === 1 ? "" : "s"}, and {counts.presets} preset
+              {counts.presets === 1 ? "" : "s"}. Choose what happens to it:
+            </p>
+            <div className="mt-3 space-y-2">
+              <label className="flex flex-wrap items-center gap-2 text-sm text-neutral-800 dark:text-neutral-200">
+                <input
+                  type="radio"
+                  name="disposition"
+                  checked={mode === "transfer"}
+                  disabled={!canTransfer}
+                  onChange={() => setMode("transfer")}
+                />
+                Transfer everything to
+                <select
+                  value={targetUserId}
+                  disabled={mode !== "transfer" || !canTransfer}
+                  onChange={(event) => setTargetUserId(event.target.value)}
+                  className="min-w-0 flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm text-neutral-900 dark:text-neutral-100 disabled:opacity-50"
+                >
+                  {otherOrgUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.email}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {!canTransfer && (
+                <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  No other active user in this organization to transfer to.
+                </p>
+              )}
+              <label className="flex items-center gap-2 text-sm text-neutral-800 dark:text-neutral-200">
+                <input
+                  type="radio"
+                  name="disposition"
+                  checked={mode === "delete"}
+                  onChange={() => setMode("delete")}
+                />
+                Delete everything they created
+              </label>
+            </div>
+          </>
+        ) : (
+          <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
+            They haven&apos;t created any packages, assets, layouts, or presets.
+          </p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="rounded-md border border-neutral-300 dark:border-neutral-600 px-3 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={isPending || !canConfirm}
+            onClick={() =>
+              onConfirm(
+                mode === "transfer" ? { mode: "transfer", targetUserId } : { mode: "delete" },
+              )
+            }
+            className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          >
+            {isPending ? "Deleting…" : "Delete user"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OrgSection({
   org,
   profiles,
+  currentUserId,
   isPending,
   onAdd,
   onReset,
   onToggleActive,
   onToggleRole,
   onTogglePlatformAdmin,
+  onDelete,
 }: {
   org: AdminOrg;
   profiles: AdminProfile[];
+  currentUserId: string;
   isPending: boolean;
   onAdd: (orgId: string, email: string, role: "rep" | "admin") => void;
   onReset: (email: string, userId: string) => void;
   onToggleActive: (userId: string, active: boolean) => void;
   onToggleRole: (profileId: string, role: "rep" | "admin") => void;
   onTogglePlatformAdmin: (profileId: string, value: boolean) => void;
+  onDelete: (profile: AdminProfile) => void;
 }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"rep" | "admin">("rep");
@@ -195,6 +339,16 @@ function OrgSection({
               >
                 {p.is_active ? "Deactivate" : "Reactivate"}
               </button>
+              {p.id !== currentUserId && (
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => onDelete(p)}
+                  className="rounded-md border border-red-300 dark:border-red-800 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:border-red-400 dark:hover:border-red-600 disabled:opacity-50"
+                >
+                  Delete
+                </button>
+              )}
               {isSecurafy && (
                 <button
                   type="button"
@@ -223,9 +377,13 @@ function OrgSection({
 export function AdminClient({
   orgs,
   profiles,
+  contentCounts,
+  currentUserId,
 }: {
   orgs: AdminOrg[];
   profiles: AdminProfile[];
+  contentCounts: Record<string, ContentCounts>;
+  currentUserId: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const [revealed, setRevealed] = useState<{
@@ -233,6 +391,7 @@ export function AdminClient({
     password: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminProfile | null>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
 
   // Every action here (reset password, toggle active, etc.) can be
@@ -309,6 +468,16 @@ export function AdminClient({
     });
   }
 
+  function handleConfirmDelete(disposition: ContentDisposition) {
+    if (!deleteTarget) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await adminDeleteUser(deleteTarget.id, disposition);
+      if (result.ok) setDeleteTarget(null);
+      else setError(result.error);
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div ref={feedbackRef}>
@@ -329,14 +498,36 @@ export function AdminClient({
           key={org.id}
           org={org}
           profiles={profilesByOrg.get(org.id) ?? []}
+          currentUserId={currentUserId}
           isPending={isPending}
           onAdd={handleAdd}
           onReset={handleReset}
           onToggleActive={handleToggleActive}
           onToggleRole={handleToggleRole}
           onTogglePlatformAdmin={handleTogglePlatformAdmin}
+          onDelete={setDeleteTarget}
         />
       ))}
+
+      {deleteTarget && (
+        <DeleteUserDialog
+          profile={deleteTarget}
+          counts={
+            contentCounts[deleteTarget.id] ?? {
+              packages: 0,
+              assets: 0,
+              layouts: 0,
+              presets: 0,
+            }
+          }
+          otherOrgUsers={(profilesByOrg.get(deleteTarget.org_id) ?? []).filter(
+            (p) => p.id !== deleteTarget.id && p.is_active,
+          )}
+          isPending={isPending}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

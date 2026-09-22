@@ -8,7 +8,9 @@ import {
   createUserWithTempPassword,
   resetUserPassword,
   setUserActive,
+  deleteUserAndReassignContent,
   type UserManagementResult,
+  type ContentDisposition,
 } from "@/lib/user-management";
 
 /**
@@ -108,6 +110,55 @@ export async function adminSetUserActive(
   const authError = await assertPlatformAdmin();
   if (authError) return { ok: false, error: authError };
   const result = await setUserActive(userId, active);
+  if (result.ok) revalidatePath("/admin");
+  return result;
+}
+
+/**
+ * Permanently deletes a user. `disposition` says what happens to
+ * everything they created (packages/sites, assets, layouts, presets --
+ * see deleteUserAndReassignContent): either deleted along with them, or
+ * transferred to another user first. A transfer target must be a real,
+ * active profile in the *same org* as the user being deleted -- checked
+ * here rather than trusting the client's dropdown, since this runs
+ * through the service-role client same as every other action in this
+ * file.
+ */
+export async function adminDeleteUser(
+  userId: string,
+  disposition: ContentDisposition,
+): Promise<UserManagementResult> {
+  const authError = await assertPlatformAdmin();
+  if (authError) return { ok: false, error: authError };
+
+  const caller = await getCurrentProfile();
+  if (userId === caller!.id) {
+    return { ok: false, error: "You can't delete your own account." };
+  }
+
+  const admin = createAdminClient();
+  const { data: target } = await admin
+    .from("profiles")
+    .select("org_id")
+    .eq("id", userId)
+    .single();
+  if (!target) return { ok: false, error: "User not found." };
+
+  if (disposition.mode === "transfer") {
+    const { data: recipient } = await admin
+      .from("profiles")
+      .select("org_id, is_active")
+      .eq("id", disposition.targetUserId)
+      .single();
+    if (!recipient || recipient.org_id !== target.org_id) {
+      return { ok: false, error: "Transfer target must be in the same organization." };
+    }
+    if (!recipient.is_active) {
+      return { ok: false, error: "Transfer target must be an active user." };
+    }
+  }
+
+  const result = await deleteUserAndReassignContent(userId, disposition);
   if (result.ok) revalidatePath("/admin");
   return result;
 }

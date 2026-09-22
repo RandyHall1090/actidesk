@@ -67,6 +67,62 @@ export async function resetUserPassword(
   return error ? { ok: false, error: error.message } : { ok: true, password };
 }
 
+export type ContentDisposition =
+  | { mode: "delete" }
+  | { mode: "transfer"; targetUserId: string };
+
+// The 4 tables whose owner column CASCADEs from profiles.id (and so,
+// transitively, from auth.users.id) -- deleting a user without first
+// clearing these would silently take their packages, assets, layouts,
+// and presets with them. assets uses owner_id; the other three use
+// created_by.
+const CASCADING_CONTENT_TABLES = [
+  { table: "packages", column: "created_by" },
+  { table: "assets", column: "owner_id" },
+  { table: "layouts", column: "created_by" },
+  { table: "presets", column: "created_by" },
+] as const;
+
+/**
+ * Permanently deletes a user, first disposing of everything that would
+ * otherwise cascade-delete along with their profiles row (packages,
+ * assets, layouts, presets -- see CASCADING_CONTENT_TABLES). Content
+ * operations run first and are verified successful before the auth user
+ * is ever deleted, so a failure partway through leaves the account
+ * (and whatever content didn't get reassigned/deleted yet) intact
+ * rather than risking an account deleted with content left dangling --
+ * auth.users deletion goes through GoTrue's admin API, not raw SQL, so
+ * it can't be wrapped in the same database transaction as the content
+ * updates regardless; ordering is what keeps this safe.
+ */
+export async function deleteUserAndReassignContent(
+  userId: string,
+  disposition: ContentDisposition,
+): Promise<UserManagementResult> {
+  const admin = createAdminClient();
+
+  for (const { table, column } of CASCADING_CONTENT_TABLES) {
+    if (disposition.mode === "transfer") {
+      const { error } = await admin
+        .from(table)
+        .update({ [column]: disposition.targetUserId })
+        .eq(column, userId);
+      if (error) {
+        return { ok: false, error: `Couldn't transfer ${table}: ${error.message}` };
+      }
+    } else {
+      const { error } = await admin.from(table).delete().eq(column, userId);
+      if (error) {
+        return { ok: false, error: `Couldn't delete ${table}: ${error.message}` };
+      }
+    }
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 export async function setUserActive(
   userId: string,
   active: boolean,
