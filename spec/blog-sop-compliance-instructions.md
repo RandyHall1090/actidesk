@@ -103,40 +103,53 @@ This is the fullest build of the three sibling products.
 
 ## Tasks
 
-1. **Stand up a public route group** separate from the authenticated
-   dashboard — the blog cannot hang off the current homepage, which is the
-   login/signup flow.
-2. **Build the schema from scratch**, copying Forge University's exact
-   `posts`/`authors` table structure (migration files cited above).
-   **Critical**: do NOT scope the blog tables by `org_id` the way every
-   other table in this repo is scoped. The blog is a platform-wide
-   marketing feature about the product itself, not a per-tenant customer
-   feature — an implementer pattern-matching the rest of the schema will
-   get this wrong by default if not told explicitly.
-3. **Port Forge University's full validation pipeline** from scratch
-   (`lib/blog-agent.ts` as the template) — prohibited terms, punctuation/
-   emoji/H1 checks, internal-link and citation-count enforcement,
-   char-limit truncation.
-4. **Set up Recraft-based 16:9 WebP cover-image generation** matching
-   Forge University. Check whether a Recraft account/API key already
-   exists at the Securafy-org level before provisioning a new one.
-5. **Set up a weekday cron schedule** (`vercel.json`, one author per hour
-   slot). Pick author lenses deliberately for ActiDesk's actual subject
-   matter: Randy (business-strategy/ROI on sales enablement) and Ric
-   (procurement/vendor-accountability) fit naturally; Jillian
-   (demand-gen/marketing) fits; Rodney's ops/security lens is a stretch
-   here unless framed around running an outbound program. Start with fewer
-   than 4 authors if the topic space doesn't honestly support four
-   distinct weekly angles yet — the SOP's own "topic gate" (§4) would
-   reject forced differentiation anyway.
-6. **Reuse the existing Resend integration** already present in this repo
-   for pending-review notification emails, matching Forge University's
-   mechanism.
-7. **Before writing any generation code**: get a CMO-approved property
-   profile for ActiDesk (see "Governance gap" above) — 3 real internal-link
-   URLs, the approved CTA, image-direction guidance for a horizontal
-   sales-enablement audience (not MSP-specific), and any prohibited
-   claims.
+1. ~~Stand up a public route group~~ — **done.** Top-level `src/app/blog/`
+   and `src/app/blog/[slug]/`, outside `(dashboard)`, added to the auth
+   middleware's public allowlist alongside `/s/` and `/login`.
+2. ~~Build the schema from scratch~~ — **done**, migration
+   `0036_blog_schema.sql`: `blog_authors` + `blog_posts`, NOT `org_id`-scoped
+   as warned above. Seeded with Randy, Ric, and Jillian
+   (`joco@securafy.com`) — Rodney deliberately excluded per this file's own
+   task 5 reasoning below (his lens doesn't fit without forcing it); add
+   him later if the topic space grows to support a fourth angle.
+3. **Port Forge University's full validation pipeline** — **not done**.
+   Deliberately deferred: there is no generation code to validate yet
+   (task 7 gates that), so there was nothing to attach this to. Build it
+   alongside whichever future session writes the actual generation code,
+   not before.
+4. **Recraft cover-image generation** — **not done**, per task 7's own
+   gate (new recurring cost, needs an explicit decision).
+5. **Weekday cron schedule for automated generation** — **not done**,
+   same gate as tasks 3/4. What IS done: calendar-aware *publish*
+   scheduling for posts however they're authored (manually today) —
+   `src/lib/blog.ts`'s `nextOpenPublishDate`/`resolvePublishedAt`, a
+   manual override field on the admin form, and the public query's
+   `published_at <= now()` filter that makes scheduling real rather than
+   cosmetic.
+6. ~~Reuse the existing Resend integration~~ — **done.**
+   `src/app/(dashboard)/admin/blog/notify.ts` calls the existing
+   `sendEmail()` helper, notifying only the post's own author when it
+   enters `pending_review` — matches Forge University's "approve only
+   your own posts" email pattern exactly.
+7. **Before writing any generation code**: still gated on a CMO-approved
+   property profile for ActiDesk (see "Governance gap" above) — 3 real
+   internal-link URLs, the approved CTA, image-direction guidance for a
+   horizontal sales-enablement audience (not MSP-specific), and any
+   prohibited claims. Nothing built so far requires this: the admin
+   dashboard lets a human write and approve posts today with no AI
+   involved, exactly like the other properties' manual-post path.
+
+## What shipped 2026-09-23 (see `plans/2026-09-23-blog-build.md`)
+
+The blog subsystem now exists end to end for human-authored content:
+public `/blog` with keyword/author/date-range search, `/blog/[slug]`
+detail rendered via `react-markdown` (newly added dependency — this repo
+had no markdown renderer), and a login-gated `/admin/blog` dashboard
+(list + approve/reject + "+ New post") matching Forge University's exact
+look and feel, restricted to `is_platform_admin` the same way `/admin`
+itself already is. `tsc --noEmit` and `eslint` both clean. Only the
+AI-generation pipeline (tasks 3-5, 7) remains, and it's gated on business
+decisions, not more code.
 
 ## Update — 2026-09-23: Forge University's reference has moved on
 
