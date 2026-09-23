@@ -137,3 +137,49 @@ This is the fullest build of the three sibling products.
    URLs, the approved CTA, image-direction guidance for a horizontal
    sales-enablement audience (not MSP-specific), and any prohibited
    claims.
+
+## Update — 2026-09-23: Forge University's reference has moved on
+
+Everything above still holds, but Forge University's implementation has grown
+four features since the 2026-09-19 audit that this file predates. Since
+ActiDesk is being built from scratch, build these in from the start rather
+than retrofitting later:
+
+- **Blog search** (`app/blog/page.tsx`): keyword (title/excerpt/category
+  `ilike`), author dropdown, subject/category dropdown, and a from/to date
+  range, all as URL search params with a "Clear filters" link. This was
+  explicitly requested by name ("search by date, author, subject") — build
+  it into the initial public blog page rather than adding it later.
+- **Calendar-aware scheduling with a manual override**: `lib/blog.ts`'s
+  `nextOpenPublishDate(occupiedDateKeys, from)` (skips weekends, finds the
+  next date not already occupied by the *same author*) plus
+  `getOccupiedPublishDates(supabase, authorId)` in `lib/blog-generation.ts`.
+  The admin create/edit/approve actions (`resolvePublishedAt()` in
+  `app/admin/blog/actions.ts`) auto-assign the next open slot but accept an
+  optional `scheduled_publish_date` override field. The admin list shows
+  `"scheduled: <date>"` instead of a misleading "published" for a
+  future-dated row (`displayStatus()` in `app/admin/blog/page.tsx`). **The
+  public blog and post-detail queries must filter
+  `.lte("published_at", now())` in addition to `status = "published"`** —
+  without that filter, scheduling is cosmetic and a post is publicly visible
+  the moment it's approved regardless of its assigned date.
+- **`decline_topic` stop condition** (`lib/blog-generation.ts`): the
+  generation tool can decline a run when nothing clears the quality/relevance
+  bar instead of forcing a weak article out. `generateArticle()` returns
+  `{outcome: "submitted", ...} | {outcome: "declined", reason}`; a decline is
+  logged as a **successful, intentional** outcome in the run log, not a
+  failure.
+- **`<cite>`-artifact defense (real incident, treat as a required fix, not
+  an enhancement)**: the model can write literal
+  `<cite index="N-M">claim</cite>` wrapper tags directly into article body
+  text — a hallucination/imitation of Anthropic's citation format, not a
+  real API artifact (real web-search citations are delivered as structured
+  metadata on content blocks, never literal inline tags). Fix pattern in
+  `lib/blog-agent.ts`: `stripCiteArtifacts(body)` mechanically unwraps
+  well-formed `<cite>...</cite>` pairs (safe because the wrapped text is
+  always supplementary to, never a replacement for, the article's separately
+  required 4-7 real markdown citation links), and `hasCiteArtifact(body)`
+  hard-rejects anything that survives the strip (e.g. an unclosed tag). Wire
+  this into validation and the system prompt from day one — Forge University
+  had to clean up 28 live posts after the fact because it wasn't caught
+  early.
