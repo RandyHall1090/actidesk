@@ -4,7 +4,10 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Refreshes the Supabase auth session on every request and redirects
  * unauthenticated visitors away from the dashboard. The public package
- * renderer (/s/[slug]) and the login/auth routes are always allowed through.
+ * renderer (/s/[slug]), the public blog (/blog), and the login/auth routes
+ * are always allowed through. Admin blog management stays under
+ * (dashboard)/admin, which is not in this allowlist -- it keeps the
+ * existing auth + is_platform_admin gate.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -47,6 +50,7 @@ export async function updateSession(request: NextRequest) {
     pathname === base || pathname.startsWith(`${base}/`);
   const isPublicRoute =
     pathname.startsWith("/s/") ||
+    isPublicPath("/blog") ||
     isPublicPath("/login") ||
     isPublicPath("/signup") ||
     isPublicPath("/forgot-password") ||

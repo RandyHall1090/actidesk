@@ -51,7 +51,10 @@ export default async function DashboardLayout({
         ]
       : []),
     ...(profile.is_platform_admin
-      ? [{ href: "/admin", label: "Admin" }]
+      ? [
+          { href: "/admin", label: "Admin" },
+          { href: "/admin/blog", label: "Blog" },
+        ]
       : []),
   ];
   const org = await getOrg(profile.org_id);

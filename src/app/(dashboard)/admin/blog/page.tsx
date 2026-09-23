@@ -1,0 +1,111 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentProfile } from "@/lib/profile";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { displayStatus } from "@/lib/blog";
+import { approvePost, rejectPost } from "./actions";
+
+const STATUS_STYLES: Record<string, string> = {
+  published: "bg-green-600/10 text-green-700 dark:text-green-400",
+  scheduled: "bg-blue-600/10 text-blue-700 dark:text-blue-400",
+  pending_review: "bg-amber-600/10 text-amber-700 dark:text-amber-400",
+  rejected: "bg-red-600/10 text-red-700 dark:text-red-400",
+  draft: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-400",
+};
+
+export default async function AdminBlogPage() {
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
+  if (!profile.is_platform_admin) {
+    return (
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        Only Securafy platform admins can access this page.
+      </p>
+    );
+  }
+
+  const supabase = createAdminClient();
+  const { data: posts } = await supabase
+    .from("blog_posts")
+    .select("id, slug, title, status, published_at, blog_authors(name, title)")
+    .order("created_at", { ascending: false });
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+          Blog posts
+        </h2>
+        <Link
+          href="/admin/blog/new"
+          className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+        >
+          + New post
+        </Link>
+      </div>
+
+      <ul className="mt-6 space-y-2">
+        {(posts ?? []).map((post) => {
+          const author = Array.isArray(post.blog_authors) ? post.blog_authors[0] : post.blog_authors;
+          const status = displayStatus(post.status, post.published_at);
+          return (
+            <li
+              key={post.id}
+              className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700"
+            >
+              <Link
+                href={`/admin/blog/${post.id}/edit`}
+                className="flex items-center justify-between px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+              >
+                <span className="flex flex-col">
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                    {post.title} <span className="text-neutral-400">({post.slug})</span>
+                  </span>
+                  {author && (
+                    <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                      {author.name}, {author.title}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.draft}`}
+                >
+                  {status === "scheduled"
+                    ? `scheduled: ${new Date(post.published_at!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                    : status}
+                </span>
+              </Link>
+              {post.status === "pending_review" && (
+                <div className="flex gap-2 border-t border-neutral-200 px-4 py-2 dark:border-neutral-700">
+                  <form action={approvePost}>
+                    <input type="hidden" name="id" value={post.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700"
+                    >
+                      Approve
+                    </button>
+                  </form>
+                  <form action={rejectPost}>
+                    <input type="hidden" name="id" value={post.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full border border-red-600 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-600/10"
+                    >
+                      Reject
+                    </button>
+                  </form>
+                </div>
+              )}
+            </li>
+          );
+        })}
+        {(posts ?? []).length === 0 && (
+          <li className="rounded-lg border border-neutral-200 px-4 py-8 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+            No posts yet.
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
