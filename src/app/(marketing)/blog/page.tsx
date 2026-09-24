@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// Without this, /blog inherited the homepage's title and description.
+export const metadata: Metadata = {
+  title: "ActiDesk Blog — Sales Enablement, Straight Talk",
+  description:
+    "Practical articles on personalized outbound, pre-meeting prospect packages, and running a sales team that gets remembered, from Securafy's leadership team.",
+  alternates: { canonical: "/blog" },
+};
 
 type BlogSearchParams = {
   q?: string;

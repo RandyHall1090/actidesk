@@ -23,7 +23,7 @@ const FAQ = [
     question:
       "We only need 3 or 4 reps — can we just add seats to Solo or Team instead of buying Business?",
     answer:
-      "No — add-on seats ($19/user/mo) are only purchasable on top of Business. Solo and Team are fixed at 1 and 2 reps; needing more means moving up to Business, which starts at 5.",
+      "On Team, yes — add-on seats are $39/user/mo, so a 3-rep team can stay on Team for $118/mo. At 4 or more reps, Business is the better deal: it includes 5 reps for $129/mo, with extra seats at $19/user/mo. Solo is fixed at 1 rep; adding a second means moving up to Team.",
   },
 ];
 
