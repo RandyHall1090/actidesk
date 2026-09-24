@@ -34,6 +34,6 @@ export async function setFollowUpSettings(
     console.error("setFollowUpSettings failed:", error);
     return { ok: false, error: "Could not save settings." };
   }
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   return { ok: true };
 }

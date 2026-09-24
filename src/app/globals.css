@@ -28,10 +28,122 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Marketing-site brand tokens (the actidesk.ai pages under the
+     (marketing) route group). Distinct names from anything the app uses,
+     so they add utilities without changing any existing one. */
+  --color-ink: #0a0c10;
+  --color-steel: #12172a;
+  --color-steel-line: #232b45;
+  --color-electric: #00c8ff;
+  --color-amber: #f5a623;
+  --color-danger: #ff3c52;
+  --color-bone: #f4f6fb;
+  --color-bone-dim: #9aa4bf;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Marketing site. Always dark, independent of the app's light/dark toggle.
+ * Everything that used to style <body> on the standalone actidesk.ai site
+ * lives on this wrapper instead (see (marketing)/layout.tsx), so it can
+ * never leak into the app's own pages.
+ */
+.marketing-shell {
+  color-scheme: dark;
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-barlow), Arial, Helvetica, sans-serif;
+  background-image:
+    radial-gradient(
+      ellipse 80% 60% at 15% -10%,
+      color-mix(in srgb, var(--color-electric) 10%, transparent),
+      transparent
+    ),
+    repeating-radial-gradient(
+      circle at 0 0,
+      transparent 0,
+      color-mix(in srgb, black 3%, transparent) 1px
+    ),
+    repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--color-bone) 3%, transparent) 0px,
+      transparent 1px,
+      transparent 3px
+    );
+  background-size:
+    100% 100%,
+    3px 3px,
+    4px 4px;
+}
+
+.marketing-shell ::selection {
+  background: var(--color-electric);
+  color: var(--color-ink);
+}
+
+.font-display {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+.font-mono-brand {
+  font-family: var(--font-barlow-condensed), sans-serif;
+}
+
+.chisel-edge {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 56px));
+}
+
+.glow-frame {
+  border: 2px solid var(--color-electric);
+  box-shadow: 0 0 40px -6px var(--color-electric);
+}
+
+.btn-angled {
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0% 100%);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #4ade80;
+  box-shadow: 0 0 6px 2px #4ade80;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .live-dot {
+    animation: pulse-glow 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }

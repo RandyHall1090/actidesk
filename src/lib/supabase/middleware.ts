@@ -1,11 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { MARKETING_PATHS } from "@/lib/marketing";
 
 /**
  * Refreshes the Supabase auth session on every request and redirects
- * unauthenticated visitors away from the dashboard. The public package
- * renderer (/s/[slug]), the public blog (/blog), and the login/auth routes
- * are always allowed through. Admin blog management stays under
+ * unauthenticated visitors away from the dashboard. The marketing site
+ * ("/" and the industry pages), the public package renderer (/s/[slug]),
+ * the public blog (/blog), and the login/auth routes are always allowed
+ * through. Admin blog management stays under
  * (dashboard)/admin, which is not in this allowlist -- it keeps the
  * existing auth + is_platform_admin gate.
  */
@@ -48,7 +50,21 @@ export async function updateSession(request: NextRequest) {
   // public route is matched exactly or as an explicit sub-path.
   const isPublicPath = (base: string) =>
     pathname === base || pathname.startsWith(`${base}/`);
+  const isMarketingRoute =
+    pathname === "/" ||
+    MARKETING_PATHS.some((path) => isPublicPath(path)) ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt";
+
+  // Forge University's pattern: "/" is the public marketing homepage, the
+  // app lives at "/dashboard". A signed-in rep who still has the old
+  // app.actidesk.ai/ bookmark lands in the app, not on a sales page.
+  if (user && pathname === "/") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   const isPublicRoute =
+    isMarketingRoute ||
     pathname.startsWith("/s/") ||
     isPublicPath("/blog") ||
     isPublicPath("/login") ||

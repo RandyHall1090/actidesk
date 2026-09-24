@@ -89,7 +89,7 @@ function SignupForm() {
         console.warn("Could not link checkout session:", result.error);
       }
     }
-    router.replace("/");
+    router.replace("/dashboard");
     router.refresh();
   }
 

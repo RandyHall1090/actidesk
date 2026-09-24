@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { TrialBanner } from "./TrialBanner";
 
 const NAV_LINKS = [
-  { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/library", label: "Asset Library" },
   { href: "/packages", label: "My Sites" },
   { href: "/account", label: "Account" },

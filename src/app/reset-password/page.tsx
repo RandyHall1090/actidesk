@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
     }
 
     setStatus("done");
-    router.replace("/");
+    router.replace("/dashboard");
     router.refresh();
   }
 

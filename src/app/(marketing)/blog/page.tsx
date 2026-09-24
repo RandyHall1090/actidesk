@@ -51,20 +51,20 @@ export default async function BlogIndexPage({
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+        <p className="font-mono-brand text-xs uppercase tracking-[0.2em] text-electric">
           Blog
         </p>
-        <h1 className="mt-2 text-4xl font-bold text-neutral-900 dark:text-neutral-100">
+        <h1 className="mt-2 font-display text-4xl font-bold text-bone">
           Sales enablement, straight talk.
         </h1>
       </div>
 
       <form
         method="get"
-        className="mt-10 flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700"
+        className="mt-10 flex flex-col gap-4 rounded-sm border border-steel-line bg-steel/20 p-4"
       >
         <div>
-          <label htmlFor="q" className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">
+          <label htmlFor="q" className="mb-1 block font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
             Search
           </label>
           <input
@@ -73,20 +73,20 @@ export default async function BlogIndexPage({
             type="text"
             defaultValue={q ?? ""}
             placeholder="Search by keyword..."
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-sm border border-steel-line bg-ink/60 px-3 py-2 text-sm text-bone placeholder:text-bone-dim/70 focus:border-electric focus:outline-none"
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label htmlFor="author" className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <label htmlFor="author" className="mb-1 block font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
               Author
             </label>
             <select
               id="author"
               name="author"
               defaultValue={author ?? ""}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-sm border border-steel-line bg-ink/60 px-3 py-2 text-sm text-bone focus:border-electric focus:outline-none"
             >
               <option value="">All authors</option>
               {(authors ?? []).map((a) => (
@@ -97,7 +97,7 @@ export default async function BlogIndexPage({
             </select>
           </div>
           <div>
-            <label htmlFor="from" className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <label htmlFor="from" className="mb-1 block font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
               From date
             </label>
             <input
@@ -105,11 +105,11 @@ export default async function BlogIndexPage({
               name="from"
               type="date"
               defaultValue={from ?? ""}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-sm border border-steel-line bg-ink/60 px-3 py-2 text-sm text-bone focus:border-electric focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="to" className="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <label htmlFor="to" className="mb-1 block font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
               To date
             </label>
             <input
@@ -117,7 +117,7 @@ export default async function BlogIndexPage({
               name="to"
               type="date"
               defaultValue={to ?? ""}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-sm border border-steel-line bg-ink/60 px-3 py-2 text-sm text-bone focus:border-electric focus:outline-none"
             />
           </div>
         </div>
@@ -125,12 +125,12 @@ export default async function BlogIndexPage({
         <div className="flex items-center gap-4">
           <button
             type="submit"
-            className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-800"
+            className="btn-angled bg-electric px-6 py-2 font-mono-brand text-xs font-medium uppercase tracking-wider text-ink hover:bg-electric/90"
           >
             Search
           </button>
           {hasFilters && (
-            <Link href="/blog" className="text-sm text-neutral-500 underline dark:text-neutral-400">
+            <Link href="/blog" className="text-sm text-bone-dim underline hover:text-bone">
               Clear filters
             </Link>
           )}
@@ -138,7 +138,7 @@ export default async function BlogIndexPage({
       </form>
 
       {(posts ?? []).length === 0 && (
-        <p className="mt-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-10 text-center text-sm text-bone-dim">
           {hasFilters
             ? "No posts match these filters — try broadening your search."
             : "No posts published yet — check back soon."}
@@ -152,9 +152,9 @@ export default async function BlogIndexPage({
             : post.blog_authors;
           return (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
-              <article className="rounded-lg border border-neutral-200 p-5 transition-colors hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-500">
+              <article className="rounded-sm border border-steel-line bg-steel/20 p-5 transition-colors hover:border-electric">
                 {post.cover_image_url && (
-                  <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-md">
+                  <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-sm">
                     <Image
                       src={post.cover_image_url}
                       alt=""
@@ -164,13 +164,13 @@ export default async function BlogIndexPage({
                     />
                   </div>
                 )}
-                <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+                <h2 className="font-display text-xl font-bold text-bone">
                   {post.title}
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                <p className="mt-2 text-sm leading-6 text-bone-dim">
                   {post.excerpt}
                 </p>
-                <div className="mt-3 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                <div className="mt-3 flex items-center justify-between font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
                   {postAuthor && (
                     <p>
                       {postAuthor.name}, {postAuthor.title}

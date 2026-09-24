@@ -30,7 +30,7 @@ export default async function BlogPostPage({
   return (
     <article className="mx-auto max-w-2xl px-6 py-16">
       {post.cover_image_url && (
-        <div className="relative mb-8 aspect-video w-full overflow-hidden rounded-lg">
+        <div className="relative mb-8 aspect-video w-full overflow-hidden rounded-sm border border-steel-line">
           <Image
             src={post.cover_image_url}
             alt={post.image_alt_text ?? ""}
@@ -41,8 +41,8 @@ export default async function BlogPostPage({
           />
         </div>
       )}
-      <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100">{post.title}</h1>
-      <div className="mt-3 flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
+      <h1 className="font-display text-4xl font-bold text-bone">{post.title}</h1>
+      <div className="mt-3 flex items-center gap-3 font-mono-brand text-sm uppercase tracking-wider text-bone-dim">
         {author && (
           <span>
             {author.name}, {author.title}
@@ -62,14 +62,15 @@ export default async function BlogPostPage({
           arbitrary variants instead of the `prose` classes, which would be
           no-ops without it. */}
       <div
-        className="mt-8 text-base leading-7 text-neutral-800 dark:text-neutral-200
-          [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100
-          [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100
+        className="mt-8 text-lg leading-8 text-bone/90
+          [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-bone
+          [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-bone
           [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6
-          [&_a]:text-neutral-900 [&_a]:underline dark:[&_a]:text-neutral-100
+          [&_strong]:text-bone
+          [&_a]:text-electric [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-bone
           [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse
-          [&_th]:border [&_th]:border-neutral-300 [&_th]:p-2 dark:[&_th]:border-neutral-700
-          [&_td]:border [&_td]:border-neutral-300 [&_td]:p-2 dark:[&_td]:border-neutral-700"
+          [&_th]:border [&_th]:border-steel-line [&_th]:bg-steel/40 [&_th]:p-2 [&_th]:text-left [&_th]:text-bone
+          [&_td]:border [&_td]:border-steel-line [&_td]:p-2"
       >
         <ReactMarkdown>{post.content}</ReactMarkdown>
       </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { getRepStats, getOrgStats } from "@/lib/dashboard/stats";
-import { FollowUpSettings } from "./FollowUpSettings";
+import { FollowUpSettings } from "../FollowUpSettings";
 
 export default async function DashboardPage() {
   const profile = await getCurrentProfile();

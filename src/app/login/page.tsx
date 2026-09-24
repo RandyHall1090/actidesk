@@ -26,7 +26,7 @@ export default function LoginPage() {
       setErrorMessage(error.message);
       return;
     }
-    router.replace("/");
+    router.replace("/dashboard");
     router.refresh();
   }
 
@@ -82,11 +82,6 @@ export default function LoginPage() {
           New here?{" "}
           <Link href="/signup" className="font-medium text-neutral-900 underline">
             Create an account
-          </Link>
-        </p>
-        <p className="text-center text-sm">
-          <Link href="/blog" className="font-medium text-neutral-500 underline hover:text-neutral-900">
-            Blog
           </Link>
         </p>
       </form>
