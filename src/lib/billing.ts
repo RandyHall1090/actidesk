@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const BLOCKED_MESSAGE =
   "Your organization's trial has ended or billing needs attention -- visit Billing to keep creating new content.";
@@ -9,9 +9,14 @@ const BLOCKED_MESSAGE =
  * never affected. This only gates *new* creation. Returns null (not
  * blocked) for an active subscription, an in-window trial, or an exempt
  * org; returns a user-facing message otherwise.
+ *
+ * Service role, not the caller's session: the Outlook add-in's API calls
+ * have no Supabase session at all, and a session-scoped lookup there would
+ * find no org and fail open below -- silently skipping the gate. Every
+ * caller passes the org_id of a server-verified profile, never client input.
  */
 export async function requireActiveBilling(orgId: string): Promise<string | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: org } = await supabase
     .from("orgs")
     .select("subscription_status, trial_ends_at, billing_exempt")

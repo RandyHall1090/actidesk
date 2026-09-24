@@ -8,6 +8,7 @@ import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
 import { randomSuffix, slugify } from "@/lib/packages/slug";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
 import { requireActiveBilling } from "@/lib/billing";
+import { validateSlotAssets } from "@/lib/packages/slotAssets";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -95,6 +96,17 @@ export async function savePackage(
     return { ok: false, error: "Please enter a valid email address." };
   }
 
+  // Validated before any write, for both create and edit -- see
+  // validateSlotAssets for why the package_assets policy alone isn't enough.
+  const slotCheck = await validateSlotAssets({
+    orgId: profile.org_id,
+    userId: profile.id,
+    slots: Object.fromEntries(
+      PACKAGE_SLOTS.map((s) => [s.slot, (formData.get(`slot_${s.slot}`) as string | null) ?? ""]),
+    ),
+  });
+  if (!slotCheck.ok) return { ok: false, error: slotCheck.error };
+
   const supabase = await createClient();
   const templateId = await resolveTemplateId(supabase, profile.org_id, rawTemplateId);
 
@@ -141,16 +153,7 @@ export async function savePackage(
       return { ok: false, error: "Couldn't save changes." };
     }
 
-    const editSlotRows = PACKAGE_SLOTS.map((s) => ({
-      slot: s.slot,
-      assetId: formData.get(`slot_${s.slot}`) as string | null,
-    }))
-      .filter((s) => s.assetId)
-      .map((s) => ({
-        package_id: updated.id,
-        slot_name: s.slot,
-        asset_id: s.assetId,
-      }));
+    const editSlotRows = slotCheck.rows.map((row) => ({ package_id: updated.id, ...row }));
 
     if (editSlotRows.length > 0) {
       const { error: slotsError } = await supabase
@@ -209,16 +212,7 @@ export async function savePackage(
     };
   }
 
-  const slotRows = PACKAGE_SLOTS.map((s) => ({
-    slot: s.slot,
-    assetId: formData.get(`slot_${s.slot}`) as string | null,
-  }))
-    .filter((s) => s.assetId)
-    .map((s) => ({
-      package_id: inserted!.id,
-      slot_name: s.slot,
-      asset_id: s.assetId,
-    }));
+  const slotRows = slotCheck.rows.map((row) => ({ package_id: inserted!.id, ...row }));
 
   if (slotRows.length > 0) {
     const { error: slotsError } = await supabase

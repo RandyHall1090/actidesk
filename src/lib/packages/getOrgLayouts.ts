@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { DESK_LAYOUTS, getLayout, type DeskLayout, type SlotPosition } from "./layouts";
 
 // Server-only (imports next/headers transitively via lib/supabase/server) --
@@ -39,7 +40,11 @@ function rowToLayout(row: LayoutRow): DeskLayout {
  * client component needs to render or pick from it.
  */
 export async function getOrgLayouts(orgId: string): Promise<DeskLayout[]> {
-  const supabase = await createClient();
+  // Service role with an explicit org filter -- the same rows layouts'
+  // org-member RLS returns -- so this also works from the Outlook add-in's
+  // API routes, which have no Supabase session. orgId is always a
+  // server-verified profile's org, never client input.
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from("layouts")
     .select(
