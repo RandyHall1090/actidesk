@@ -84,6 +84,11 @@ export default function LoginPage() {
             Create an account
           </Link>
         </p>
+        <p className="text-center text-sm">
+          <Link href="/blog" className="font-medium text-neutral-500 underline hover:text-neutral-900">
+            Blog
+          </Link>
+        </p>
       </form>
     </div>
   );
