@@ -93,6 +93,10 @@ export async function updateSession(request: NextRequest) {
     // Bearer token, no Supabase session -- CRON_SECRET auth happens inside
     // the route itself (generate-blog-post/route.ts).
     isPublicPath("/api/cron/generate-blog-post") ||
+    // Microsoft's redirect lands on the one registered host, where the rep
+    // often has no session. It only verifies the signed state and parks the
+    // tokens; /finish (not public) is what requires the rep's session.
+    isPublicPath("/api/integrations/outlook/callback") ||
     isPublicPath("/api/notifications/hot-lead");
 
   if (!user && !isPublicRoute) {

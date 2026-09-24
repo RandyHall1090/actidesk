@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { requestIntegration } from "./actions";
 
 const PROVIDERS = [
@@ -11,15 +12,14 @@ const PROVIDERS = [
   { id: "generic", label: "Generic (webhook/API key)", available: false },
 ] as const;
 
-type Integration = { provider: string; status: string; connected_at: string };
-
-export function IntegrationsClient({ integrations }: { integrations: Integration[] }) {
+export function IntegrationsClient({
+  outlookReps,
+}: {
+  outlookReps: { connected: number; active: number };
+}) {
   const [requestNote, setRequestNote] = useState("");
   const [requestTarget, setRequestTarget] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  const byProvider = new Map(integrations.map((i) => [i.provider, i]));
-  const outlookConnected = byProvider.has("outlook");
 
   async function handleRequest(providerName: string) {
     const result = await requestIntegration(providerName, requestNote);
@@ -35,17 +35,11 @@ export function IntegrationsClient({ integrations }: { integrations: Integration
       </h2>
       <p className="mt-1 mb-4 text-sm text-neutral-600 dark:text-neutral-400">
         Connect a CRM/mailbox to create ActiDesk packages from within it and
-        bulk-generate personalized packages for a contact list.{" "}
-        {outlookConnected && (
-          <a href="/integrations/list-merge" className="text-blue-600 underline">
-            Go to List Merge
-          </a>
-        )}
+        bulk-generate personalized packages for a contact list.
       </p>
       {message && <p className="mt-2 mb-2 text-sm text-blue-600">{message}</p>}
       <ul className="space-y-3">
         {PROVIDERS.map((provider) => {
-          const connected = byProvider.get(provider.id);
           return (
             <li
               key={provider.id}
@@ -56,18 +50,18 @@ export function IntegrationsClient({ integrations }: { integrations: Integration
                   {provider.label}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {connected
-                    ? `Connected ${new Date(connected.connected_at).toLocaleDateString()}`
+                  {provider.id === "outlook"
+                    ? `Each rep connects their own mailbox · ${outlookReps.connected} of ${outlookReps.active} active reps connected`
                     : "Not connected"}
                 </p>
               </div>
               {provider.available ? (
-                <a
-                  href={connected ? undefined : "/api/integrations/outlook/connect"}
+                <Link
+                  href="/account"
                   className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  {connected ? "Connected" : "Connect"}
-                </a>
+                  Connect yours
+                </Link>
               ) : requestTarget === provider.id ? (
                 <div className="flex items-center gap-2">
                   <input

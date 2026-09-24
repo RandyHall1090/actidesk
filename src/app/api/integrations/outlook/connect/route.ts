@@ -1,15 +1,23 @@
+import type { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
-import { getAuthorizationUrl, signState } from "@/lib/integrations/outlook/oauth";
+import { getAuthorizationUrl, isAllowedReturnOrigin, signState } from "@/lib/integrations/outlook/oauth";
 
-export async function GET() {
+// Any active rep connects their own mailbox -- not an admin-only, org-wide
+// setting (see plans/2026-09-24-per-rep-outlook-and-in-outlook-experience.md).
+export async function GET(request: NextRequest) {
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "admin") {
-    return new Response("Only admins can connect integrations.", { status: 403 });
+  if (!profile || !profile.is_active) {
+    return new Response("Sign in to connect Outlook.", { status: 401 });
   }
-  // state carries the org_id so the callback (which has no session context
-  // of its own beyond what Microsoft echoes back) knows which org to
-  // attach the resulting tokens to. Signed + expiring, not the bare id --
-  // see oauth.ts's signState() for why.
-  redirect(getAuthorizationUrl(signState(profile.org_id)));
+
+  // The rep's session cookie lives on this host; /finish must come back
+  // here to check it, even though Microsoft's callback lands on the single
+  // registered redirect host.
+  const returnOrigin = request.nextUrl.origin;
+  if (!isAllowedReturnOrigin(returnOrigin)) {
+    return new Response("Unrecognized host.", { status: 400 });
+  }
+
+  redirect(getAuthorizationUrl(signState({ userId: profile.id, returnOrigin })));
 }

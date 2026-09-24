@@ -28,46 +28,69 @@ function stateSigningKey(): Buffer {
   return createHash("sha256").update(Buffer.from(key, "base64")).update("oauth-state").digest();
 }
 
+// Hosts this one deployment answers on. returnOrigin must be one of them --
+// it's where the callback sends the rep's browser next, so an unchecked
+// value would be an open redirect.
+const APP_ORIGINS = new Set([
+  "https://www.actidesk.ai",
+  "https://app.actidesk.ai",
+  "https://premeeting.actiforge.ai",
+]);
+
+export function isAllowedReturnOrigin(origin: string): boolean {
+  if (APP_ORIGINS.has(origin) || origin === getSiteUrl()) return true;
+  return process.env.NODE_ENV !== "production" && /^http:\/\/localhost:\d+$/.test(origin);
+}
+
+export type OAuthState = { userId: string; returnOrigin: string };
+
 /**
- * Signs orgId into an opaque, expiring, tamper-evident state token.
+ * Signs the connecting rep's id and the host they started on into an
+ * opaque, expiring, tamper-evident state token.
  *
  * Found 2026-09-21 during a full security sweep: the callback previously
- * trusted Microsoft's echoed-back `state` query param as the org_id
- * directly, with no verification at all. Since `state` is fully
- * attacker-choosable (anyone can run the authorize step themselves with
- * any Microsoft account, then hand-craft the callback URL), that let
- * anyone with *any* ActiDesk session plant their own Microsoft OAuth
- * tokens as another org's Outlook integration -- silently redirecting
- * that org's contact imports and outbound "send via Outlook" mail through
- * the attacker's own Microsoft account. Signing + verifying closes it.
+ * trusted Microsoft's echoed-back `state` query param directly, with no
+ * verification at all. Since `state` is fully attacker-choosable, that let
+ * anyone plant their own Microsoft tokens as someone else's connection.
+ * Signing closes forgery; /finish (which requires the same rep's live
+ * session) closes a genuine state being completed in someone else's
+ * browser.
  */
-export function signState(orgId: string): string {
-  const nonce = randomBytes(9).toString("base64url");
-  const expires = Date.now() + STATE_TTL_MS;
-  const payload = `${orgId}.${expires}.${nonce}`;
+export function signState(data: OAuthState): string {
+  const payload = Buffer.from(
+    JSON.stringify({ ...data, exp: Date.now() + STATE_TTL_MS, n: randomBytes(9).toString("base64url") }),
+  ).toString("base64url");
   const signature = createHmac("sha256", stateSigningKey()).update(payload).digest("base64url");
   return `${payload}.${signature}`;
 }
 
-/** Verifies a signState() token; returns the orgId only if intact and unexpired. */
-export function verifyState(state: string): string | null {
+/** Verifies a signState() token; returns its data only if intact, unexpired, and well-formed. */
+export function verifyState(state: string): OAuthState | null {
   const parts = state.split(".");
-  if (parts.length !== 4) return null;
-  const [orgId, expiresStr, nonce, signature] = parts;
-  const payload = `${orgId}.${expiresStr}.${nonce}`;
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
   const expected = createHmac("sha256", stateSigningKey()).update(payload).digest("base64url");
 
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
 
-  const expires = Number(expiresStr);
-  if (!Number.isFinite(expires) || Date.now() > expires) return null;
-
-  return orgId;
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      userId?: unknown;
+      returnOrigin?: unknown;
+      exp?: unknown;
+    };
+    if (typeof data.exp !== "number" || Date.now() > data.exp) return null;
+    if (typeof data.userId !== "string" || typeof data.returnOrigin !== "string") return null;
+    if (!isAllowedReturnOrigin(data.returnOrigin)) return null;
+    return { userId: data.userId, returnOrigin: data.returnOrigin };
+  } catch {
+    return null;
+  }
 }
 
-/** Builds the URL to send the admin to for Microsoft's consent screen. */
+/** Builds the URL to send the rep to for Microsoft's consent screen. */
 export function getAuthorizationUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.OUTLOOK_CLIENT_ID!,
@@ -76,6 +99,9 @@ export function getAuthorizationUrl(state: string): string {
     response_mode: "query",
     scope: SCOPES,
     state,
+    // A rep signed into several Microsoft accounts picks the one they send
+    // from, instead of silently getting whichever the browser used last.
+    prompt: "select_account",
   });
   return `${AUTHORIZE_URL}?${params.toString()}`;
 }

@@ -53,7 +53,7 @@ const HOW_IT_WORKS = [
   },
   {
     heading: "New: build packages straight from Outlook",
-    body: "Connect an organization's Outlook once, and a rep can start a package directly from any Outlook contact — no retyping a name or email. Personalize letters per contact with merge fields and list-merge an entire contact list at once, reviewing before send or letting it run. Outlook sends every message itself, from the rep's own mailbox — ActiDesk never sends prospect-facing email directly.",
+    body: "Each rep connects their own Outlook once, then starts a package directly from any of their Outlook contacts — no retyping a name or email. Personalize letters per contact with merge fields and list-merge an entire contact list at once, reviewing before send or letting it run. Outlook sends every message itself, from the rep's own mailbox — ActiDesk never sends prospect-facing email directly.",
   },
   {
     heading: "Your own account, walled off from every other organization on the platform",

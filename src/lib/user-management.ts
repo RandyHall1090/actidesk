@@ -149,5 +149,21 @@ export async function setUserActive(
       error: `Auth ${active ? "reactivated" : "deactivated"}, but the team list may show the old status until retried: ${profileError.message}`,
     };
   }
+
+  // A deactivated rep's Outlook tokens (Mail.Send on their mailbox) must not
+  // outlive their access. Reactivation doesn't restore them -- the rep
+  // reconnects. Deleting a user removes them via ON DELETE CASCADE instead.
+  if (!active) {
+    const { error: outlookError } = await admin
+      .from("outlook_connections")
+      .delete()
+      .eq("user_id", userId);
+    if (outlookError) {
+      return {
+        ok: false,
+        error: `Deactivated, but their Outlook connection couldn't be removed -- retry: ${outlookError.message}`,
+      };
+    }
+  }
   return { ok: true };
 }

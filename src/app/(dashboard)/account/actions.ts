@@ -2,7 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/profile";
+
+/** Removes only the caller's own Outlook connection (service role, since
+ * outlook_connections has no browser-role grants at all). */
+export async function disconnectOutlook(): Promise<{ ok: boolean; error?: string }> {
+  const profile = await getCurrentProfile();
+  if (!profile) return { ok: false, error: "Not signed in." };
+
+  const { error } = await createAdminClient()
+    .from("outlook_connections")
+    .delete()
+    .eq("user_id", profile.id);
+  if (error) return { ok: false, error: "Could not disconnect Outlook." };
+
+  revalidatePath("/account");
+  return { ok: true };
+}
 
 /**
  * Authorization is enforced by the database, same reasoning as

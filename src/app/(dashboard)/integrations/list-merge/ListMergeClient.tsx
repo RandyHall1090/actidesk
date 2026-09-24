@@ -7,8 +7,15 @@ import { sendListMerge } from "./send-actions";
 type Contact = { id: string; name: string; email: string };
 type Generated = { slug: string; url: string; contactName: string; contactEmail: string };
 
-export function ListMergeClient({ templateId }: { templateId: string }) {
+function describeSend(result: { sent: number; failed: string[] }): string {
+  const sent = `Sent ${result.sent} email(s).`;
+  return result.failed.length > 0 ? `${sent} Failed: ${result.failed.join(", ")}` : sent;
+}
+
+export function ListMergeClient({ templateId, sendingAs }: { templateId: string; sendingAs: string }) {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contactsLoaded, setContactsLoaded] = useState(false);
+  const [contactsError, setContactsError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [letterTemplate, setLetterTemplate] = useState(
     "Hi {{first_name}},\n\nThought you'd enjoy this.\n",
@@ -18,7 +25,11 @@ export function ListMergeClient({ templateId }: { templateId: string }) {
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchOutlookContactsForMerge().then(setContacts);
+    fetchOutlookContactsForMerge().then((result) => {
+      if (result.ok) setContacts(result.contacts);
+      else setContactsError(result.error);
+      setContactsLoaded(true);
+    });
   }, []);
 
   async function handleGenerate() {
@@ -27,8 +38,7 @@ export function ListMergeClient({ templateId }: { templateId: string }) {
     setGenerated(results);
     if (!reviewFirst) {
       setStatus("Sending...");
-      await sendListMerge({ letterTemplate, items: results });
-      setStatus(`Sent ${results.length} email(s).`);
+      setStatus(describeSend(await sendListMerge({ letterTemplate, items: results })));
     } else {
       setStatus(`Generated ${results.length} package(s) -- review and send below.`);
     }
@@ -37,8 +47,7 @@ export function ListMergeClient({ templateId }: { templateId: string }) {
   async function handleSendAll() {
     if (!generated) return;
     setStatus("Sending...");
-    await sendListMerge({ letterTemplate, items: generated });
-    setStatus(`Sent ${generated.length} email(s).`);
+    setStatus(describeSend(await sendListMerge({ letterTemplate, items: generated })));
   }
 
   return (
@@ -46,6 +55,9 @@ export function ListMergeClient({ templateId }: { templateId: string }) {
       <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
         List Merge (Outlook)
       </h2>
+      <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+        Contacts and sending use your own mailbox: <strong>{sendingAs}</strong>
+      </p>
 
       <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto">
         {contacts.map((c) => (
@@ -64,9 +76,11 @@ export function ListMergeClient({ templateId }: { templateId: string }) {
             </label>
           </li>
         ))}
-        {contacts.length === 0 && (
+        {!contactsLoaded && <li className="text-sm text-neutral-500">Loading your Outlook contacts…</li>}
+        {contactsError && <li className="text-sm text-red-600">{contactsError}</li>}
+        {contactsLoaded && !contactsError && contacts.length === 0 && (
           <li className="text-sm text-neutral-500">
-            No contacts loaded -- connect Outlook first on the Integrations page.
+            No contacts with an email address found in your Outlook Contacts.
           </li>
         )}
       </ul>
