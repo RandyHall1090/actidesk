@@ -1,7 +1,11 @@
 # Blog build — plan index
 
-**Status:** in progress.
-**Source:** `spec/blog-sop-compliance-instructions.md` (2026-09-19 audit + 2026-09-23 update).
+**Status:** done. Phases 1-6 below shipped 2026-09-23; the AI generation
+pipeline (validation, Recraft images, cron, property profile) that phases
+1-6 were gated in front of shipped 2026-09-24 once Randy signed off as
+CEO — see `spec/blog-sop-compliance-instructions.md`'s Tasks section
+(items 3/4/5/7) for the full detail, not repeated here.
+**Source:** `spec/blog-sop-compliance-instructions.md` (2026-09-19 audit + 2026-09-23 update + 2026-09-24 update).
 
 ## Governance gate — unchanged, still in force
 

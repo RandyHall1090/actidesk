@@ -109,19 +109,28 @@ This is the fullest build of the three sibling products.
 2. ~~Build the schema from scratch~~ — **done**, migration
    `0036_blog_schema.sql`: `blog_authors` + `blog_posts`, NOT `org_id`-scoped
    as warned above. Seeded with Randy, Ric, and Jillian
-   (`joco@securafy.com`) — Rodney deliberately excluded per this file's own
-   task 5 reasoning below (his lens doesn't fit without forcing it); add
-   him later if the topic space grows to support a fourth angle.
-3. **Port Forge University's full validation pipeline** — **not done**.
-   Deliberately deferred: there is no generation code to validate yet
-   (task 7 gates that), so there was nothing to attach this to. Build it
-   alongside whichever future session writes the actual generation code,
-   not before.
-4. **Recraft cover-image generation** — **not done**, per task 7's own
-   gate (new recurring cost, needs an explicit decision).
-5. **Weekday cron schedule for automated generation** — **not done**,
-   same gate as tasks 3/4. What IS done: calendar-aware *publish*
-   scheduling for posts however they're authored (manually today) —
+   (`joco@securafy.com`); Rodney added later (migration 0037, see below) once
+   Randy overrode the initial exclusion.
+3. ~~Port Forge University's full validation pipeline~~ — **done**
+   (2026-09-24, `src/lib/blog-agent.ts`). Prohibited-word list, banned
+   punctuation/emoji/H1 checks, and the `<cite>`-artifact defense ported
+   exactly. Citation validation also ported exactly as FU actually built
+   it, not as the SOP describes it — FU's real code only enforces a floor
+   of 4, no ceiling above 7, despite the "4-7" language above; this was
+   flagged to Randy and he chose to match the reference rather than fix
+   the gap FU itself never closed.
+4. ~~Recraft cover-image generation~~ — **done** (2026-09-24,
+   `src/lib/recraft.ts`, ported verbatim from FU). Real cost confirmed
+   negligible at ActiDesk's volume (~$0.035/image pay-as-you-go, well
+   under $1/month) — not a meaningful recurring-cost decision in
+   practice.
+5. ~~Weekday cron schedule for automated generation~~ — **done**
+   (2026-09-24, `supabase/migrations/0038_blog_generation_cron.sql`).
+   Matches FU's actual cadence exactly per Randy's explicit direction:
+   all 4 authors, every weekday, one hour apart (13:00-16:00 UTC) — not
+   the lighter "one post per author per week" this file originally
+   floated as an option. What was already done before this: calendar-
+   aware *publish* scheduling for posts however they're authored —
    `src/lib/blog.ts`'s `nextOpenPublishDate`/`resolvePublishedAt`, a
    manual override field on the admin form, and the public query's
    `published_at <= now()` filter that makes scheduling real rather than
@@ -130,14 +139,28 @@ This is the fullest build of the three sibling products.
    `src/app/(dashboard)/admin/blog/notify.ts` calls the existing
    `sendEmail()` helper, notifying only the post's own author when it
    enters `pending_review` — matches Forge University's "approve only
-   your own posts" email pattern exactly.
-7. **Before writing any generation code**: still gated on a CMO-approved
-   property profile for ActiDesk (see "Governance gap" above) — 3 real
-   internal-link URLs, the approved CTA, image-direction guidance for a
-   horizontal sales-enablement audience (not MSP-specific), and any
-   prohibited claims. Nothing built so far requires this: the admin
-   dashboard lets a human write and approve posts today with no AI
-   involved, exactly like the other properties' manual-post path.
+   your own posts" email pattern exactly. The generation cron
+   (`api/cron/generate-blog-post`) calls this same helper directly
+   rather than duplicating FU's separate Resend wiring.
+7. ~~CMO-approved property profile~~ — **done** (2026-09-24). Randy
+   signed off as CEO rather than routing through Jillian (CMO) formally,
+   his explicit call to make. Profile grounded in `actidesk.ai`'s real
+   live pages (`src/lib/blog-property-profile.ts`): primary offering =
+   the homepage, supporting resource = whichever of the 5 real industry
+   pages best matches a given post's topic (not one fixed page, since
+   ActiDesk's positioning is deliberately horizontal), pillar/conversion
+   = `/signup` (the site's own real "Get Started →" CTA target), image
+   direction matching the site's actual brand tokens (`#0a0c10` /
+   `#00c8ff`), and a prohibited-claims baseline (no ROI/close-rate
+   guarantees, no named customer results without permission, no unearned
+   certification claims) on top of the SOP's existing rules.
+
+Rodney, excluded above when this file was first written, is included
+after all — Randy's explicit direction (2026-09-24): all 4 real Securafy
+execs, matching Forge University exactly, not 3. His voice_prompt
+(migration 0037) reframes FU's ops/security execution lens around
+actually running an outbound sales program, per this file's own original
+"unless framed around running an outbound program" hint.
 
 ## What shipped 2026-09-23 (see `plans/2026-09-23-blog-build.md`)
 
