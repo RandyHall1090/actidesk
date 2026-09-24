@@ -79,6 +79,12 @@ contents) is the SOP-compliant reference. Key facts:
 
 ## ActiDesk's current state (audited 2026-09-19)
 
+> **Superseded 2026-09-24:** the marketing site (formerly the separate
+> `ActiDesk-Website` repo) now lives in this repo at `/`, the app moved to
+> `/dashboard`, and the blog renders inside the marketing layout at
+> `www.actidesk.ai/blog`. Internal blog links are site-relative paths for
+> the same reason. The audit notes below describe the state before that.
+
 This repo is a **pure authenticated application** today — no blog, no
 public marketing site at all. `/` is the login/dashboard, not a homepage.
 This is the fullest build of the three sibling products.

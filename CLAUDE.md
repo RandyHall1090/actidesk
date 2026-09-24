@@ -32,6 +32,7 @@
 - `.env` is gitignored; never commit secrets
 
 ## Project-specific notes
+- **The marketing site lives in this repo too** (merged 2026-09-24 — the separate `ActiDesk-Website` repo/Vercel project is retired). Same layout as Forge University: public site at `/` (`src/app/(marketing)/`: homepage, industry pages, `/blog`), app at `/dashboard` and the other `(dashboard)` routes. One Vercel project (`actidesk`) serves `www.actidesk.ai` (canonical; `actidesk.ai` 308s to it), `app.actidesk.ai`, and `premeeting.actiforge.ai`. Every key, cron, and env var for ActiDesk belongs to this one project. Marketing styles are scoped to `.marketing-shell` in `globals.css` — keep them off `<body>`.
 - Modeled on TMT's Shockbox tool (dashboard.technologymarketingtoolkit.com/shockbox) — see spec/plan.md for the exact desk-scene layout being replicated
 - **Multi-tenant**: a real `orgs` table; every tenant-scoped row carries `org_id`; a new signup email domain creates a new org (creator becomes admin), a matching domain joins the existing one (as rep). Never add a feature that assumes there's only one company using this app.
 - Auth is email+password (not magic links — Securafy's own email security was consuming the one-time login link before it could be clicked; see spec/plan.md Tech decisions)
