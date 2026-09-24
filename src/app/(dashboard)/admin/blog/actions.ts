@@ -166,3 +166,22 @@ export async function approvePost(formData: FormData) {
 export async function rejectPost(formData: FormData) {
   await setPostStatus(str(formData, "id"), "rejected");
 }
+
+/** No author decides this for another author -- resolves the signed-in
+ * admin's own blog_authors row by email match and only ever writes that
+ * one row, regardless of which checkbox a raw POST might name. Matches
+ * the same "only the post's own author" gate approvePost/rejectPost
+ * already enforce. */
+export async function updateAuthorAutoPublish(formData: FormData) {
+  const profile = await requirePlatformAdmin();
+  const supabase = createAdminClient();
+  const autoPublish = formData.get("autoPublish") === "true";
+
+  const { error } = await supabase
+    .from("blog_authors")
+    .update({ auto_publish: autoPublish })
+    .eq("email", profile.email);
+  if (error) throw new Error(`Failed to update auto-publish setting: ${error.message}`);
+
+  revalidatePath("/admin/blog");
+}

@@ -73,6 +73,10 @@ export async function updateSession(request: NextRequest) {
     // check / no sensitive data returned) -- this only lets the request
     // reach that check instead of being turned away earlier.
     isPublicPath("/api/cron/follow-through") ||
+    // Same gap class as the two routes above: pg_cron calls this with a
+    // Bearer token, no Supabase session -- CRON_SECRET auth happens inside
+    // the route itself (generate-blog-post/route.ts).
+    isPublicPath("/api/cron/generate-blog-post") ||
     isPublicPath("/api/notifications/hot-lead");
 
   if (!user && !isPublicRoute) {

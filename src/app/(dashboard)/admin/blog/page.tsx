@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { displayStatus } from "@/lib/blog";
-import { approvePost, rejectPost } from "./actions";
+import { approvePost, rejectPost, updateAuthorAutoPublish } from "./actions";
 
 const STATUS_STYLES: Record<string, string> = {
   published: "bg-green-600/10 text-green-700 dark:text-green-400",
@@ -25,10 +25,16 @@ export default async function AdminBlogPage() {
   }
 
   const supabase = createAdminClient();
-  const { data: posts } = await supabase
-    .from("blog_posts")
-    .select("id, slug, title, status, published_at, blog_authors(name, title)")
-    .order("created_at", { ascending: false });
+  const [{ data: posts }, { data: authors }] = await Promise.all([
+    supabase
+      .from("blog_posts")
+      .select("id, slug, title, status, published_at, blog_authors(name, title)")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("blog_authors")
+      .select("id, name, title, email, auto_publish")
+      .order("name"),
+  ]);
 
   return (
     <div>
@@ -42,6 +48,49 @@ export default async function AdminBlogPage() {
         >
           + New post
         </Link>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          Auto-publish (AI-generated posts)
+        </h3>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          Off means a generated post waits in Pending review for that author to approve. Each
+          author controls only their own setting.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {(authors ?? []).map((author) => {
+            const isOwnSetting = author.email === profile.email;
+            return (
+              <li
+                key={author.id}
+                className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700"
+              >
+                <span className="text-neutral-700 dark:text-neutral-300">
+                  {author.name} <span className="text-neutral-400">({author.title})</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium ${author.auto_publish ? "text-green-700 dark:text-green-400" : "text-neutral-500 dark:text-neutral-400"}`}
+                  >
+                    {author.auto_publish ? "On" : "Off"}
+                  </span>
+                  <form action={updateAuthorAutoPublish}>
+                    <input type="hidden" name="autoPublish" value={(!author.auto_publish).toString()} />
+                    <button
+                      type="submit"
+                      disabled={!isOwnSetting}
+                      title={isOwnSetting ? undefined : "Only this author can change their own setting."}
+                      className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                      {author.auto_publish ? "Turn off" : "Turn on"}
+                    </button>
+                  </form>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
       <ul className="mt-6 space-y-2">
