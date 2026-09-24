@@ -1,6 +1,8 @@
 # Per-rep Outlook + the rep experience inside Outlook — plan index
 
-**Status:** Phase 1 in progress, Phase 2 planned.
+**Status:** Phase 1 shipped (61c49d2). Phase 2 built and locally verified;
+end-to-end test waits on the Azure additions and the Microsoft 365
+deployment below (only Randy can do those).
 **Requested by:** Randy, 2026-09-24 ("plan the per-rep version and make it
 happen" + "once connected, the entire experience should live in Outlook").
 
@@ -72,3 +74,26 @@ packages without leaving Outlook.
 - **Randy**: Azure app registration additions for add-in auth, then deploy
   the add-in to Securafy's Microsoft 365 (admin center → Integrated apps).
   Exact steps provided at that point.
+
+### As built (2026-09-24)
+
+- Auth (`src/lib/integrations/outlook/addinAuth.ts`): MSAL
+  `createNestablePublicClientApplication` in the taskpane requests
+  `api://<client-id>/access_as_user`; the server verifies signature
+  (Microsoft common JWKS, via `jose`), audience, tenant-bound issuer (v1 or
+  v2), `azp`/`appid` = this app, and the `access_as_user` scope, then maps
+  `oid` to `outlook_connections.microsoft_user_id`. Forged, unsigned, and
+  garbage tokens verified rejected. Local `next dev` only: falls back to the
+  web session cookie so the pane can be exercised in a browser.
+- API (`src/app/api/addin/*`): session, options, packages (GET engagement
+  by email / POST create), contacts, list-merge. Service role everywhere,
+  with RLS's own predicates restated per query.
+- Package creation (`src/lib/packages/createPackageForRep.ts`) mirrors
+  savePackage's create path; attachments go through `validateSlotAssets`.
+- Manifest v2 (`public/outlook-addin/manifest.xml`): new add-in id,
+  VersionOverrides v1.0 + nested v1.1 (pinning), read + compose ribbon
+  buttons, `ReadWriteItem`, served from www.actidesk.ai.
+- Framing: `/outlook-addin/*` allows only Microsoft Office hosts as
+  frame-ancestors; every other route keeps `frame-ancestors 'self'` + XFO.
+- Not built: a fallback for Outlook builds without NAA (Microsoft lists NAA
+  GA on all current clients; revisit only if a rep's Outlook is too old).

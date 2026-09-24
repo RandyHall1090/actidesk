@@ -2,8 +2,7 @@
 
 import { getCurrentProfile } from "@/lib/profile";
 import { listOutlookContacts } from "@/lib/integrations/outlook/graph";
-import { createPackageForContact } from "@/lib/integrations/createPackageForContact";
-import { requireActiveBilling } from "@/lib/billing";
+import { generateListMergePackages, type MergeItem } from "@/lib/integrations/outlook/listMerge";
 
 // Every call is scoped to the signed-in rep's own Outlook connection --
 // never the org's -- so a rep only ever sees and sends from their own mailbox.
@@ -21,29 +20,13 @@ export async function fetchOutlookContactsForMerge(): Promise<
   }
 }
 
-export async function generateListMerge(input: {
-  contactIds: string[];
-  templateId: string;
-}): Promise<{ slug: string; url: string; contactName: string; contactEmail: string }[]> {
+export async function generateListMerge(input: { contactIds: string[]; templateId: string }): Promise<MergeItem[]> {
   const profile = await getCurrentProfile();
   if (!profile || !profile.is_active) return [];
-  // Same soft block as the dashboard's create form -- List Merge used to
-  // skip it and could mint packages for an org whose trial had ended.
-  if (await requireActiveBilling(profile.org_id)) return [];
-
-  const contacts = await listOutlookContacts(profile.id);
-  const selected = contacts.filter((c) => input.contactIds.includes(c.id));
-
-  const results = [];
-  for (const contact of selected) {
-    const { slug, url } = await createPackageForContact({
-      orgId: profile.org_id,
-      createdBy: profile.id,
-      prospectName: contact.name,
-      prospectEmail: contact.email,
-      templateId: input.templateId,
-    });
-    results.push({ slug, url, contactName: contact.name, contactEmail: contact.email });
-  }
-  return results;
+  const result = await generateListMergePackages(
+    { id: profile.id, orgId: profile.org_id },
+    input.contactIds,
+    input.templateId,
+  );
+  return result.ok ? result.items : [];
 }

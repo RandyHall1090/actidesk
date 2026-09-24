@@ -17,16 +17,36 @@ const nextConfig: NextConfig = {
   // Security headers (2026-09-16 audit): the app previously set none at
   // all, which left every response -- including the public, unauthenticated
   // /s/[slug] prospect page -- frameable by any third-party site
-  // (clickjacking / phishing-shell risk). Applied app-wide rather than
-  // per-route since none of this app's pages need to be embedded
-  // cross-origin.
+  // (clickjacking / phishing-shell risk). Applied app-wide except the
+  // Outlook add-in's pages, which Microsoft's Office hosts must be able to
+  // frame -- and only they may.
   async headers() {
     return [
       {
-        source: "/:path*",
+        // Every page except the Outlook add-in's: no third-party framing.
+        source: "/:path((?!outlook-addin/).*)",
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+        ],
+      },
+      {
+        // Outlook on the web (and the new Outlook, which hosts it) shows the
+        // taskpane in a frame on Microsoft's own domains. X-Frame-Options has
+        // no allow-list form, so it's omitted here and frame-ancestors names
+        // only Microsoft's Office hosts.
+        source: "/outlook-addin/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value:
+              "frame-ancestors 'self' https://*.office.com https://*.office365.com https://*.cloud.microsoft https://*.officeapps.live.com https://*.outlook.com https://outlook.live.com",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           {
             key: "Referrer-Policy",

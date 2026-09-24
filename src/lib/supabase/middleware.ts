@@ -97,6 +97,11 @@ export async function updateSession(request: NextRequest) {
     // often has no session. It only verifies the signed state and parks the
     // tokens; /finish (not public) is what requires the rep's session.
     isPublicPath("/api/integrations/outlook/callback") ||
+    // The Outlook add-in: its taskpane/manifest/icons are loaded by Outlook
+    // with no ActiDesk cookie, and every /api/addin route authenticates the
+    // rep itself from a verified Microsoft access token (addinAuth.ts).
+    isPublicPath("/outlook-addin") ||
+    isPublicPath("/api/addin") ||
     isPublicPath("/api/notifications/hot-lead");
 
   if (!user && !isPublicRoute) {
