@@ -20,10 +20,13 @@ export async function createPackageForContact(input: {
   templateId: string;
 }): Promise<{ slug: string; url: string }> {
   const supabase = createAdminClient();
-  const base = slugify(input.prospectName);
+  const base = slugify(input.prospectName) || "package";
 
   for (let attempt = 0; attempt < 3; attempt++) {
-    const slug = attempt === 0 ? base : `${base}-${randomSuffix()}`;
+    // Always suffixed: the slug is the prospect page's only access control
+    // (see slug.ts). The first attempt used to be the bare name -- a
+    // guessable /s/jane-smith for anything created through List Merge.
+    const slug = `${base}-${randomSuffix()}`;
     const { data, error } = await supabase
       .from("packages")
       .insert({
