@@ -1,11 +1,10 @@
 // Pure, DB-free validation and prompt-text helpers for the AI blog agent --
 // duplicates Forge University's lib/blog-agent.ts validation rules exactly
 // (prohibited-word list, banned punctuation, emoji, H1, cite-artifact
-// defense, citation floor). The one deliberate adaptation is
-// validateInternalLinks: ActiDesk's "supporting resource" role picks from
-// several real industry pages rather than one fixed URL (see
-// blog-property-profile.ts), and every role is a fully-qualified URL
-// since the blog and the marketing site are different domains.
+// defense, citation floor, relative internal links). The one deliberate
+// adaptation is validateInternalLinks: ActiDesk's "supporting resource"
+// role picks from several real industry pages rather than one fixed URL
+// (see blog-property-profile.ts).
 
 import type { PostStatus } from "./blog";
 import {
@@ -89,38 +88,42 @@ export function hasCiteArtifact(body: string): boolean {
   return /<cite\b/i.test(body);
 }
 
+/** Normalizes a URL to host+path (no protocol, no query string, no trailing
+ * slash) so a citation link the model wrote and the raw URL a web_search
+ * result returned compare equal even if they differ in http/https, a
+ * tracking query string, or a trailing slash. Matches Forge University's
+ * exactly -- ensureMinimumCitations relies on the protocol being stripped. */
 function normalizeForCompare(url: string): string {
-  return url.replace(/\/$/, "").toLowerCase();
+  try {
+    const parsed = new URL(url);
+    return `${parsed.hostname}${parsed.pathname}`.replace(/\/+$/, "").toLowerCase();
+  } catch {
+    return url.trim().toLowerCase();
+  }
 }
 
-/** Exactly 3 internal links, no more, no fewer, no duplicates: one to the
- * primary offering page, one to a matching industry resource page, one to
- * the signup/conversion pillar. Every role is a fully-qualified URL (see
- * blog-property-profile.ts) since the blog (app.actidesk.ai) and the
- * marketing site (actidesk.ai) are different origins. */
-export function validateInternalLinks(body: string): boolean {
-  const linkPattern = /\]\((https?:\/\/[^\s)]+)\)/g;
-  const found = Array.from(body.matchAll(linkPattern), (m) => normalizeForCompare(m[1]));
-  const internalHosts = ["actidesk.ai", "app.actidesk.ai"];
-  const internalLinks = found.filter((url) => {
-    try {
-      return internalHosts.includes(new URL(url).host);
-    } catch {
-      return false;
-    }
-  });
+// Site-relative markdown links only -- absolute http(s) links are
+// citations, handled separately. `*`, not FU's `+`, so the bare "/"
+// homepage link counts too.
+const RELATIVE_LINK_PATTERN = /\]\((\/[^\s)]*)\)/g;
 
-  if (internalLinks.length !== 3) return false;
-  const linkSet = new Set(internalLinks);
+function findRelativeLinks(body: string): string[] {
+  return Array.from(body.matchAll(RELATIVE_LINK_PATTERN), (m) => m[1]);
+}
+
+/** Exactly 3 internal links, no more, no fewer, no duplicates: the primary
+ * offering page, one matching industry resource page, and the
+ * signup/conversion pillar -- every one a site-relative path from
+ * blog-property-profile.ts, never invented by the model. */
+export function validateInternalLinks(body: string): boolean {
+  const found = findRelativeLinks(body);
+  if (found.length !== 3) return false;
+  const linkSet = new Set(found);
   if (linkSet.size !== 3) return false; // no duplicates
 
-  const primary = normalizeForCompare(PRIMARY_OFFERING_URL);
-  const pillar = normalizeForCompare(PILLAR_CONVERSION_URL);
-  const resourceOptions = new Set(RESOURCE_URL_OPTIONS.map((r) => normalizeForCompare(r.url)));
-
-  if (!linkSet.has(primary) || !linkSet.has(pillar)) return false;
-  const resourceLinksUsed = internalLinks.filter((url) => resourceOptions.has(url));
-  return resourceLinksUsed.length === 1;
+  if (!linkSet.has(PRIMARY_OFFERING_URL) || !linkSet.has(PILLAR_CONVERSION_URL)) return false;
+  const resourceOptions = new Set<string>(RESOURCE_URL_OPTIONS.map((r) => r.url));
+  return found.filter((url) => resourceOptions.has(url)).length === 1;
 }
 
 /** Every citation must match a URL Anthropic's web_search tool actually
@@ -205,11 +208,11 @@ export function buildSystemPrompt(voicePrompt: string): string {
     "",
     "CITATIONS: 4-7 external citation links, woven naturally into the prose as descriptive anchor text, each one a URL a web_search call in this same conversation actually returned -- never a URL from memory. Never write a literal citation-tracking tag like `<cite index=\"2-6\">...</cite>` in the body; if you have a specific claim to attribute, just write a normal [text](url) markdown link.",
     "",
-    `INTERNAL LINKS: weave exactly three internal links into the body as natural anchor text, using exactly these fully-qualified URLs and no others -- never invent one, never link the same URL twice, never add a fourth:`,
+    `INTERNAL LINKS: weave exactly three internal links into the body as natural anchor text, using exactly these site-relative paths (starting with "/", no domain) and no others -- never invent one, never link the same path twice, never add a fourth:`,
     `1. Primary offering -- link to ${PRIMARY_OFFERING_URL} once, wherever the article makes the product case most naturally.`,
     `2. Supporting resource -- link to exactly ONE of these real industry pages, whichever best matches this article's topic or example (set resource_industry to that page's industry name): ${resourceList}.`,
     `3. Pillar/conversion -- link to ${PILLAR_CONVERSION_URL} once, where a reader ready to act would naturally click through.`,
-    "Before calling submit_blog_article, count your own internal [text](url) links in the body: there must be exactly 3. If you count 2 or 4, fix it before submitting.",
+    "Before calling submit_blog_article, count your own internal [text](/...) links in the body: there must be exactly 3. If you count 2 or 4, fix it before submitting.",
     "",
     `IMAGE: image_prompt must describe a landscape cover image illustrating this article's specific argument, matching this direction: ${IMAGE_DIRECTION} Must not ask for any visible text, letters, numbers, logos, human faces, charts, diagrams, or interface elements in the image.`,
     "",
@@ -220,7 +223,7 @@ export function buildSystemPrompt(voicePrompt: string): string {
     "- Search for an em dash (—) or a semicolon (;) and rewrite around them if found.",
     "- Search for any emoji and remove it if found.",
     "- Search your body for the literal text \"<cite\" and remove any such tag if found, keeping only the real [text](url) link.",
-    "- Count your internal [text](url) links one more time: exactly 3, including the pillar/conversion link.",
+    "- Count your internal [text](/...) links one more time: exactly 3, including the pillar/conversion link.",
     "- Confirm nothing in the body violates a PROHIBITED CLAIMS rule above.",
     "Always finish by calling the submit_blog_article tool with your result -- do not respond with plain text as your final answer.",
   ].join("\n");
@@ -234,16 +237,7 @@ export function countWords(body: string): number {
 // the actual internal links found and how they diverge from what was
 // required, instead of just "false".
 export function describeInternalLinksFailure(body: string): string {
-  const linkPattern = /\]\((https?:\/\/[^\s)]+)\)/g;
-  const found = Array.from(body.matchAll(linkPattern), (m) => normalizeForCompare(m[1]));
-  const internalHosts = ["actidesk.ai", "app.actidesk.ai"];
-  const internalLinks = found.filter((url) => {
-    try {
-      return internalHosts.includes(new URL(url).host);
-    } catch {
-      return false;
-    }
-  });
+  const internalLinks = findRelativeLinks(body);
   const required = [
     PRIMARY_OFFERING_URL,
     PILLAR_CONVERSION_URL,

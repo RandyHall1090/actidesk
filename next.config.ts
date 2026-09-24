@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // next/image refuses any remote host not listed here -- without this, the
+  // first blog post with an AI-generated cover would error instead of
+  // rendering. Scoped to exactly the public blog-covers bucket (see
+  // api/cron/generate-blog-post), not the whole Supabase project.
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "fywmrqbxjlocjsdopjep.supabase.co",
+        pathname: "/storage/v1/object/public/blog-covers/**",
+      },
+    ],
+  },
   // Security headers (2026-09-16 audit): the app previously set none at
   // all, which left every response -- including the public, unauthenticated
   // /s/[slug] prospect page -- frameable by any third-party site

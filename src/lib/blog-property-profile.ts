@@ -1,18 +1,17 @@
 // ActiDesk's SOP property profile (Multi-Brand Blog Writing SOP §2/§13):
 // audience, approved internal-link targets, CTA, image direction, and
-// prohibited claims. CEO-approved 2026-09-24 (see spec/plan.md) in place
-// of the formal CMO sign-off the SOP otherwise calls for.
+// prohibited claims. CEO-approved 2026-09-24 in place of the formal CMO
+// sign-off the SOP otherwise calls for.
 //
-// Unlike a single-domain property, ActiDesk's real marketing site
-// (actidesk.ai) is a separate deployment from the authenticated app the
-// blog itself lives on (app.actidesk.ai) -- every internal-link role
-// below is a fully-qualified URL, never a bare relative path, so the
-// validator in blog-agent.ts doesn't have to guess which origin a
-// relative link was meant to resolve against.
+// Internal links are site-relative paths, same as Forge University's: the
+// marketing site, blog, and app are one deployment, so a relative link
+// resolves correctly whichever of its domains a reader arrived on. This
+// also keeps them out of citation handling, which only ever looks at
+// absolute http(s) links (see blog-agent.ts).
 
-export const PRIMARY_OFFERING_URL = "https://actidesk.ai/";
+export const PRIMARY_OFFERING_URL = "/";
 
-export const PILLAR_CONVERSION_URL = "https://app.actidesk.ai/signup";
+export const PILLAR_CONVERSION_URL = "/signup";
 
 // ActiDesk's product is deliberately horizontal (any rep, any industry --
 // see spec/blog-sop-compliance-instructions.md), so the "supporting
@@ -21,11 +20,11 @@ export const PILLAR_CONVERSION_URL = "https://app.actidesk.ai/signup";
 // validator (blog-agent.ts's validateInternalLinks) accepts any one of
 // these, never more than one.
 export const RESOURCE_URL_OPTIONS = [
-  { url: "https://actidesk.ai/real-estate", industry: "real estate" },
-  { url: "https://actidesk.ai/property-management", industry: "property management" },
-  { url: "https://actidesk.ai/manufacturing", industry: "manufacturing" },
-  { url: "https://actidesk.ai/financial-services", industry: "financial services" },
-  { url: "https://actidesk.ai/home-services", industry: "home services and contractors" },
+  { url: "/real-estate", industry: "real estate" },
+  { url: "/property-management", industry: "property management" },
+  { url: "/manufacturing", industry: "manufacturing" },
+  { url: "/financial-services", industry: "financial services" },
+  { url: "/home-services", industry: "home services and contractors" },
 ] as const;
 
 export const APPROVED_CTA = {
