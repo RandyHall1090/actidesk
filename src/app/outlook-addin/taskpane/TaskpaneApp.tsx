@@ -275,7 +275,12 @@ export function TaskpaneApp({ clientId, apiScope }: { clientId: string; apiScope
           office={officeRef}
         />
       ) : null}
-      {tab === "merge" ? <MergeTab api={api} /> : null}
+      {tab === "merge" ? (
+        <MergeTab
+          api={api}
+          defaultTemplateName={options?.presets.find((p) => p.id === options.defaultPresetId)?.name ?? null}
+        />
+      ) : null}
     </Shell>
   );
 }
@@ -485,9 +490,9 @@ function PackageTab({
         <section className="space-y-2">
           {options.presets.length > 0 && (
             <div>
-              <label htmlFor="preset" className={labelClass}>Start from a preset</label>
+              <label htmlFor="preset" className={labelClass}>Start from a template</label>
               <select id="preset" className={inputClass} value={presetId} onChange={(e) => applyPreset(e.target.value)}>
-                <option value="">None</option>
+                <option value="">— Blank —</option>
                 {options.presets.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -515,7 +520,7 @@ function PackageTab({
             </div>
           )}
           <div>
-            <label htmlFor="layout" className={labelClass}>Template</label>
+            <label htmlFor="layout" className={labelClass}>Layout</label>
             <select id="layout" className={inputClass} value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
               {options.layouts.map((l) => (
                 <option key={l.id} value={l.id}>{l.label}</option>
@@ -593,7 +598,13 @@ function PackageTab({
 // ---------------------------------------------------------------------------
 // List Merge tab: one package per contact, sent from the rep's own mailbox.
 // ---------------------------------------------------------------------------
-function MergeTab({ api }: { api: <T>(path: string, init?: RequestInit) => Promise<T> }) {
+function MergeTab({
+  api,
+  defaultTemplateName,
+}: {
+  api: <T>(path: string, init?: RequestInit) => Promise<T>;
+  defaultTemplateName: string | null;
+}) {
   const [contacts, setContacts] = useState<{ id: string; name: string; email: string }[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
@@ -650,6 +661,13 @@ function MergeTab({ api }: { api: <T>(path: string, init?: RequestInit) => Promi
 
   return (
     <div className="mt-3 space-y-3">
+      <p className="text-xs text-neutral-600">
+        {defaultTemplateName ? (
+          <>Each package is built from your ★ default template: <strong>{defaultTemplateName}</strong></>
+        ) : (
+          <>Set a ★ default template first: on the Package tab, pick a template and click Make this my default.</>
+        )}
+      </p>
       {!items && (
         <>
           <input className={inputClass} placeholder="Search contacts" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Search contacts" />
@@ -684,7 +702,7 @@ function MergeTab({ api }: { api: <T>(path: string, init?: RequestInit) => Promi
         <button
           type="button"
           onClick={generate}
-          disabled={selected.length === 0}
+          disabled={selected.length === 0 || !defaultTemplateName}
           className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           Create {selected.length} package(s)

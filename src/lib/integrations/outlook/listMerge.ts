@@ -1,7 +1,11 @@
 import { listOutlookContacts, sendViaOutlook } from "@/lib/integrations/outlook/graph";
-import { createPackageForContact } from "@/lib/integrations/createPackageForContact";
 import { applyMergeFields } from "@/lib/integrations/mergeFields";
 import { requireActiveBilling } from "@/lib/billing";
+import { createPackageForRep } from "@/lib/packages/createPackageForRep";
+import { getDefaultPresetForRep } from "@/lib/packages/defaultPreset";
+
+export const NO_DEFAULT_TEMPLATE_ERROR =
+  "Set a ★ default template first (New Package → pick a template → Make this my default). List Merge builds every package from it.";
 
 // Shared by the web List Merge page (server actions) and the Outlook
 // add-in's API, so both run the exact same rules. Every call is scoped to
@@ -20,19 +24,27 @@ export async function generateListMergePackages(
   const billingError = await requireActiveBilling(rep.orgId);
   if (billingError) return { ok: false, error: billingError };
 
+  // Without a template every contact would get a bare desk with nothing on it.
+  const preset = await getDefaultPresetForRep(rep);
+  if (!preset) return { ok: false, error: NO_DEFAULT_TEMPLATE_ERROR };
+
   const contacts = await listOutlookContacts(rep.id);
   const selected = contacts.filter((c) => contactIds.includes(c.id));
 
   const items: MergeItem[] = [];
   for (const contact of selected) {
-    const { slug, url } = await createPackageForContact({
-      orgId: rep.orgId,
-      createdBy: rep.id,
+    const result = await createPackageForRep(rep, {
       prospectName: contact.name,
       prospectEmail: contact.email,
+      letterBody: preset.letterBody ? applyMergeFields(preset.letterBody, contact) : null,
       templateId,
+      slots: preset.slots,
     });
-    items.push({ slug, url, contactName: contact.name, contactEmail: contact.email });
+    if (!result.ok) {
+      const done = items.length ? ` (${items.length} created before it)` : "";
+      return { ok: false, error: `${contact.name}: ${result.error}${done}` };
+    }
+    items.push({ slug: result.slug, url: result.url, contactName: contact.name, contactEmail: contact.email });
   }
   return { ok: true, items };
 }

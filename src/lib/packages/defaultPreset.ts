@@ -31,6 +31,37 @@ export async function setDefaultPresetForRep(
   return error ? { ok: false, error: "Couldn't save your default." } : { ok: true };
 }
 
+export type DefaultPreset = {
+  id: string;
+  name: string;
+  letterBody: string | null;
+  slots: Record<string, string>;
+};
+
+/** The rep's default preset with its content, or null if they have none or
+ * it's no longer one they may use (deleted, or made private by its owner). */
+export async function getDefaultPresetForRep(rep: Rep): Promise<DefaultPreset | null> {
+  const presetId = await getDefaultPresetId(rep.id);
+  if (!presetId || !(await isUsablePreset(rep, presetId))) return null;
+  const { data } = await createAdminClient()
+    .from("presets")
+    .select("id, name, letter_body, preset_assets(slot_name, asset_id)")
+    .eq("id", presetId)
+    .eq("org_id", rep.orgId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id,
+    name: data.name,
+    letterBody: data.letter_body,
+    slots: Object.fromEntries(
+      (data.preset_assets as { slot_name: string; asset_id: string | null }[])
+        .filter((pa) => pa.asset_id)
+        .map((pa) => [pa.slot_name, pa.asset_id as string]),
+    ),
+  };
+}
+
 /** The rep's default preset id, or null. */
 export async function getDefaultPresetId(repId: string): Promise<string | null> {
   const { data } = await createAdminClient()

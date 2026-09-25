@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
 import { getOutlookConnection } from "@/lib/integrations/outlook/graph";
+import { getDefaultPresetForRep } from "@/lib/packages/defaultPreset";
 import { ListMergeClient } from "./ListMergeClient";
 
 export default async function ListMergePage() {
@@ -29,5 +30,12 @@ export default async function ListMergePage() {
     );
   }
 
-  return <ListMergeClient templateId="desk-v1" sendingAs={connection.mailboxEmail} />;
+  const defaultPreset = await getDefaultPresetForRep({ id: profile.id, orgId: profile.org_id });
+  return (
+    <ListMergeClient
+      templateId="desk-v1"
+      sendingAs={connection.mailboxEmail}
+      defaultTemplateName={defaultPreset?.name ?? null}
+    />
+  );
 }

@@ -10,6 +10,11 @@ const FAQ = [
       "No — Outlook makes creating a package from a contact and sending to a whole list faster, but the create-package form works on its own with no integration connected.",
   },
   {
+    question: "Can reps use ActiDesk without leaving Outlook?",
+    answer:
+      "Yes — an admin deploys the ActiDesk add-in once from the Microsoft 365 admin center, and each rep connects their own Outlook. From any email, the ActiDesk panel builds a package for that contact from the rep's favorite template, drops the link into their reply, shows whether past packages were opened, and can List Merge a whole contact list. It works in new and classic Outlook for Windows, Mac, and Outlook on the web.",
+  },
+  {
     question: "Is our account actually separated from every other organization on the platform?",
     answer:
       "Yes — every organization gets its own reps, asset library, and branding, fully isolated from every other tenant, verified independently against the live database rather than assumed from the schema.",

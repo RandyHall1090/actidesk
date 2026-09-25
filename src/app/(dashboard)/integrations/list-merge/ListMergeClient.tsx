@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { fetchOutlookContactsForMerge, generateListMerge } from "./actions";
 import { sendListMerge } from "./send-actions";
 
@@ -12,7 +13,15 @@ function describeSend(result: { sent: number; failed: string[] }): string {
   return result.failed.length > 0 ? `${sent} Failed: ${result.failed.join(", ")}` : sent;
 }
 
-export function ListMergeClient({ templateId, sendingAs }: { templateId: string; sendingAs: string }) {
+export function ListMergeClient({
+  templateId,
+  sendingAs,
+  defaultTemplateName,
+}: {
+  templateId: string;
+  sendingAs: string;
+  defaultTemplateName: string | null;
+}) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactsLoaded, setContactsLoaded] = useState(false);
   const [contactsError, setContactsError] = useState<string | null>(null);
@@ -34,7 +43,12 @@ export function ListMergeClient({ templateId, sendingAs }: { templateId: string;
 
   async function handleGenerate() {
     setStatus("Generating packages...");
-    const results = await generateListMerge({ contactIds: selected, templateId });
+    const result = await generateListMerge({ contactIds: selected, templateId });
+    if (!result.ok) {
+      setStatus(result.error);
+      return;
+    }
+    const results = result.items;
     setGenerated(results);
     if (!reviewFirst) {
       setStatus("Sending...");
@@ -57,6 +71,21 @@ export function ListMergeClient({ templateId, sendingAs }: { templateId: string;
       </h2>
       <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
         Contacts and sending use your own mailbox: <strong>{sendingAs}</strong>
+      </p>
+      <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+        {defaultTemplateName ? (
+          <>
+            Each package is built from your ★ default template: <strong>{defaultTemplateName}</strong>
+          </>
+        ) : (
+          <>
+            Set a ★ default template first — open{" "}
+            <Link href="/packages/new" className="underline">
+              New Package
+            </Link>
+            , pick a template, and click Make this my default.
+          </>
+        )}
       </p>
 
       <ul className="mt-4 max-h-64 space-y-1 overflow-y-auto">
@@ -85,11 +114,15 @@ export function ListMergeClient({ templateId, sendingAs }: { templateId: string;
         )}
       </ul>
 
+      <label htmlFor="merge-email-text" className="mt-4 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        Email text ({"{{first_name}}"}, {"{{full_name}}"} are filled in per contact)
+      </label>
       <textarea
+        id="merge-email-text"
         value={letterTemplate}
         onChange={(e) => setLetterTemplate(e.target.value)}
         rows={4}
-        className="mt-4 w-full rounded-md border border-neutral-300 p-2 text-sm"
+        className="mt-1 w-full rounded-md border border-neutral-300 p-2 text-sm"
       />
 
       <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
@@ -105,7 +138,7 @@ export function ListMergeClient({ templateId, sendingAs }: { templateId: string;
 
       <button
         onClick={handleGenerate}
-        disabled={selected.length === 0}
+        disabled={selected.length === 0 || !defaultTemplateName}
         className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
       >
         Generate {selected.length} package(s)

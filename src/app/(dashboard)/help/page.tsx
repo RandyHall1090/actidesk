@@ -18,7 +18,7 @@ const SECTIONS = [
     title: "2. Create a package",
     body: [
       "Go to New Package. Pick a Layout first — this picks which desk photo and slot positions are used; your organization's own saved layout (if it has one) is offered alongside the built-in ones.",
-      "Optionally start from a Template to prefill everything below (see Templates), then adjust anything before saving.",
+      "Optionally start from a Template to prefill everything below (see Templates), then adjust anything before saving. If you've set a ★ default template, New Package opens already filled in from it.",
       "Enter the prospect's name, company, and email (email is optional — the app never sends anything on its own).",
       "For each slot — Video, a second Video, Audio, Business Card, Pen, up to 4 Magazines, and up to 4 Brochures — pick an asset from your library or the company library. Any slot can be left blank; the desk-scene page only shows what you filled in, and not every layout has room for every slot (e.g. a denser layout may not offer a 4th magazine).",
       "Write the letter body as plain text — some layouts show it as a real sheet of paper on the desk; others show it as a readable note below the desk scene instead.",
@@ -33,9 +33,10 @@ const SECTIONS = [
     ],
   },
   {
-    title: "4. Send it yourself",
+    title: "4. Send it",
     body: [
-      "The app doesn't email the prospect. Copy the link from the package page (or from My Sites) and send it yourself — Outlook, Gmail, whatever you already use.",
+      "ActiDesk never emails a prospect on its own. Copy the link from the package page (or from My Sites) and send it yourself — Outlook, Gmail, whatever you already use.",
+      "Using Outlook? The ActiDesk panel inside Outlook builds the package and drops the link straight into your reply — see Using ActiDesk inside Outlook below.",
     ],
   },
   {
@@ -51,10 +52,30 @@ const SECTIONS = [
       "Go to Templates to save a reusable bundle of asset picks and letter text, so you're not rebuilding the same package from scratch every time.",
       "Any rep can create a template. Mark it Personal to keep it to yourself, or Shared with your team so every rep can see and use it.",
       "You can edit your own templates in place, and Clone any template you can see — yours or a teammate's — into your own independent copy to tweak without touching the original.",
+      "Set a favorite as your ★ default: on New Package (or in the Outlook panel), pick the template and click Make this my default. Every new package then starts from it, and List Merge builds every package from it. Click Remove default to go back to starting blank. Your default is yours alone — each rep picks their own.",
     ],
   },
   {
-    title: "7. Layout Designer (admins only)",
+    title: "7. Using ActiDesk inside Outlook",
+    body: [
+      "One-time setup: sign in to ActiDesk, open Account, and click Connect Outlook — sign in with the same Microsoft work account you use for Outlook. Only you can use your connection.",
+      "Your admin makes the ActiDesk button appear in Outlook for everyone (see For admins below). Open any email and click ActiDesk — on the ribbon in classic Outlook, or under Apps in new Outlook and Outlook on the web. The first time, Microsoft may ask you to sign in or approve access; use your work account.",
+      "The panel fills in the prospect's name and email from the email you're reading. If you've sent this person a package before, you'll see it listed with whether they opened it and played the video.",
+      "Your ★ default template is already loaded. Change the template, the layout, or any asset if you like — More assets opens the rest of the slots — and edit the letter.",
+      "Click Create package. Adjust the link text if you want, then click Reply with this package (when reading an email) or Insert into email (when writing one). Outlook sends it from your own mailbox, so it lands like any other email from you. Copy link and Build another are there too.",
+      "If the panel says to connect first, finish the Account → Connect Outlook step above with the same Microsoft account, then reopen the panel.",
+    ],
+  },
+  {
+    title: "8. List Merge — one personal package per contact",
+    body: [
+      "List Merge sends a whole list of your Outlook contacts their own personal package in one go. It builds every package from your ★ default template, so set one first.",
+      "Open the List Merge tab in the Outlook panel (or Account → Open List Merge on the web). Search and tick the contacts you want, and write the email text — {{first_name}} and {{full_name}} are filled in for each person, and the same fields work in your template's letter.",
+      "Click Create packages, check the links, then click Send. Each email goes from your own mailbox with the subject \"A quick personal note\". On the web page you can untick Review before sending to create and send in one step.",
+    ],
+  },
+  {
+    title: "9. Layout Designer (admins only)",
     body: [
       "Go to Templates → Layout Designer to visually place every slot on a desk photo — drag to move, drag the corner handle to resize, type an exact rotation or aspect ratio.",
       "Refine one of the built-in layouts, start fresh on an existing background, or preview a candidate image of your own (that preview stays local — nothing uploads until you save).",
@@ -62,16 +83,26 @@ const SECTIONS = [
     ],
   },
   {
-    title: "8. Team (admins only)",
+    title: "10. Team (admins only)",
     body: [
       "The Team page lists everyone in your organization and lets admins promote a rep to admin or demote an admin to rep.",
       "New teammates join automatically: anyone who signs up with a matching email domain joins your organization as a rep. Share the signup link shown on the Team page.",
+      "Deactivating a rep also disconnects their Outlook.",
+    ],
+  },
+  {
+    title: "11. For admins: roll out the Outlook add-in",
+    body: [
+      "A Microsoft 365 Global or Exchange admin deploys it once for everyone: admin.microsoft.com → Settings → Integrated apps → Upload custom apps → Office Add-in → Provide link to the manifest file, paste https://www.actidesk.ai/outlook-addin/manifest.xml, and click Validate.",
+      "Assign it to your sales reps (or the whole organization), accept the permissions, and click Finish deployment. It can take up to 24 hours to reach everyone; reps may need to restart Outlook. Updates reach everyone automatically after that.",
+      "Each rep still connects their own Outlook once from Account. The Integrations page shows how many of your active reps have connected.",
     ],
   },
   {
     title: "Account",
     body: [
       "Change your password any time from the Account page — no email round-trip needed since you're already signed in.",
+      "Connect or disconnect your Outlook here. Disconnecting stops the Outlook panel and List Merge from working until you reconnect.",
     ],
   },
 ];
