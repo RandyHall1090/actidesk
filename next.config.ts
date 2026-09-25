@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // @sparticuz/chromium unpacks its browser from bin/ at run time, which the
+  // file tracer can't see -- without this the Account page's signature
+  // screenshot fails on Vercel with "input directory ... does not exist".
+  outputFileTracingIncludes: {
+    "/account": ["./node_modules/@sparticuz/chromium/bin/**/*"],
+  },
   // next/image refuses any remote host not listed here -- without this, the
   // first blog post with an AI-generated cover would error instead of
   // rendering. Scoped to exactly the public blog-covers bucket (see
