@@ -5,7 +5,7 @@ const GETTING_STARTED_STEPS = [
   "Come back to that package's detail page afterward to see the page view logged in Activity.",
 ];
 
-const SECTIONS = [
+const SECTIONS: { title: string; body: string[]; video?: { src: string; title: string } }[] = [
   {
     title: "1. Add assets to the Library",
     body: [
@@ -57,6 +57,7 @@ const SECTIONS = [
   },
   {
     title: "7. Using ActiDesk inside Outlook",
+    video: { src: "https://player.vimeo.com/video/1230105524", title: "ActiDesk: Using ActiDesk in Outlook" },
     body: [
       "One-time setup: sign in to ActiDesk, open Account, and click Connect Outlook — sign in with the same Microsoft work account you use for Outlook. Only you can use your connection.",
       "Your admin makes the ActiDesk button appear in Outlook for everyone (see For admins below). Open any email and click ActiDesk — on the ribbon in classic Outlook, or under Apps in new Outlook and Outlook on the web. The first time, Microsoft may ask you to sign in or approve access; use your work account.",
@@ -153,6 +154,16 @@ export default function HelpPage() {
                 </p>
               ))}
             </div>
+            {section.video && (
+              <div className="mt-4 aspect-video overflow-hidden rounded-md">
+                <iframe
+                  src={section.video.src}
+                  className="h-full w-full"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  title={section.video.title}
+                />
+              </div>
+            )}
           </section>
         ))}
       </div>
