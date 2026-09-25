@@ -42,7 +42,12 @@ export type DefaultPreset = {
  * it's no longer one they may use (deleted, or made private by its owner). */
 export async function getDefaultPresetForRep(rep: Rep): Promise<DefaultPreset | null> {
   const presetId = await getDefaultPresetId(rep.id);
-  if (!presetId || !(await isUsablePreset(rep, presetId))) return null;
+  return presetId ? getUsablePreset(rep, presetId) : null;
+}
+
+/** A preset's content, or null unless it's one this rep may use. */
+export async function getUsablePreset(rep: Rep, presetId: string): Promise<DefaultPreset | null> {
+  if (!(await isUsablePreset(rep, presetId))) return null;
   const { data } = await createAdminClient()
     .from("presets")
     .select("id, name, letter_body, preset_assets(slot_name, asset_id)")
