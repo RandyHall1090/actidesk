@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/profile";
+import { getBlogAccess } from "@/lib/blogAccess";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolvePublishedAt, type PostStatus } from "@/lib/blog";
 import { sendReviewEmail } from "./notify";
@@ -15,6 +16,13 @@ async function requirePlatformAdmin() {
     throw new Error("Only Securafy platform admins can manage the blog.");
   }
   return profile;
+}
+
+/** A platform admin, or a blog author acting on their own post. */
+async function requireBlogAccess() {
+  const access = await getBlogAccess();
+  if (!access) throw new Error("Only Securafy platform admins and blog authors can manage the blog.");
+  return access;
 }
 
 function str(formData: FormData, key: string): string {
@@ -71,18 +79,22 @@ export async function createPost(formData: FormData) {
 }
 
 export async function updatePost(formData: FormData) {
-  await requirePlatformAdmin();
+  const access = await requireBlogAccess();
   const supabase = createAdminClient();
   const id = str(formData, "id");
   const status = statusFromField(formData);
-  const authorId = str(formData, "author_id");
 
   const { data: existing } = await supabase
     .from("blog_posts")
-    .select("status, published_at")
+    .select("status, published_at, author_id")
     .eq("id", id)
     .maybeSingle();
   if (!existing) throw new Error("Post not found.");
+  if (!access.isPlatformAdmin && existing.author_id !== access.authorId) {
+    throw new Error("You can only edit your own posts.");
+  }
+  // An author can't hand their post to someone else, whatever the form says.
+  const authorId = access.isPlatformAdmin ? str(formData, "author_id") : (existing.author_id as string);
 
   const isNewlyPublished = status === "published" && existing.status !== "published";
   const publishedAt = isNewlyPublished
@@ -129,18 +141,17 @@ export async function deletePost(formData: FormData) {
 /** Only the post's own author may approve or reject it -- platform-admin
  * alone is not enough, matching every sibling property's gate. */
 async function setPostStatus(id: string, status: "published" | "rejected") {
-  const profile = await requirePlatformAdmin();
+  const access = await requireBlogAccess();
   const supabase = createAdminClient();
 
   const { data: post } = await supabase
     .from("blog_posts")
-    .select("author_id, blog_authors(email)")
+    .select("author_id")
     .eq("id", id)
     .maybeSingle();
   if (!post) throw new Error("Post not found.");
 
-  const authorEmail = (post.blog_authors as unknown as { email: string } | null)?.email;
-  if (!authorEmail || !profile.email || authorEmail.toLowerCase() !== profile.email.toLowerCase()) {
+  if (!access.authorId || post.author_id !== access.authorId) {
     throw new Error("Only this post's own author can approve or reject it.");
   }
 
@@ -159,12 +170,16 @@ async function setPostStatus(id: string, status: "published" | "rejected") {
   revalidatePath("/blog");
 }
 
+// Both land on the post list, so approving from the review email's edit page
+// shows the new status instead of leaving the "waiting for review" banner up.
 export async function approvePost(formData: FormData) {
   await setPostStatus(str(formData, "id"), "published");
+  redirect("/admin/blog");
 }
 
 export async function rejectPost(formData: FormData) {
   await setPostStatus(str(formData, "id"), "rejected");
+  redirect("/admin/blog");
 }
 
 /** No author decides this for another author -- resolves the signed-in
@@ -173,14 +188,15 @@ export async function rejectPost(formData: FormData) {
  * the same "only the post's own author" gate approvePost/rejectPost
  * already enforce. */
 export async function updateAuthorAutoPublish(formData: FormData) {
-  const profile = await requirePlatformAdmin();
+  const access = await requireBlogAccess();
+  if (!access.authorId) throw new Error("Only blog authors have an auto-publish setting.");
   const supabase = createAdminClient();
   const autoPublish = formData.get("autoPublish") === "true";
 
   const { error } = await supabase
     .from("blog_authors")
     .update({ auto_publish: autoPublish })
-    .eq("email", profile.email);
+    .eq("id", access.authorId);
   if (error) throw new Error(`Failed to update auto-publish setting: ${error.message}`);
 
   revalidatePath("/admin/blog");

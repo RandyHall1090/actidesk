@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
+import { getBlogAccess } from "@/lib/blogAccess";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { displayStatus } from "@/lib/blog";
 import { approvePost, rejectPost, updateAuthorAutoPublish } from "./actions";
@@ -14,40 +15,44 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default async function AdminBlogPage() {
-  const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
-  if (!profile.is_platform_admin) {
+  if (!(await getCurrentProfile())) redirect("/login");
+  const access = await getBlogAccess();
+  if (!access) {
     return (
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Only Securafy platform admins can access this page.
+        Only Securafy platform admins and blog authors can access this page.
       </p>
     );
   }
+  const { isPlatformAdmin, authorId } = access;
 
+  // An author who isn't a platform admin sees only their own posts and setting.
   const supabase = createAdminClient();
-  const [{ data: posts }, { data: authors }] = await Promise.all([
-    supabase
-      .from("blog_posts")
-      .select("id, slug, title, status, published_at, blog_authors(name, title)")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("blog_authors")
-      .select("id, name, title, email, auto_publish")
-      .order("name"),
-  ]);
+  let postsQuery = supabase
+    .from("blog_posts")
+    .select("id, slug, title, status, published_at, author_id, blog_authors(name, title)")
+    .order("created_at", { ascending: false });
+  let authorsQuery = supabase.from("blog_authors").select("id, name, title, auto_publish").order("name");
+  if (!isPlatformAdmin && authorId) {
+    postsQuery = postsQuery.eq("author_id", authorId);
+    authorsQuery = authorsQuery.eq("id", authorId);
+  }
+  const [{ data: posts }, { data: authors }] = await Promise.all([postsQuery, authorsQuery]);
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
-          Blog posts
+          {isPlatformAdmin ? "Blog posts" : "Your blog posts"}
         </h2>
-        <Link
-          href="/admin/blog/new"
-          className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
-        >
-          + New post
-        </Link>
+        {isPlatformAdmin && (
+          <Link
+            href="/admin/blog/new"
+            className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+          >
+            + New post
+          </Link>
+        )}
       </div>
 
       <div className="mt-6 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
@@ -60,7 +65,7 @@ export default async function AdminBlogPage() {
         </p>
         <ul className="mt-3 space-y-2">
           {(authors ?? []).map((author) => {
-            const isOwnSetting = author.email === profile.email;
+            const isOwnSetting = author.id === authorId;
             return (
               <li
                 key={author.id}
@@ -124,7 +129,7 @@ export default async function AdminBlogPage() {
                     : status}
                 </span>
               </Link>
-              {post.status === "pending_review" && (
+              {post.status === "pending_review" && post.author_id === authorId && (
                 <div className="flex gap-2 border-t border-neutral-200 px-4 py-2 dark:border-neutral-700">
                   <form action={approvePost}>
                     <input type="hidden" name="id" value={post.id} />

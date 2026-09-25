@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
 import { getOrg } from "@/lib/org";
+import { getBlogAuthorId } from "@/lib/blogAccess";
 import { signOut } from "./actions";
 import { HelpChatWidget } from "@/components/HelpChatWidget";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -55,7 +56,9 @@ export default async function DashboardLayout({
           { href: "/admin", label: "Admin" },
           { href: "/admin/blog", label: "Blog" },
         ]
-      : []),
+      : (await getBlogAuthorId(profile.email))
+        ? [{ href: "/admin/blog", label: "Blog" }]
+        : []),
   ];
   const org = await getOrg(profile.org_id);
 
