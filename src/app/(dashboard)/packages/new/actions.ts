@@ -9,6 +9,14 @@ import { randomSuffix, slugify } from "@/lib/packages/slug";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
 import { requireActiveBilling } from "@/lib/billing";
 import { validateSlotAssets } from "@/lib/packages/slotAssets";
+import { setDefaultPresetForRep } from "@/lib/packages/defaultPreset";
+
+/** Sets (or clears, with null) the signed-in rep's default template. */
+export async function setDefaultPreset(presetId: string | null): Promise<ActionResult> {
+  const profile = await getCurrentProfile();
+  if (!profile || !profile.is_active) return { ok: false, error: "Not signed in." };
+  return setDefaultPresetForRep({ id: profile.id, orgId: profile.org_id }, presetId);
+}
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 

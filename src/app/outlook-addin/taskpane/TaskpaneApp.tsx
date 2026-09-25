@@ -64,6 +64,7 @@ function loadOfficeJs(): Promise<OfficeGlobal | null> {
 // ---------------------------------------------------------------------------
 type Session = { rep: { name: string | null; email: string | null }; sendingAs: string | null };
 type Options = {
+  defaultPresetId: string | null;
   layouts: { id: string; label: string }[];
   slots: { slot: string; label: string; kind: string }[];
   assets: { id: string; name: string; kind: string }[];
@@ -263,7 +264,16 @@ export function TaskpaneApp({ clientId, apiScope }: { clientId: string; apiScope
         ))}
       </div>
       {tab === "package" && options ? (
-        <PackageTab key={itemKey} api={api} options={options} contact={contact} setContact={setContact} mode={mode} office={officeRef} />
+        <PackageTab
+          key={itemKey}
+          api={api}
+          options={options}
+          onDefaultChange={(id) => setOptions((o) => (o ? { ...o, defaultPresetId: id } : o))}
+          contact={contact}
+          setContact={setContact}
+          mode={mode}
+          office={officeRef}
+        />
       ) : null}
       {tab === "merge" ? <MergeTab api={api} /> : null}
     </Shell>
@@ -291,6 +301,7 @@ const labelClass = "mb-1 block text-xs font-medium text-neutral-600";
 function PackageTab({
   api,
   options,
+  onDefaultChange,
   contact,
   setContact,
   mode,
@@ -298,15 +309,30 @@ function PackageTab({
 }: {
   api: <T>(path: string, init?: RequestInit) => Promise<T>;
   options: Options;
+  onDefaultChange: (presetId: string | null) => void;
   contact: Contact;
   setContact: (updater: (c: Contact) => Contact) => void;
   mode: Mode;
   office: React.RefObject<OfficeGlobal | null>;
 }) {
-  const [presetId, setPresetId] = useState("");
+  // Every new email starts from the rep's default template, if they set one
+  // (this tab remounts per email -- see itemKey).
+  const defaultPreset = options.presets.find((p) => p.id === options.defaultPresetId);
+  const [presetId, setPresetId] = useState(defaultPreset?.id ?? "");
   const [templateId, setTemplateId] = useState(options.layouts[0]?.id ?? "");
-  const [slots, setSlots] = useState<Record<string, string>>({});
-  const [letter, setLetter] = useState("");
+  const [slots, setSlots] = useState<Record<string, string>>(defaultPreset?.slots ?? {});
+  const [letter, setLetter] = useState(defaultPreset?.letterBody ?? "");
+  const [defaultError, setDefaultError] = useState<string | null>(null);
+
+  async function saveDefault(id: string | null) {
+    setDefaultError(null);
+    try {
+      await api("/api/addin/default-preset", { method: "POST", body: JSON.stringify({ presetId: id }) });
+      onDefaultChange(id);
+    } catch (error) {
+      setDefaultError(error instanceof Error ? error.message : "Couldn't save your default.");
+    }
+  }
   const [status, setStatus] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const [created, setCreated] = useState<{ url: string } | null>(null);
   const [linkText, setLinkText] = useState("I put together a personal page for you");
@@ -335,7 +361,10 @@ function PackageTab({
   );
   const primarySlots = slotChoices.filter((s) => PRIMARY_SLOTS.has(s.slot));
   const moreSlots = slotChoices.filter((s) => !PRIMARY_SLOTS.has(s.slot));
-  const [showMore, setShowMore] = useState(false);
+  // Never hide what the default template filled in.
+  const [showMore, setShowMore] = useState(
+    () => !!defaultPreset && Object.keys(defaultPreset.slots).some((slot) => !PRIMARY_SLOTS.has(slot)),
+  );
 
   function applyPreset(id: string) {
     setPresetId(id);
@@ -460,9 +489,29 @@ function PackageTab({
               <select id="preset" className={inputClass} value={presetId} onChange={(e) => applyPreset(e.target.value)}>
                 <option value="">None</option>
                 {options.presets.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.id === options.defaultPresetId ? " ★" : ""}
+                  </option>
                 ))}
               </select>
+              {presetId && (
+                <p className="mt-1 text-xs text-neutral-600">
+                  {presetId === options.defaultPresetId ? (
+                    <>
+                      ★ Your default.{" "}
+                      <button type="button" onClick={() => saveDefault(null)} className="underline">
+                        Remove default
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" onClick={() => saveDefault(presetId)} className="font-medium text-blue-700 underline">
+                      Make this my default
+                    </button>
+                  )}
+                </p>
+              )}
+              {defaultError && <p className="mt-1 text-xs text-red-600">{defaultError}</p>}
             </div>
           )}
           <div>

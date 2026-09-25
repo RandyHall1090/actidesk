@@ -2,6 +2,7 @@ import { addinAuthError, getAddinRep } from "@/lib/integrations/outlook/addinAut
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgLayouts } from "@/lib/packages/getOrgLayouts";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
+import { getDefaultPresetId } from "@/lib/packages/defaultPreset";
 
 /**
  * Everything the taskpane's builder can pick from. Service role, so each
@@ -15,8 +16,9 @@ export async function GET(request: Request) {
   const { rep } = auth;
 
   const admin = createAdminClient();
-  const [layouts, { data: assets }, { data: presets }] = await Promise.all([
+  const [layouts, defaultPresetId, { data: assets }, { data: presets }] = await Promise.all([
     getOrgLayouts(rep.orgId),
+    getDefaultPresetId(rep.id),
     admin
       .from("assets")
       .select("id, name, kind")
@@ -32,6 +34,8 @@ export async function GET(request: Request) {
   ]);
 
   return Response.json({
+    // Only if still one this rep can see; a deleted/privatized one = none.
+    defaultPresetId: (presets ?? []).some((p) => p.id === defaultPresetId) ? defaultPresetId : null,
     layouts: layouts.map((l) => ({ id: l.id, label: l.label })),
     slots: PACKAGE_SLOTS.map((s) => ({ slot: s.slot, label: s.label, kind: s.kind })),
     assets: assets ?? [],

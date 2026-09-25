@@ -7,7 +7,7 @@ import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
 import type { SlotAsset } from "@/app/s/[slug]/PackageView";
-import { savePackage, type ActionResult } from "./actions";
+import { savePackage, setDefaultPreset, type ActionResult } from "./actions";
 
 export type PresetOption = {
   id: string;
@@ -55,6 +55,7 @@ export function NewPackageForm({
   layouts,
   initialPackage,
   initialProspect,
+  defaultPresetId,
 }: {
   assets: Asset[];
   presets: PresetOption[];
@@ -65,6 +66,8 @@ export function NewPackageForm({
   layouts: DeskLayout[];
   initialPackage?: InitialPackage;
   initialProspect?: InitialProspect;
+  // The rep's saved default template -- only ever applied to a new package.
+  defaultPresetId?: string | null;
 }) {
   const [state, formAction, pending] = useActionState(
     savePackage,
@@ -84,6 +87,22 @@ export function NewPackageForm({
     layouts.find((l) => !DESK_LAYOUTS.some((b) => b.id === l.id))?.id ??
     DEFAULT_LAYOUT_ID;
 
+  // A new package starts from the rep's default template, if they've set
+  // one; an edit always starts from the package itself.
+  const defaultPreset = initialPackage ? undefined : presets.find((p) => p.id === defaultPresetId);
+  const startingLetter = initialPackage?.letterBody ?? defaultPreset?.letterBody ?? "";
+  const startingSlots = initialPackage?.slots ?? defaultPreset?.slots ?? {};
+  const [selectedPresetId, setSelectedPresetId] = useState(defaultPreset?.id ?? "");
+  const [savedDefaultId, setSavedDefaultId] = useState<string | null>(defaultPreset?.id ?? null);
+  const [defaultError, setDefaultError] = useState<string | null>(null);
+
+  async function saveDefault(presetId: string | null) {
+    setDefaultError(null);
+    const result = await setDefaultPreset(presetId);
+    if (result.ok) setSavedDefaultId(presetId);
+    else setDefaultError(result.error);
+  }
+
   // Preset selection, editing an already-picked slot, typing the letter,
   // etc. all pre-fill/update these fields client-side (imperatively, via
   // refs) -- deliberately uncontrolled, not React state, per the lesson
@@ -98,7 +117,7 @@ export function NewPackageForm({
   const privateNoteRef = useRef<HTMLTextAreaElement>(null);
   const presetSelectRef = useRef<HTMLSelectElement>(null);
   const layoutSelectRef = useRef<HTMLSelectElement>(null);
-  const selectedPresetIdRef = useRef<string>("");
+  const selectedPresetIdRef = useRef<string>(defaultPreset?.id ?? "");
 
   // The single source of truth for "what does this form currently hold,"
   // independent of where a given value came from (typed, a preset pick, or
@@ -113,10 +132,10 @@ export function NewPackageForm({
     prospectName: initialPackage?.prospectName ?? initialProspect?.name ?? "",
     prospectCompany: initialPackage?.prospectCompany ?? initialProspect?.company ?? "",
     prospectEmail: initialPackage?.prospectEmail ?? initialProspect?.email ?? "",
-    letterBody: initialPackage?.letterBody ?? "",
+    letterBody: startingLetter,
     privateNote: initialPackage?.privateNote ?? "",
     templateId: initialPackage?.templateId ?? defaultLayoutId,
-    slots: { ...(initialPackage?.slots ?? {}) } as Record<string, string>,
+    slots: { ...startingSlots } as Record<string, string>,
   });
 
   // Live-preview mirror state -- separate from the uncontrolled form above,
@@ -129,9 +148,7 @@ export function NewPackageForm({
   const [prospectName, setProspectName] = useState(
     () => initialPackage?.prospectName ?? initialProspect?.name ?? "",
   );
-  const [letterBody, setLetterBody] = useState(
-    () => initialPackage?.letterBody ?? "",
-  );
+  const [letterBody, setLetterBody] = useState(() => startingLetter);
   const { slotAssets, setSlot } = usePreviewAssets(assets);
 
   const orgLogoAsset = useMemo(
@@ -145,13 +162,13 @@ export function NewPackageForm({
     if (orgLogoAsset) setSlot(ORG_LOGO_SLOT, orgLogoAsset.id);
   }, [orgLogoAsset, setSlot]);
 
-  // Seed the live preview from the package being edited -- setSlot itself
-  // only drives preview state, it's independent of (and runs once before)
-  // the reset-safety effect below. Deliberately mount-only: initialPackage
-  // never changes identity for a given edit session.
+  // Seed the live preview from the package being edited, or the rep's
+  // default template on a new one -- setSlot itself only drives preview
+  // state, it's independent of (and runs once before) the reset-safety
+  // effect below. Deliberately mount-only: the starting values never change
+  // for a given form session.
   useEffect(() => {
-    if (!initialPackage) return;
-    for (const [slot, assetId] of Object.entries(initialPackage.slots)) {
+    for (const [slot, assetId] of Object.entries(startingSlots)) {
       setSlot(slot, assetId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,6 +190,7 @@ export function NewPackageForm({
 
   function handlePresetChange(id: string) {
     selectedPresetIdRef.current = id;
+    setSelectedPresetId(id);
     applyPreset(presets.find((p) => p.id === id));
   }
 
@@ -234,7 +252,7 @@ export function NewPackageForm({
             </legend>
             <select
               ref={presetSelectRef}
-              defaultValue=""
+              defaultValue={defaultPreset?.id ?? ""}
               onChange={(e) => handlePresetChange(e.target.value)}
               className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
             >
@@ -249,6 +267,27 @@ export function NewPackageForm({
               Pre-fills the assets and letter below — you can still edit
               anything before saving.
             </p>
+            {!initialPackage && selectedPresetId && (
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                {selectedPresetId === savedDefaultId ? (
+                  <>
+                    ★ Your default — new packages start from it.{" "}
+                    <button type="button" onClick={() => saveDefault(null)} className="underline">
+                      Remove default
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => saveDefault(selectedPresetId)}
+                    className="font-medium text-blue-600 underline dark:text-blue-400"
+                  >
+                    Make this my default
+                  </button>
+                )}
+              </p>
+            )}
+            {defaultError && <p className="text-xs text-red-600 dark:text-red-400">{defaultError}</p>}
           </fieldset>
         )}
 
@@ -328,7 +367,7 @@ export function NewPackageForm({
                 </span>
                 <select
                   name={`slot_${s.slot}`}
-                  defaultValue={initialPackage?.slots[s.slot] ?? ""}
+                  defaultValue={startingSlots[s.slot] ?? ""}
                   ref={(el) => {
                     slotRefs.current[s.slot] = el ?? undefined;
                   }}
@@ -359,7 +398,7 @@ export function NewPackageForm({
             name="letter_body"
             ref={letterBodyRef}
             rows={6}
-            defaultValue={initialPackage?.letterBody ?? ""}
+            defaultValue={startingLetter}
             placeholder="Hi [Name], ..."
             onChange={(e) => {
               currentRef.current.letterBody = e.target.value;
