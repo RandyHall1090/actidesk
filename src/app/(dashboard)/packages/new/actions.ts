@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "@/lib/packages/layouts";
+import { DESK_LAYOUTS, pickDefaultLayoutId } from "@/lib/packages/layouts";
+import { getOrgLayouts } from "@/lib/packages/getOrgLayouts";
 import { randomSuffix, slugify } from "@/lib/packages/slug";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
 import { requireActiveBilling } from "@/lib/billing";
@@ -40,15 +41,17 @@ function validateLength(
  * A template_id is either a built-in DESK_LAYOUTS id (checked first, no DB
  * call) or a custom layout this org saved itself (T15) -- looked up scoped
  * to org_id so a rep can't submit another org's layout id and have it
- * silently accepted. Falls back to the default rather than reject the
- * whole submission outright for a stale/tampered value.
+ * silently accepted. Falls back to the org's default layout (its newest
+ * custom one, see pickDefaultLayoutId) rather than reject the whole
+ * submission outright for a missing or stale/tampered value.
  */
 export async function resolveTemplateId(
   supabase: Awaited<ReturnType<typeof createClient>>,
   orgId: string,
   rawTemplateId: string | undefined,
 ): Promise<string> {
-  if (!rawTemplateId) return DEFAULT_LAYOUT_ID;
+  const orgDefault = async () => pickDefaultLayoutId(await getOrgLayouts(orgId));
+  if (!rawTemplateId) return orgDefault();
   if (DESK_LAYOUTS.some((l) => l.id === rawTemplateId)) return rawTemplateId;
 
   const { data } = await supabase
@@ -57,7 +60,7 @@ export async function resolveTemplateId(
     .eq("id", rawTemplateId)
     .eq("org_id", orgId)
     .maybeSingle();
-  return data ? rawTemplateId : DEFAULT_LAYOUT_ID;
+  return data ? rawTemplateId : orgDefault();
 }
 
 /**

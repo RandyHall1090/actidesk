@@ -2,7 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireActiveBilling } from "@/lib/billing";
 import { syncPackageToHubSpot } from "@/lib/hubspot";
 import { getSiteUrl } from "@/lib/env";
-import { DESK_LAYOUTS, DEFAULT_LAYOUT_ID } from "./layouts";
+import { DESK_LAYOUTS, pickDefaultLayoutId } from "./layouts";
+import { getOrgLayouts } from "./getOrgLayouts";
 import { randomSuffix, slugify } from "./slug";
 import { validateSlotAssets, type SlotSelection } from "./slotAssets";
 
@@ -57,8 +58,8 @@ export async function createPackageForRep(
   const supabase = createAdminClient();
 
   // Built-in layout, or one of this org's own custom layouts -- never
-  // another org's id. Falls back to the default like resolveTemplateId.
-  let templateId = DEFAULT_LAYOUT_ID;
+  // another org's id. Falls back to the org's default like resolveTemplateId.
+  let templateId: string | null = null;
   const requested = input.templateId?.trim();
   if (requested && DESK_LAYOUTS.some((l) => l.id === requested)) {
     templateId = requested;
@@ -71,6 +72,7 @@ export async function createPackageForRep(
       .maybeSingle();
     if (data) templateId = requested;
   }
+  templateId ??= pickDefaultLayoutId(await getOrgLayouts(rep.orgId));
 
   const base = slugify(prospectName) || "package";
   let inserted: { id: string; slug: string } | null = null;
