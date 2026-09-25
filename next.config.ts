@@ -45,6 +45,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Prospect pages are for one recipient, but their links get forwarded
+        // and pasted into email signatures -- keep them out of search results.
+        // robots.ts deliberately does not Disallow /s/, or crawlers would
+        // never fetch the page and see this.
+        source: "/s/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
