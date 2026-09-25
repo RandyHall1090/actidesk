@@ -14,11 +14,9 @@ function describeSend(result: { sent: number; failed: string[] }): string {
 }
 
 export function ListMergeClient({
-  templateId,
   sendingAs,
   defaultTemplateName,
 }: {
-  templateId: string;
   sendingAs: string;
   defaultTemplateName: string | null;
 }) {
@@ -43,7 +41,7 @@ export function ListMergeClient({
 
   async function handleGenerate() {
     setStatus("Generating packages...");
-    const result = await generateListMerge({ contactIds: selected, templateId });
+    const result = await generateListMerge({ contactIds: selected });
     if (!result.ok) {
       setStatus(result.error);
       return;

@@ -3,6 +3,8 @@ import { applyMergeFields } from "@/lib/integrations/mergeFields";
 import { requireActiveBilling } from "@/lib/billing";
 import { createPackageForRep } from "@/lib/packages/createPackageForRep";
 import { getDefaultPresetForRep } from "@/lib/packages/defaultPreset";
+import { getOrgLayouts } from "@/lib/packages/getOrgLayouts";
+import { pickDefaultLayoutId } from "@/lib/packages/layouts";
 
 export const NO_DEFAULT_TEMPLATE_ERROR =
   "Set a ★ default template first (New Package → pick a template → Make this my default). List Merge builds every package from it.";
@@ -18,7 +20,6 @@ export type MergeItem = { slug: string; url: string; contactName: string; contac
 export async function generateListMergePackages(
   rep: Rep,
   contactIds: string[],
-  templateId: string,
 ): Promise<{ ok: true; items: MergeItem[] } | { ok: false; error: string }> {
   // Same soft block as the dashboard's create form.
   const billingError = await requireActiveBilling(rep.orgId);
@@ -28,6 +29,7 @@ export async function generateListMergePackages(
   const preset = await getDefaultPresetForRep(rep);
   if (!preset) return { ok: false, error: NO_DEFAULT_TEMPLATE_ERROR };
 
+  const templateId = pickDefaultLayoutId(await getOrgLayouts(rep.orgId));
   const contacts = await listOutlookContacts(rep.id);
   const selected = contacts.filter((c) => contactIds.includes(c.id));
 

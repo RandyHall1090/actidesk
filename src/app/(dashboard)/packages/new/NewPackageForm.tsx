@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
-import { DEFAULT_LAYOUT_ID, DESK_LAYOUTS, type DeskLayout } from "@/lib/packages/layouts";
+import { DEFAULT_LAYOUT_ID, pickDefaultLayoutId, type DeskLayout } from "@/lib/packages/layouts";
 import type { Asset } from "@/lib/assets/types";
 import { usePreviewAssets, type PreviewAsset } from "@/lib/assets/usePreviewAssets";
 import { DeskScene } from "@/app/s/[slug]/DeskScene";
@@ -74,18 +74,7 @@ export function NewPackageForm({
     initialState,
   );
 
-  // For a brand-new package (no initialPackage), default to this org's own
-  // most-recently-saved custom layout rather than the generic built-in
-  // DEFAULT_LAYOUT_ID -- an org that went to the trouble of customizing a
-  // layout in the Layout Designer almost certainly wants that one to be
-  // what a rep starts from, not the stock art it was based on. `layouts` is
-  // always built-ins-then-custom (getOrgLayouts.ts), and custom ones are
-  // ordered most-recent-first, so the first non-built-in entry is exactly
-  // that. Falls back to DEFAULT_LAYOUT_ID for an org with no custom layouts
-  // yet (every tenant on day one, and any tenant other than Securafy today).
-  const defaultLayoutId =
-    layouts.find((l) => !DESK_LAYOUTS.some((b) => b.id === l.id))?.id ??
-    DEFAULT_LAYOUT_ID;
+  const defaultLayoutId = pickDefaultLayoutId(layouts);
 
   // A new package starts from the rep's default template, if they've set
   // one; an edit always starts from the package itself.

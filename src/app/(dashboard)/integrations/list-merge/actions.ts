@@ -22,13 +22,8 @@ export async function fetchOutlookContactsForMerge(): Promise<
 
 export async function generateListMerge(input: {
   contactIds: string[];
-  templateId: string;
 }): Promise<{ ok: true; items: MergeItem[] } | { ok: false; error: string }> {
   const profile = await getCurrentProfile();
   if (!profile || !profile.is_active) return { ok: false, error: "Not signed in." };
-  return generateListMergePackages(
-    { id: profile.id, orgId: profile.org_id },
-    input.contactIds,
-    input.templateId,
-  );
+  return generateListMergePackages({ id: profile.id, orgId: profile.org_id }, input.contactIds);
 }

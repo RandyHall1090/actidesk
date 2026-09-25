@@ -2,6 +2,7 @@ import { addinAuthError, getAddinRep } from "@/lib/integrations/outlook/addinAut
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgLayouts } from "@/lib/packages/getOrgLayouts";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
+import { pickDefaultLayoutId } from "@/lib/packages/layouts";
 import { getDefaultPresetId } from "@/lib/packages/defaultPreset";
 
 /**
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
     // Only if still one this rep can see; a deleted/privatized one = none.
     defaultPresetId: (presets ?? []).some((p) => p.id === defaultPresetId) ? defaultPresetId : null,
     layouts: layouts.map((l) => ({ id: l.id, label: l.label })),
+    defaultLayoutId: pickDefaultLayoutId(layouts),
     slots: PACKAGE_SLOTS.map((s) => ({ slot: s.slot, label: s.label, kind: s.kind })),
     assets: assets ?? [],
     presets: (presets ?? []).map((p) => ({

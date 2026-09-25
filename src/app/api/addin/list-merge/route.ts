@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       ? body.contactIds.filter((id): id is string => typeof id === "string").slice(0, MAX_CONTACTS)
       : [];
     if (contactIds.length === 0) return Response.json({ error: "Pick at least one contact." }, { status: 400 });
-    const result = await generateListMergePackages(rep, contactIds, "desk-v1");
+    const result = await generateListMergePackages(rep, contactIds);
     if (!result.ok) return Response.json({ error: result.error }, { status: 400 });
     return Response.json({ items: result.items });
   }

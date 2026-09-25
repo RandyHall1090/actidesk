@@ -33,7 +33,6 @@ export default async function ListMergePage() {
   const defaultPreset = await getDefaultPresetForRep({ id: profile.id, orgId: profile.org_id });
   return (
     <ListMergeClient
-      templateId="desk-v1"
       sendingAs={connection.mailboxEmail}
       defaultTemplateName={defaultPreset?.name ?? null}
     />

@@ -66,6 +66,7 @@ type Session = { rep: { name: string | null; email: string | null }; sendingAs: 
 type Options = {
   defaultPresetId: string | null;
   layouts: { id: string; label: string }[];
+  defaultLayoutId: string;
   slots: { slot: string; label: string; kind: string }[];
   assets: { id: string; name: string; kind: string }[];
   presets: { id: string; name: string; letterBody: string | null; slots: Record<string, string> }[];
@@ -324,7 +325,7 @@ function PackageTab({
   // (this tab remounts per email -- see itemKey).
   const defaultPreset = options.presets.find((p) => p.id === options.defaultPresetId);
   const [presetId, setPresetId] = useState(defaultPreset?.id ?? "");
-  const [templateId, setTemplateId] = useState(options.layouts[0]?.id ?? "");
+  const [templateId, setTemplateId] = useState(options.defaultLayoutId);
   const [slots, setSlots] = useState<Record<string, string>>(defaultPreset?.slots ?? {});
   const [letter, setLetter] = useState(defaultPreset?.letterBody ?? "");
   const [defaultError, setDefaultError] = useState<string | null>(null);

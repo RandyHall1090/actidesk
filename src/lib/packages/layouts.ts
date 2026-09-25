@@ -219,6 +219,18 @@ export const DESK_LAYOUTS: DeskLayout[] = [
   },
 ];
 
+/**
+ * The layout a brand-new package starts on: the org's most recently saved
+ * custom layout (an org that customized one in the Layout Designer wants
+ * that, not the stock art it was based on), else DEFAULT_LAYOUT_ID. Expects
+ * getOrgLayouts' order -- built-ins, then custom most-recent-first. Every
+ * create path (web form, Outlook panel, List Merge) must use this so the
+ * same template lands on the same desk everywhere.
+ */
+export function pickDefaultLayoutId(layouts: { id: string }[]): string {
+  return layouts.find((l) => !DESK_LAYOUTS.some((b) => b.id === l.id))?.id ?? DEFAULT_LAYOUT_ID;
+}
+
 export function getLayout(templateId: string | null | undefined): DeskLayout {
   return (
     DESK_LAYOUTS.find((l) => l.id === templateId) ??
