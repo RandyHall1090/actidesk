@@ -11,7 +11,7 @@ import { SignatureCard } from "./SignatureCard";
 
 // Creating or refreshing a signature screenshots the desk in a headless
 // browser, which can take well past the default action timeout.
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export default async function AccountPage({ searchParams }: PageProps<"/account">) {
   const profile = await getCurrentProfile();
