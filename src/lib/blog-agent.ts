@@ -42,19 +42,28 @@ export function findProhibitedLanguage(body: string): string[] {
 // runs; every other prohibited term still hard-fails -- matches FU exactly.
 const AUTO_REPAIRABLE_WORDS = ["accordingly", "additionally", "moreover", "thus"];
 
+// Forge University's version, verbatim. The earlier port collapsed every
+// whitespace run -- newlines included -- into one space, which flattened
+// each article's paragraphs and "## " headings into a single line.
 export function autoRepairProhibitedLanguage(body: string): string {
-  let result = body;
+  let repaired = body;
   for (const word of AUTO_REPAIRABLE_WORDS) {
-    // Sentence-initial (capitalized, followed by comma): drop the word and
-    // the comma, re-capitalize whatever follows.
-    result = result.replace(
-      new RegExp(`\\b${word.charAt(0).toUpperCase()}${word.slice(1)},\\s+(\\w)`, "g"),
-      (_match, nextChar: string) => nextChar.toUpperCase(),
+    // Sentence-initial "Thus, " -- drop word + comma, then capitalize the
+    // word that now starts the sentence.
+    const sentenceStart = new RegExp(`(^|[.!?]\\s+)${word},\\s+([a-z])`, "gi");
+    repaired = repaired.replace(
+      sentenceStart,
+      (_match, prefix: string, nextChar: string) => `${prefix}${nextChar.toUpperCase()}`,
     );
-    // Mid-sentence or bare occurrence, any case, optional surrounding comma.
-    result = result.replace(new RegExp(`,?\\s*\\b${word}\\b,?\\s*`, "gi"), " ");
+    // Mid-sentence ", thus " or ", thus, " -- drop the word and its own
+    // comma.
+    const midSentence = new RegExp(`,\\s+${word},?\\s+`, "gi");
+    repaired = repaired.replace(midSentence, " ");
+    // Any remaining standalone occurrence.
+    const bare = new RegExp(`\\b${word}\\b,?\\s*`, "gi");
+    repaired = repaired.replace(bare, "");
   }
-  return result.replace(/\s{2,}/g, " ").trim();
+  return repaired.replace(/ {2,}/g, " ").replace(/ ([.,!?])/g, "$1").trim();
 }
 
 export function hasBannedPunctuation(body: string): boolean {
@@ -181,6 +190,12 @@ export function buildSystemPrompt(voicePrompt: string): string {
     "This is a real, published editorial property, not a demo -- every article must arrive review-ready under Securafy's Multi-Brand Blog Writing SOP. A human reviewer (the article's own byline author) approves or rejects your draft; your job is to need zero repair.",
     "ActiDesk's positioning is deliberately horizontal -- any rep, any industry -- so do not write as if the reader is only in one vertical, even when the article's example or resource link happens to be industry-specific.",
     "",
+    "EDITORIAL FOCUS (every article, every author -- this is what the blog is about):",
+    "- Every article is about marketing and the impression a business makes: why marketing matters when you sell services, how first impressions shape who a prospect chooses, standing out before and around the first meeting, making a prospect feel personally considered, and turning attention into a second conversation.",
+    "- Pick topics a business owner, marketer, or salesperson would search for about getting noticed, remembered, and chosen -- not internal sales-management mechanics. Forecasting, territory design, rep ramp time, quota math, procurement governance, and CRM hygiene are off-topic unless the article is squarely about how they change the impression a prospect gets.",
+    "- The author's lens below decides the angle; this focus decides the subject.",
+    "- Never use the phrase \"shock and awe\" or the name \"Online Shock-and-Awe\" -- the product is only ever called ActiDesk.",
+    "",
     voicePrompt,
     "",
     "PROHIBITED CLAIMS (hard rules, not style guidance):",
@@ -197,7 +212,7 @@ export function buildSystemPrompt(voicePrompt: string): string {
     "",
     "VOICE:",
     "- Direct, concise, active, natural, authoritative, practical. Address the reader as 'you'.",
-    "- Specific about the consequences that matter to a sales leader or rep here -- win rate, rep productivity, pipeline visibility, or time-to-send, whichever actually fits this article.",
+    "- Specific about the consequences that matter to the reader here -- whether the prospect remembers them, takes the meeting, trusts them, or chooses them over the alternative, whichever actually fits this article.",
     "- Never write an introduction that just restates the title, a recap section, a generic definition paragraph, or filler written to pad length.",
     "- Never use corporate buzzwords, AI cliches, hype, hashtags, emojis, semicolons, em dashes, or asterisks used as visible formatting.",
     "- Never use these words: accordingly, additionally, moreover, thus, robust, seamless, innovative, cutting-edge, game changer, circle back, touch base.",

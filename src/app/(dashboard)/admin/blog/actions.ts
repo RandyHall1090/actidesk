@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentProfile } from "@/lib/profile";
-import { getBlogAccess } from "@/lib/blogAccess";
+import { canActOnPost, getBlogAccess } from "@/lib/blogAccess";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolvePublishedAt, type PostStatus } from "@/lib/blog";
 import { sendReviewEmail } from "./notify";
@@ -93,6 +93,16 @@ export async function updatePost(formData: FormData) {
   if (!access.isPlatformAdmin && existing.author_id !== access.authorId) {
     throw new Error("You can only edit your own posts.");
   }
+  // The general editor must not become a way around the approve/reject
+  // gate: only the post's own author (or the standing override) may move a
+  // post out of pending_review here.
+  if (
+    existing.status === "pending_review" &&
+    status !== "pending_review" &&
+    !canActOnPost(access, existing.author_id as string | null)
+  ) {
+    throw new Error("Only this post's own author can change it while it's pending review.");
+  }
   // An author can't hand their post to someone else, whatever the form says.
   const authorId = access.isPlatformAdmin ? str(formData, "author_id") : (existing.author_id as string);
 
@@ -122,10 +132,12 @@ export async function updatePost(formData: FormData) {
     await sendReviewEmail(supabase, id);
   }
 
+  // Stays on the post page (as Forge University does) so the preview above
+  // the form shows the saved result.
   revalidatePath("/admin/blog");
   revalidatePath(`/admin/blog/${id}`);
   revalidatePath("/blog");
-  redirect("/admin/blog");
+  revalidatePath(`/blog/${str(formData, "slug")}`);
 }
 
 export async function deletePost(formData: FormData) {
@@ -136,6 +148,7 @@ export async function deletePost(formData: FormData) {
   if (error) throw new Error(`Failed to delete post: ${error.message}`);
   revalidatePath("/admin/blog");
   revalidatePath("/blog");
+  redirect("/admin/blog");
 }
 
 /** Only the post's own author may approve or reject it -- platform-admin
@@ -151,7 +164,7 @@ async function setPostStatus(id: string, status: "published" | "rejected") {
     .maybeSingle();
   if (!post) throw new Error("Post not found.");
 
-  if (!access.authorId || post.author_id !== access.authorId) {
+  if (!canActOnPost(access, post.author_id as string | null)) {
     throw new Error("Only this post's own author can approve or reject it.");
   }
 
@@ -167,19 +180,16 @@ async function setPostStatus(id: string, status: "published" | "rejected") {
   if (error) throw new Error(`Failed to ${status === "published" ? "approve" : "reject"} post: ${error.message}`);
 
   revalidatePath("/admin/blog");
+  revalidatePath(`/admin/blog/${id}`);
   revalidatePath("/blog");
 }
 
-// Both land on the post list, so approving from the review email's edit page
-// shows the new status instead of leaving the "waiting for review" banner up.
 export async function approvePost(formData: FormData) {
   await setPostStatus(str(formData, "id"), "published");
-  redirect("/admin/blog");
 }
 
 export async function rejectPost(formData: FormData) {
   await setPostStatus(str(formData, "id"), "rejected");
-  redirect("/admin/blog");
 }
 
 /** No author decides this for another author -- resolves the signed-in
@@ -191,7 +201,9 @@ export async function updateAuthorAutoPublish(formData: FormData) {
   const access = await requireBlogAccess();
   if (!access.authorId) throw new Error("Only blog authors have an auto-publish setting.");
   const supabase = createAdminClient();
-  const autoPublish = formData.get("autoPublish") === "true";
+  // The form shows every author's checkbox (only your own enabled); whatever
+  // a raw POST carries, only the signed-in author's own row is written.
+  const autoPublish = formData.get(`auto_publish_${access.authorId}`) === "on";
 
   const { error } = await supabase
     .from("blog_authors")

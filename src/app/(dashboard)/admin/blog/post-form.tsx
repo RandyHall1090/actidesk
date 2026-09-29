@@ -13,9 +13,10 @@ type Post = {
   status: string;
 };
 
+// Forge University's admin form styling.
 const inputClasses =
-  "mt-1 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100";
-const labelClasses = "block text-sm text-neutral-600 dark:text-neutral-400";
+  "mt-1 w-full rounded-md border border-black/[.08] px-3 py-2 text-sm dark:border-white/[.145] dark:bg-transparent";
+const labelClasses = "block text-sm text-zinc-600 dark:text-zinc-400";
 
 export function PostForm({
   authors,
@@ -138,7 +139,7 @@ export function PostForm({
         type="submit"
         className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
       >
-        Save post
+        {post ? "Save changes" : "Create post"}
       </button>
     </form>
   );

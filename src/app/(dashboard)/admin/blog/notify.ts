@@ -23,6 +23,6 @@ export async function sendReviewEmail(supabase: SupabaseClient, postId: string):
     html: `<p>A blog post is ready for your review.</p>
 <p><strong>${post.title}</strong></p>
 <p>Only you can approve or reject it, since you're its assigned author.</p>
-<p><a href="${APP_URL}/admin/blog/${postId}/edit">Review it here</a></p>`,
+<p><a href="${APP_URL}/admin/blog/${postId}">Review it here</a></p>`,
   });
 }

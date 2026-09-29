@@ -10,6 +10,8 @@ export type Profile = {
   // Cross-tenant "Securafy master admin" capability -- orthogonal to
   // `role`, see migration 0014. Only ever true within Securafy's own org.
   is_platform_admin: boolean;
+  // May approve/reject any author's blog post, not just their own (0045).
+  can_approve_any_post: boolean;
   calendar_url: string | null;
 };
 
@@ -24,7 +26,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, org_id, role, full_name, email, is_active, is_platform_admin, calendar_url",
+      "id, org_id, role, full_name, email, is_active, is_platform_admin, can_approve_any_post, calendar_url",
     )
     .eq("id", user.id)
     .single();

@@ -11,7 +11,18 @@ export type BlogAccess = {
   isPlatformAdmin: boolean;
   /** This person's blog_authors row, matched by email (case-insensitive). */
   authorId: string | null;
+  /** The standing exception: may approve/reject anyone's post. */
+  canApproveAnyPost: boolean;
 };
+
+/** Whether this person may approve, reject, or take out of review a post
+ * written by `postAuthorId`. A post with no author has no owner to limit
+ * it to, so any platform admin may act on it (Forge University's rule). */
+export function canActOnPost(access: BlogAccess, postAuthorId: string | null): boolean {
+  if (access.canApproveAnyPost) return true;
+  if (postAuthorId === null) return access.isPlatformAdmin;
+  return access.authorId === postAuthorId;
+}
 
 export async function getBlogAuthorId(email: string | null | undefined): Promise<string | null> {
   if (!email) return null;
@@ -28,5 +39,10 @@ export async function getBlogAccess(): Promise<BlogAccess | null> {
   if (!profile || !profile.is_active) return null;
   const authorId = await getBlogAuthorId(profile.email);
   if (!profile.is_platform_admin && !authorId) return null;
-  return { profile, isPlatformAdmin: profile.is_platform_admin, authorId };
+  return {
+    profile,
+    isPlatformAdmin: profile.is_platform_admin,
+    authorId,
+    canApproveAnyPost: profile.can_approve_any_post,
+  };
 }
