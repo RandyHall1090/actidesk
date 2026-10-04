@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ActiDeskCta } from "@/components/marketing/cta-button";
+import { ActiDeskCta, HeroCtas } from "@/components/marketing/cta-button";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 
@@ -80,7 +80,7 @@ export default function HomePage() {
               photoreal desk-scene template — then tracks exactly what a prospect opens after
               the link is sent.
             </p>
-            <ActiDeskCta className="mt-8" />
+            <HeroCtas className="mt-8" />
             <div className="mt-12 flex flex-wrap gap-8 border-t border-steel-line/60 pt-8">
               <div>
                 <p className="font-display text-2xl font-bold text-bone">&lt;5 min</p>

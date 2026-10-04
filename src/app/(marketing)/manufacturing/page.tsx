@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ActiDeskCta } from "@/components/marketing/cta-button";
+import { ActiDeskCta, HeroCtas } from "@/components/marketing/cta-button";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 
@@ -43,7 +43,7 @@ export default function ManufacturingPage() {
             out on a photoreal desk-scene template — then shows exactly what a buyer opened
             after you sent it.
           </p>
-          <ActiDeskCta className="mt-8" />
+          <HeroCtas className="mt-8" />
         </div>
       </section>
 
