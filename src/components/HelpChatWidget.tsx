@@ -3,6 +3,18 @@
 import { useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { StaceyRobot } from "./StaceyRobot";
+
+// Each word split into [highlighted initial, rest]; the initials spell STACEY.
+const NAME_WORDS: [string, string][] = [
+  ["S", "ecurafy's"],
+  ["T", "otal"],
+  ["A", "utomation"],
+  ["C", "ontrol"],
+  ["E", "ngine"],
+  ["", "for"],
+  ["Y", "ou"],
+];
 
 export function HelpChatWidget() {
   const [open, setOpen] = useState(false);
@@ -16,24 +28,36 @@ export function HelpChatWidget() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Open help chat"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white shadow-lg hover:bg-blue-700"
+        aria-label="Ask Stacey"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700"
       >
-        {/* Plain inline SVG robot glyph -- no icon library dependency for one icon */}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-7 w-7">
-          <rect x="5" y="9" width="14" height="10" rx="2" />
-          <path d="M12 9V5" />
-          <circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="9" cy="14" r="1.25" fill="currentColor" stroke="none" />
-          <circle cx="15" cy="14" r="1.25" fill="currentColor" stroke="none" />
-          <path d="M9 17.5h6" />
-        </svg>
+        <StaceyRobot size={28} />
       </button>
 
       {open && (
         <div className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-80 flex-col overflow-hidden rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 shadow-xl">
-          <div className="border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-4 py-3">
-            <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Help</p>
+          <div className="flex items-start gap-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-4 py-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white">
+              <StaceyRobot size={22} />
+            </span>
+            <div>
+              <p className="text-sm font-semibold tracking-[0.3em] text-neutral-900 dark:text-neutral-100">STACEY</p>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {NAME_WORDS.map(([initial, rest], index) => (
+                  <span key={index}>
+                    {index > 0 && " "}
+                    {initial && (
+                      <span className="font-semibold text-neutral-900 dark:text-neutral-100">{initial}</span>
+                    )}
+                    {rest}
+                  </span>
+                ))}
+              </p>
+              <p className="mt-1 text-[11px] leading-4 text-neutral-500 dark:text-neutral-400">
+                Ask how to build a prospect package, send it, or check whether your prospect opened it.
+                Stacey answers from ActiDesk&apos;s help guide.
+              </p>
+            </div>
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {messages.map((message) => (
