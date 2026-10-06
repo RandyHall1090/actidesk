@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import { ActiDeskCta } from "@/components/marketing/cta-button";
-import { MARKETING_SITE_URL } from "@/lib/marketing";
+import { BING_SITE_VERIFICATION, MARKETING_SITE_URL } from "@/lib/marketing";
 import { HelpChatWidget } from "@/components/HelpChatWidget";
 import { ConsentBanner, CookieSettingsButton } from "@/components/marketing/consent-banner";
 
@@ -30,6 +30,7 @@ const SITE_DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(MARKETING_SITE_URL),
+  verification: { other: { "msvalidate.01": BING_SITE_VERIFICATION } },
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   openGraph: {

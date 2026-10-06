@@ -25,9 +25,15 @@ export const TRACKING_IDS: {
   hubspotPortal: string;
   metaPixel: string | null;
   linkedinPartner: string | null;
+  clarity: string | null;
 } = {
-  ga4: "G-VP96DFFTXT",
+  ga4: "G-BLDZM22HWT",
   hubspotPortal: "46124718",
   metaPixel: null,
-  linkedinPartner: null,
+  linkedinPartner: "7429900",
+  clarity: "ytg61ba24q",
 };
+
+// Bing Webmaster Tools site ownership. A meta tag, not tracking, so it is
+// rendered in the page head regardless of cookie consent.
+export const BING_SITE_VERIFICATION = "19DC1DEFB6AA112973E5547E17AE38EC";
