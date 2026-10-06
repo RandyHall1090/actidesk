@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toVimeoEmbedUrl } from "@/lib/vimeo";
 import type { DeskLayout, SlotPosition } from "@/lib/packages/layouts";
 import type { SlotAsset } from "./PackageView";
@@ -20,6 +20,71 @@ function PauseIcon() {
       <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
     </svg>
   );
+}
+
+const VIMEO_ORIGIN = "https://player.vimeo.com";
+
+/**
+ * A Vimeo video on the desk. The player is a cross-origin iframe, so a play
+ * is only visible through Vimeo's postMessage API: once the player says it's
+ * ready, ask it to report "play", and log the first one. Loading the iframe
+ * is not a play -- it happens on every visit whether or not anyone watches.
+ */
+function VimeoSlot({
+  url,
+  style,
+  onPlay,
+}: {
+  url: string;
+  style?: React.CSSProperties;
+  onPlay: () => void;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playedOnceRef = useRef(false);
+  const onPlayRef = useRef(onPlay);
+
+  useEffect(() => {
+    onPlayRef.current = onPlay;
+  }, [onPlay]);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== VIMEO_ORIGIN || event.source !== iframeRef.current?.contentWindow) return;
+      let data: { event?: string } | null = null;
+      try {
+        data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+      } catch {
+        return;
+      }
+      if (data?.event === "ready") {
+        listenForPlay(iframeRef.current);
+      } else if (data?.event === "play" && !playedOnceRef.current) {
+        playedOnceRef.current = true;
+        onPlayRef.current();
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  return (
+    <div style={style} className="aspect-video overflow-hidden rounded-[0.8cqw] bg-black shadow-2xl">
+      <iframe
+        ref={iframeRef}
+        src={toVimeoEmbedUrl(url)}
+        className="h-full w-full"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+        // Also asked on load, in case the player's "ready" fired before this
+        // page's listener existed; a second listener is harmless because
+        // only the first play is logged.
+        onLoad={() => listenForPlay(iframeRef.current)}
+      />
+    </div>
+  );
+}
+
+function listenForPlay(iframe: HTMLIFrameElement | null) {
+  iframe?.contentWindow?.postMessage(JSON.stringify({ method: "addEventListener", value: "play" }), VIMEO_ORIGIN);
 }
 
 /**
@@ -241,31 +306,19 @@ export function DeskScene({
       </div>
 
       {video && (
-        <div
+        <VimeoSlot
+          url={video.url}
           style={slotStyle(layout.slots.video)}
-          className="aspect-video overflow-hidden rounded-[0.8cqw] bg-black shadow-2xl"
-        >
-          <iframe
-            src={toVimeoEmbedUrl(video.url)}
-            className="h-full w-full"
-            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-            onLoad={() => onTrack("video", "asset_opened")}
-          />
-        </div>
+          onPlay={() => onTrack("video", "asset_played")}
+        />
       )}
 
       {video2 && layout.slots.video_2 && (
-        <div
+        <VimeoSlot
+          url={video2.url}
           style={slotStyle(layout.slots.video_2)}
-          className="aspect-video overflow-hidden rounded-[0.8cqw] bg-black shadow-2xl"
-        >
-          <iframe
-            src={toVimeoEmbedUrl(video2.url)}
-            className="h-full w-full"
-            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-            onLoad={() => onTrack("video_2", "asset_opened")}
-          />
-        </div>
+          onPlay={() => onTrack("video_2", "asset_played")}
+        />
       )}
 
       {audio && (
