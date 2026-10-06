@@ -73,8 +73,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Link href="/#pricing" className={`hidden sm:inline ${NAV_LINK_CLASS}`}>
             Pricing
           </Link>
-          <Link href="/webinar" className={`hidden sm:inline ${NAV_LINK_CLASS}`}>
-            Webinar
+          <Link href="/webinar" className={NAV_LINK_CLASS}>
+            Demo
           </Link>
           <Link href="/blog" className={NAV_LINK_CLASS}>
             Blog
