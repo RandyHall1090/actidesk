@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { PACKAGE_SLOTS } from "@/lib/packages/slots";
+import { validateSlotAssets } from "@/lib/packages/slotAssets";
 import { requireActiveBilling } from "@/lib/billing";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -46,6 +47,16 @@ export async function savePreset(
   }
   const presetId = (formData.get("preset_id") as string | null)?.trim() || null;
   const scope = formData.get("scope") === "company" ? "company" : "personal";
+
+  // Same rule packages use: only this org's company assets or the rep's own.
+  // preset_assets RLS checks who owns the template, not the asset, and a
+  // platform admin can read every org's assets, so without this a template
+  // could carry another org's file onto this org's prospect pages.
+  const slots = Object.fromEntries(
+    PACKAGE_SLOTS.map((s) => [s.slot, (formData.get(`slot_${s.slot}`) as string | null) ?? ""]),
+  );
+  const checked = await validateSlotAssets({ orgId: profile.org_id, userId: profile.id, slots });
+  if (!checked.ok) return { ok: false, error: checked.error };
 
   const supabase = await createClient();
   let targetPresetId: string;
@@ -104,16 +115,7 @@ export async function savePreset(
     targetPresetId = data.id;
   }
 
-  const slotRows = PACKAGE_SLOTS.map((s) => ({
-    slot: s.slot,
-    assetId: formData.get(`slot_${s.slot}`) as string | null,
-  }))
-    .filter((s) => s.assetId)
-    .map((s) => ({
-      preset_id: targetPresetId,
-      slot_name: s.slot,
-      asset_id: s.assetId,
-    }));
+  const slotRows = checked.rows.map((row) => ({ preset_id: targetPresetId, ...row }));
 
   if (slotRows.length > 0) {
     const { error: slotsError } = await supabase

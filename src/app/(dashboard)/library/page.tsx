@@ -14,6 +14,10 @@ export default async function LibraryPage() {
     .select(
       "id, org_id, owner_id, scope, kind, name, storage_path, external_url, file_size_bytes, created_at",
     )
+    // Explicit, not just RLS: RLS lets a platform admin read every org's
+    // assets, and the library shows only this org's shared and own ones.
+    .eq("org_id", profile.org_id)
+    .or(`scope.eq.company,owner_id.eq.${profile.id}`)
     .order("created_at", { ascending: false });
 
   if (error) {

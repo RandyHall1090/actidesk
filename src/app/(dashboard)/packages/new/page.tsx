@@ -52,6 +52,10 @@ export default async function NewPackagePage({
         .select(
           "id, org_id, owner_id, scope, kind, name, storage_path, external_url, file_size_bytes, created_at",
         )
+        // Explicit, not just RLS: RLS lets a platform admin read every org's
+        // assets, and only this org's shared or own ones belong in a picker.
+        .eq("org_id", profile.org_id)
+        .or(`scope.eq.company,owner_id.eq.${profile.id}`)
         .order("name"),
       supabase
         .from("presets")
