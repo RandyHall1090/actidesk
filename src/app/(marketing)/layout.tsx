@@ -85,6 +85,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <footer className="border-t border-steel-line/60 px-6 py-8 text-center font-mono-brand text-xs text-bone-dim">
         A Securafy product <span className="mx-2">·</span>© {new Date().getFullYear()} ActiDesk
         <span className="mx-2">·</span>
+        <Link href="/privacy" className="underline hover:text-bone">
+          Privacy Policy
+        </Link>
+        <span className="mx-2">·</span>
         <CookieSettingsButton className="underline hover:text-bone" />
       </footer>
       <ConsentBanner />

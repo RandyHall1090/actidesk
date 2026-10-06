@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Script from "next/script";
 import { useSyncExternalStore } from "react";
 import { TRACKING_IDS } from "@/lib/marketing";
@@ -64,7 +65,10 @@ export function ConsentBanner() {
         >
           <p className="text-sm leading-6 text-bone">
             We use cookies to see how visitors use this site and to measure our ads. Accept to allow
-            analytics and advertising cookies, or decline and we&apos;ll only use what the site needs to work.
+            analytics and advertising cookies, or decline and we&apos;ll only use what the site needs to work.{" "}
+            <Link href="/privacy" className="text-electric underline hover:text-bone">
+              Privacy Policy
+            </Link>
           </p>
           <div className="mt-3 flex gap-3">
             <button

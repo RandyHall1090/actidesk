@@ -1,5 +1,5 @@
 // Public marketing-site pages (besides "/" itself) -- read by the auth
-// middleware's public allowlist and the sitemap, so a new industry page
+// middleware's public allowlist and the sitemap, so a new marketing page
 // added here is public and indexed in one place.
 export const MARKETING_PATHS = [
   "/real-estate",
@@ -7,6 +7,7 @@ export const MARKETING_PATHS = [
   "/manufacturing",
   "/financial-services",
   "/home-services",
+  "/privacy",
 ] as const;
 
 // Canonical marketing domain. The same pages also answer on app.actidesk.ai
