@@ -8,6 +8,7 @@ export const MARKETING_PATHS = [
   "/financial-services",
   "/home-services",
   "/privacy",
+  "/webinar",
 ] as const;
 
 // Canonical marketing domain. The same pages also answer on app.actidesk.ai
