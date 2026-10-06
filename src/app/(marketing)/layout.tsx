@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ActiDeskCta } from "@/components/marketing/cta-button";
 import { MARKETING_SITE_URL } from "@/lib/marketing";
 import { HelpChatWidget } from "@/components/HelpChatWidget";
+import { ConsentBanner, CookieSettingsButton } from "@/components/marketing/consent-banner";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -83,7 +84,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <main className="flex flex-1 flex-col">{children}</main>
       <footer className="border-t border-steel-line/60 px-6 py-8 text-center font-mono-brand text-xs text-bone-dim">
         A Securafy product <span className="mx-2">·</span>© {new Date().getFullYear()} ActiDesk
+        <span className="mx-2">·</span>
+        <CookieSettingsButton className="underline hover:text-bone" />
       </footer>
+      <ConsentBanner />
       <HelpChatWidget
         api="/api/sales-chat"
         intro="Ask what ActiDesk does, what it costs, or how the free trial works."
