@@ -102,7 +102,10 @@ export async function updateSession(request: NextRequest) {
     // rep itself from a verified Microsoft access token (addinAuth.ts).
     isPublicPath("/outlook-addin") ||
     isPublicPath("/api/addin") ||
-    isPublicPath("/api/notifications/hot-lead");
+    isPublicPath("/api/notifications/hot-lead") ||
+    // STACEY on the marketing site answers logged-out visitors; the route
+    // caps and rate-limits itself (sales-chat/route.ts).
+    isPublicPath("/api/sales-chat");
 
   if (!user && !isPublicRoute) {
     // Fresh URL, not .clone() — a clone carries over the original request's

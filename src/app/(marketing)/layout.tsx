@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import { ActiDeskCta } from "@/components/marketing/cta-button";
 import { MARKETING_SITE_URL } from "@/lib/marketing";
+import { HelpChatWidget } from "@/components/HelpChatWidget";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -83,6 +84,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <footer className="border-t border-steel-line/60 px-6 py-8 text-center font-mono-brand text-xs text-bone-dim">
         A Securafy product <span className="mx-2">·</span>© {new Date().getFullYear()} ActiDesk
       </footer>
+      <HelpChatWidget
+        api="/api/sales-chat"
+        intro="Ask what ActiDesk does, what it costs, or how the free trial works."
+      />
     </div>
   );
 }

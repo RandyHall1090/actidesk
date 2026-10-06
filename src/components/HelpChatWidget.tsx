@@ -16,11 +16,20 @@ const NAME_WORDS: [string, string][] = [
   ["Y", "ou"],
 ];
 
-export function HelpChatWidget() {
+const REP_INTRO =
+  "Ask how to build a prospect package, send it, or check whether your prospect opened it. Stacey answers from ActiDesk's help guide.";
+
+export function HelpChatWidget({
+  api = "/api/help-chat",
+  intro = REP_INTRO,
+}: {
+  api?: string;
+  intro?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/help-chat" }),
+    transport: new DefaultChatTransport({ api }),
   });
 
   return (
@@ -54,8 +63,7 @@ export function HelpChatWidget() {
                 ))}
               </p>
               <p className="mt-1 text-[11px] leading-4 text-neutral-500 dark:text-neutral-400">
-                Ask how to build a prospect package, send it, or check whether your prospect opened it.
-                Stacey answers from ActiDesk&apos;s help guide.
+                {intro}
               </p>
             </div>
           </div>
@@ -81,7 +89,9 @@ export function HelpChatWidget() {
           </div>
           {error && (
             <p className="px-3 pt-2 text-xs text-red-600 dark:text-red-400">
-              Something went wrong — try again.
+              {error.message.startsWith("Too many questions")
+                ? error.message
+                : "Something went wrong — try again."}
             </p>
           )}
           <form
@@ -97,7 +107,7 @@ export function HelpChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask a question..."
-              className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 px-2 py-1 text-sm"
+              className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm text-neutral-900 dark:text-neutral-100"
             />
             <button
               type="submit"
