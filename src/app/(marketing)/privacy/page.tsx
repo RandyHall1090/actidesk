@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
     <article className="mx-auto w-full max-w-3xl px-6 py-16">
       <h1 className="font-display text-4xl font-bold text-bone">Privacy Policy</h1>
       <p className="mt-3 font-mono-brand text-xs uppercase tracking-wider text-bone-dim">
-        Effective Date: May 7, 2026 &nbsp;·&nbsp; Last Updated: May 7, 2026
+        Effective Date: May 7, 2026 &nbsp;·&nbsp; Last Updated: October 6, 2026
       </p>
 
       <p className={P}>
@@ -43,7 +43,8 @@ export default function PrivacyPolicyPage() {
         <strong className={STRONG}>Information collected automatically:</strong> When you visit our website, we
         automatically collect certain information about your device and browsing behavior, including IP address,
         browser type, operating system, referring URLs, pages visited, and time spent on pages. We use Google Tag
-        Manager, Google Analytics 4, LinkedIn Insight Tag, and HubSpot tracking technologies for this purpose.
+        Manager, Google Analytics 4, Microsoft Clarity, LinkedIn Insight Tag, Meta Pixel, and HubSpot tracking
+        technologies for this purpose.
       </p>
       <p className={P}>
         <strong className={STRONG}>Information from third parties:</strong> We may receive information about you from
@@ -72,11 +73,12 @@ export default function PrivacyPolicyPage() {
           <strong className={STRONG}>Essential cookies:</strong> Required for the site to function properly
         </li>
         <li>
-          <strong className={STRONG}>Analytics cookies:</strong> Google Analytics 4 — help us understand how visitors
-          use our site
+          <strong className={STRONG}>Analytics cookies:</strong> Google Analytics 4, Microsoft Clarity — help us
+          understand how visitors use our site, including clicks, scrolling, and page interactions
         </li>
         <li>
-          <strong className={STRONG}>Marketing cookies:</strong> LinkedIn Insight Tag, HubSpot — enable us to deliver
+          <strong className={STRONG}>Marketing cookies:</strong> LinkedIn Insight Tag, Meta Pixel, HubSpot — enable us
+          to deliver
           relevant advertising and measure campaign effectiveness
         </li>
         <li>
@@ -93,7 +95,7 @@ export default function PrivacyPolicyPage() {
       <ul className={UL}>
         <li>
           <strong className={STRONG}>Service providers:</strong> HubSpot (CRM and marketing), Google (analytics),
-          LinkedIn (advertising), and other vendors who assist us in operating our business — all under
+          Microsoft (analytics), LinkedIn (advertising), Meta (advertising), and other vendors who assist us in operating our business — all under
           confidentiality obligations
         </li>
         <li>
