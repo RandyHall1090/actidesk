@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
       <ul className={UL}>
         <li>Respond to your inquiries and deliver the services you request</li>
         <li>Send you requested proposals, assessments, and educational content</li>
-        <li>Send you our newsletter, ActiForge Times, if you have subscribed</li>
+        <li>Send you our newsletter, Securafy Times, if you have subscribed</li>
         <li>Improve our website, services, and marketing effectiveness</li>
         <li>Comply with legal obligations and protect our legal rights</li>
         <li>Detect, prevent, and address fraud or security incidents</li>
@@ -80,8 +80,8 @@ export default function PrivacyPolicyPage() {
           relevant advertising and measure campaign effectiveness
         </li>
         <li>
-          <strong className={STRONG}>Functional cookies:</strong> HubSpot — power our chat widget, form submissions,
-          and contact tracking
+          <strong className={STRONG}>Functional cookies:</strong> Stacey, our chat assistant, and HubSpot — power our
+          chat, form submissions, and contact tracking
         </li>
       </ul>
       <p className={P}>
