@@ -29,7 +29,7 @@ export const TRACKING_IDS: {
 } = {
   ga4: "G-BLDZM22HWT",
   hubspotPortal: "46124718",
-  metaPixel: null,
+  metaPixel: "4478049348995490",
   linkedinPartner: "7429900",
   clarity: "ytg61ba24q",
 };
