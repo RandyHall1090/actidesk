@@ -86,7 +86,7 @@ an email card "Dana Brooks (demo) just played your video".
 **1.3** · STACEY (on camera)
 
 > Hi. I'm STACEY: Securafy's Total Automation Control Engine for You. I'm an AI engine, not a
-> person, and I'm the assistant inside ActiDesk, an ActiForge product. In the next half hour
+> person, and I'm the assistant inside ActiDesk, an ActiForge product. In the next twenty minutes
 > you'll see how ActiDesk builds a page like that in a few minutes, and tells you who's actually
 > paying attention. First, here's Randy Hall on why this matters now.
 
@@ -294,13 +294,8 @@ across the desk.
 VISUAL: Play the video for a few seconds → pause → open the magazine → turn two pages → close →
 open a brochure → close → hover the business card and the letter.
 
-**4.12** · STACEY (voice-over) · about 25s
-
-> And if your account has a calendar link, there's a Schedule a meeting button, so she can book
-> time with you right from the page.
-
-VISUAL: Hover the "Schedule a meeting" button. *Record only if Securafy's account has a calendar
-link set on recording day; otherwise drop this segment.*
+*(4.12, the "Schedule a meeting" button, was dropped on 6 October 2026: the calendar link is set
+per rep, and the recording login has none.)*
 
 **4.13** · STACEY (voice over email card)
 
@@ -440,12 +435,13 @@ VISUAL: STACEY presenter. Card: "Sources: each vendor's own pages, checked 5 Oct
 
 **6.2** · STACEY (voice over comparison card)
 
-> Vidyard describes itself as "Video for every customer moment." It records and hosts video, with
-> a free plan, a paid Starter plan, and Teams and Enterprise plans that are priced on request.
+> Vidyard describes itself as "Video for every customer moment." It records and hosts video. There's
+> a free plan, and its Starter plan is fifty-nine dollars a seat each month, billed annually. Teams
+> and Enterprise are priced on request.
 
-VISUAL: Card "Vidyard (as of October 2026)": the quote · "Free plan" · "Starter: [price to be
-confirmed on vidyard.com/pricing before render]" · "Teams, Enterprise: custom pricing". Source
-line: vidyard.com, vidyard.com/pricing.
+VISUAL: Card "Vidyard (as of October 2026)": the quote · "Free plan" · "Starter $59/seat/mo,
+billed annually (shown as 'Now 10% off')" · "Teams, Enterprise: custom pricing". Source line:
+vidyard.com, vidyard.com/pricing.
 
 **6.3** · STACEY (voice over comparison card)
 
@@ -461,8 +457,8 @@ bombbomb.com/pricing.
 
 > ActiDesk isn't a video recorder. It's the whole first impression: your video, with your business
 > card, your magazines, your brochures and a personal letter, on one branded page for each
-> prospect. Every open and play is tracked. From forty-nine dollars a month for one rep, or
-> nineteen dollars a rep on Business.
+> prospect. Every open and play is tracked. From forty-nine dollars a month for one rep, and
+> nineteen dollars for each extra rep on Business.
 
 VISUAL: Card "ActiDesk": "A branded desk page per prospect" · "Video, audio, card, magazines,
 brochures, letter" · "Every open and play tracked, email alerts" · "From $49/mo · 14-day trial,
@@ -614,7 +610,7 @@ and `src/app/(dashboard)/billing/BillingClient.tsx`; **Comp** =
 | 35 | Admins see the team's results (7.5) | Inv §1 admin "Team activity" |
 | 36 | 14-day free trial, no credit card (5.5, 7.1, 7.7) | `orgs.trial_ends_at` default 14 days; signup needs no card; pricing section text |
 | 37 | After the trial: choose a plan to create new packages; sent links keep working; account still viewable (5.5, 7.6) | Inv §11 `lib/billing.ts:3-33` |
-| 38 | Vidyard: "Video for every customer moment"; Free, Starter, Teams/Enterprise custom (6.2) | Comp (vidyard.com). **Starter price to confirm in a browser before the card is made** |
+| 38 | Vidyard: "Video for every customer moment"; free plan; Starter $59/seat/mo billed annually ("Now 10% off"); Teams/Enterprise custom (6.2) | Comp (vidyard.com); vidyard.com/pricing read in a browser 5 Oct 2026 |
 | 39 | BombBomb: quote; Core $42 or $36 annual; Core + Copilot $70 or $56 annual; 14-day trial (6.3) | Comp (bombbomb.com/pricing, /free-trial-core-copilot-monthly) |
 | 40 | They record/edit video; browser extensions; BombBomb mobile apps; Vidyard AI avatars and free plan (6.5) | Comp |
 | 41 | Not claimed: HubSpot for customers (Securafy-only); mobile app; recording in ActiDesk | Inv §9; noted in Production notes |
