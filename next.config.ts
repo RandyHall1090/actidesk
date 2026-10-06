@@ -72,7 +72,9 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            // microphone=(self): STACEY's chat lets you speak a question
+            // (HelpChatWidget); our own pages only, and the browser still asks.
+            value: "camera=(), microphone=(self), geolocation=()",
           },
         ],
       },

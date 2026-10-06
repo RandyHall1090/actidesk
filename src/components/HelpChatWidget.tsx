@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { StaceyRobot } from "./StaceyRobot";
@@ -15,6 +15,37 @@ const NAME_WORDS: [string, string][] = [
   ["", "for"],
   ["Y", "ou"],
 ];
+
+// The browser's built-in speech recognition (Chrome, Edge, Safari; not
+// Firefox). Typed minimally here because TypeScript's DOM lib doesn't ship it.
+type SpeechResultList = ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((event: { resultIndex: number; results: SpeechResultList }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognition(): SpeechRecognitionCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+    </svg>
+  );
+}
 
 const REP_INTRO =
   "Ask how to build a prospect package, send it, or check whether your prospect opened it. Stacey answers from ActiDesk's help guide.";
@@ -31,6 +62,58 @@ export function HelpChatWidget({
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api }),
   });
+  const [listening, setListening] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+
+  useEffect(() => () => recognitionRef.current?.abort(), []);
+
+  // Speak a question: words fill the box as you talk, and it sends when you stop.
+  function toggleMic() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const Recognition = getSpeechRecognition();
+    if (!Recognition) return;
+    const recognition = new Recognition();
+    recognition.lang = navigator.language || "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    let finalText = "";
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) finalText += result[0].transcript;
+        else interim += result[0].transcript;
+      }
+      setInput((finalText + interim).trim());
+    };
+    recognition.onerror = (event) => {
+      setMicError(
+        event.error === "not-allowed" || event.error === "service-not-allowed"
+          ? "Microphone access is blocked. Allow it in your browser's site settings, then try again."
+          : event.error === "no-speech"
+            ? "Didn't hear anything. Tap the mic and try again."
+            : "The microphone didn't work. Type your question instead.",
+      );
+    };
+    recognition.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+      const text = finalText.trim();
+      if (text) {
+        sendMessage({ text });
+        setInput("");
+      }
+    };
+    recognitionRef.current = recognition;
+    setMicError(null);
+    setInput("");
+    setListening(true);
+    recognition.start();
+  }
 
   return (
     <>
@@ -94,6 +177,9 @@ export function HelpChatWidget({
                 : "Something went wrong — try again."}
             </p>
           )}
+          {micError && (
+            <p className="px-3 pt-2 text-xs text-red-600 dark:text-red-400">{micError}</p>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -106,9 +192,24 @@ export function HelpChatWidget({
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question..."
-              className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm text-neutral-900 dark:text-neutral-100"
+              placeholder={listening ? "Listening…" : "Ask a question..."}
+              className="min-w-0 flex-1 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm text-neutral-900 dark:text-neutral-100"
             />
+            {getSpeechRecognition() && (
+              <button
+                type="button"
+                onClick={toggleMic}
+                disabled={status === "streaming"}
+                aria-label={listening ? "Stop listening" : "Speak your question"}
+                aria-pressed={listening}
+                title={listening ? "Stop listening" : "Speak your question"}
+                className={`rounded px-2 py-1 text-white disabled:opacity-50 ${
+                  listening ? "animate-pulse bg-red-600" : "bg-neutral-500 hover:bg-neutral-600 dark:bg-neutral-600"
+                }`}
+              >
+                <MicIcon />
+              </button>
+            )}
             <button
               type="submit"
               disabled={status === "streaming"}
