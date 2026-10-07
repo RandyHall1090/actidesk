@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { StaceyRobot } from "./StaceyRobot";
+import Image from "next/image";
 
 // Each word split into [highlighted initial, rest]; the initials spell STACEY.
 const NAME_WORDS: [string, string][] = [
@@ -121,16 +121,16 @@ export function HelpChatWidget({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Ask Stacey"
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-blue-600 dark:bg-blue-700 text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700"
       >
-        <StaceyRobot size={28} />
+        <Image src="/stacey-avatar.png" alt="" aria-hidden width={56} height={56} className="h-full w-full rounded-full object-cover" />
       </button>
 
       {open && (
         <div className="fixed bottom-24 right-6 z-50 flex h-[28rem] w-80 flex-col overflow-hidden rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 shadow-xl">
           <div className="flex items-start gap-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-4 py-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 dark:bg-blue-700 text-white">
-              <StaceyRobot size={22} />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600 dark:bg-blue-700 text-white">
+              <Image src="/stacey-avatar.png" alt="" aria-hidden width={40} height={40} className="h-full w-full rounded-full object-cover" />
             </span>
             <div>
               <p className="text-sm font-semibold tracking-[0.3em] text-neutral-900 dark:text-neutral-100">STACEY</p>
