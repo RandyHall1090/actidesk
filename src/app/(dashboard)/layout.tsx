@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
+import { finishPendingSignup } from "@/lib/signup/finishPendingSignup";
 import { getOrg } from "@/lib/org";
 import { getBlogAuthorId } from "@/lib/blogAccess";
 import { signOut } from "./actions";
@@ -21,7 +22,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await getCurrentProfile();
+  let profile = await getCurrentProfile();
+
+  // A signed-in user with no profile confirmed their email after signing up
+  // (signup can't finish without a session) -- finish it now.
+  if (!profile && (await finishPendingSignup())) {
+    profile = await getCurrentProfile();
+  }
 
   // Belt-and-suspenders: middleware already redirects unauthenticated
   // visitors, this guards direct navigation during dev/edge cases.

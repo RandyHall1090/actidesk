@@ -115,7 +115,19 @@ function SignupForm() {
 
     setStatus("sending");
     const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // Saved on the auth user so finishPendingSignup can complete the account
+    // on first sign-in when email confirmation means there's no session yet.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+        data: {
+          ...(step.name === "create" ? { signup_company: companyName.trim() } : {}),
+          ...(checkoutSessionId ? { signup_checkout_session: checkoutSessionId } : {}),
+        },
+      },
+    });
     if (error) {
       setStatus("error");
       setErrorMessage(error.message);
@@ -128,7 +140,7 @@ function SignupForm() {
       // stale/another account's); stop and tell the user what to do.
       setStatus("error");
       setErrorMessage(
-        "Check your email to confirm your account, then sign in.",
+        "Check your email to confirm your account, then sign in. We'll finish setting up your company when you do.",
       );
       return;
     }
