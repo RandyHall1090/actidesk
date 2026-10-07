@@ -1,8 +1,9 @@
 # Per-rep Outlook + the rep experience inside Outlook — plan index
 
-**Status:** Phase 1 shipped (61c49d2). Phase 2 built and locally verified;
-end-to-end test waits on the Azure additions and the Microsoft 365
-deployment below (only Randy can do those).
+**Status:** done. Phase 1 shipped (61c49d2) and Phase 2 shipped (091935c,
+3c0265e). Randy live-tested it end to end on his own account before
+2026-10-07: connecting Outlook, the email-signature link, and bulk sending
+through List Merge.
 **Requested by:** Randy, 2026-09-24 ("plan the per-rep version and make it
 happen" + "once connected, the entire experience should live in Outlook").
 

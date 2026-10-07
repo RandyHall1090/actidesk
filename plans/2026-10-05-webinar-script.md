@@ -1,7 +1,7 @@
 # "ActiDesk Live": webinar script
 
-Status: **draft for Randy's approval.** Nothing is rendered or recorded until he approves it
-(renders spend HeyGen credits).
+Status: **done — approved, recorded, and published.** The final cut is Vimeo 1233251370, embedded
+at https://www.actidesk.ai/webinar (the marketing site's Demo link) and on the Actiforge site.
 
 Spoken narration: **2,298 words in 50 segments**. At about 150 words a minute that is **about 15
 minutes** of narration, plus title cards, pauses and on-screen clicks (expect about 18 to 20
