@@ -76,6 +76,7 @@ export async function POST(req: Request) {
             prospect_company: original.prospect_company,
             template_id: original.template_id,
             follow_up_of: original.id,
+            source: "follow_through",
             letter_body:
               "Just following up in case this got buried -- wanted to make sure you saw this before we lose touch.",
           })

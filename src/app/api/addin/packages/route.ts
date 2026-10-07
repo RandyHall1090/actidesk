@@ -76,6 +76,7 @@ export async function POST(request: Request) {
   const result = await createPackageForRep(
     { id: auth.rep.id, orgId: auth.rep.orgId },
     {
+      source: "outlook",
       prospectName: text(input.prospectName) ?? "",
       prospectCompany: text(input.prospectCompany),
       prospectEmail: text(input.prospectEmail),

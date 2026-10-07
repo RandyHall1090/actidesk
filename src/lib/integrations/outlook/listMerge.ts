@@ -36,6 +36,7 @@ export async function generateListMergePackages(
   const items: MergeItem[] = [];
   for (const contact of selected) {
     const result = await createPackageForRep(rep, {
+      source: "list_merge",
       prospectName: contact.name,
       prospectEmail: contact.email,
       letterBody: preset.letterBody ? applyMergeFields(preset.letterBody, contact) : null,

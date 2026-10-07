@@ -122,6 +122,7 @@ export async function POST(req: Request) {
         prospect_company: prospectCompany,
         prospect_email: prospectEmail,
         template_id: templateId,
+        source: "api",
       })
       .select("slug")
       .single();

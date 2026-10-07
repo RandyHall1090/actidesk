@@ -88,6 +88,7 @@ export async function createSignatureForRep(
   if (!preset) return { ok: false, error: "Pick a template you can use." };
 
   const created = await createPackageForRep(rep, {
+    source: "signature",
     prospectName: nameplate,
     letterBody: preset.letterBody,
     slots: preset.slots,

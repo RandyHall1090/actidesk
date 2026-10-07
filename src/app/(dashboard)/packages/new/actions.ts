@@ -203,6 +203,7 @@ export async function savePackage(
         letter_body: letterBody,
         private_note: privateNote,
         template_id: templateId,
+        source: "web",
       })
       .select("id, slug")
       .single();

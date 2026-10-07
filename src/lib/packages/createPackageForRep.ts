@@ -17,6 +17,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_SLUG_ATTEMPTS = 3;
 
 export type NewPackageInput = {
+  source: "outlook" | "list_merge" | "signature";
   prospectName: string;
   prospectCompany?: string | null;
   prospectEmail?: string | null;
@@ -88,6 +89,7 @@ export async function createPackageForRep(
         prospect_email: prospectEmail,
         letter_body: letterBody,
         template_id: templateId,
+        source: input.source,
       })
       .select("id, slug")
       .single();
