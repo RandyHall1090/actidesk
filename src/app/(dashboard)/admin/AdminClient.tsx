@@ -103,6 +103,7 @@ function DeleteUserDialog({
   profile,
   counts,
   otherOrgUsers,
+  emptiedOrgName,
   isPending,
   onConfirm,
   onCancel,
@@ -110,6 +111,8 @@ function DeleteUserDialog({
   profile: AdminProfile;
   counts: ContentCounts;
   otherOrgUsers: AdminProfile[];
+  // Set when this is the org's last user, so deleting them removes the org.
+  emptiedOrgName: string | null;
   isPending: boolean;
   onConfirm: (disposition: ContentDisposition) => void;
   onCancel: () => void;
@@ -140,6 +143,11 @@ function DeleteUserDialog({
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
           This permanently deletes their account. They won&apos;t be able to sign in again.
         </p>
+        {emptiedOrgName && (
+          <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
+            This is the last user in {emptiedOrgName}, so the company will be deleted too.
+          </p>
+        )}
 
         {total > 0 ? (
           <>
@@ -523,6 +531,12 @@ export function AdminClient({
           otherOrgUsers={(profilesByOrg.get(deleteTarget.org_id) ?? []).filter(
             (p) => p.id !== deleteTarget.id && p.is_active,
           )}
+          emptiedOrgName={
+            deleteTarget.org_id !== SECURAFY_ORG_ID &&
+            (profilesByOrg.get(deleteTarget.org_id) ?? []).every((p) => p.id === deleteTarget.id)
+              ? (orgs.find((o) => o.id === deleteTarget.org_id)?.name ?? "this company")
+              : null
+          }
           isPending={isPending}
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeleteTarget(null)}

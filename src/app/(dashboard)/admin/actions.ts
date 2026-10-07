@@ -159,8 +159,34 @@ export async function adminDeleteUser(
   }
 
   const result = await deleteUserAndReassignContent(userId, disposition);
-  if (result.ok) revalidatePath("/admin");
+  if (!result.ok) return result;
+  revalidatePath("/admin");
+
+  // An org left with no users still claims its email domain, so the next
+  // signup from that domain would silently join an empty, ownerless org.
+  // Remove it -- but never Securafy's own, and only if nothing else is
+  // left in it (these tables block an org delete rather than cascading).
+  if (target.org_id !== SECURAFY_ORG_ID) {
+    const orgEmpty = await isOrgEmpty(admin, target.org_id);
+    if (orgEmpty) {
+      const { error } = await admin.from("orgs").delete().eq("id", target.org_id);
+      if (error) {
+        return { ok: false, error: `User deleted, but their now-empty company couldn't be removed: ${error.message}` };
+      }
+    }
+  }
   return result;
+}
+
+async function isOrgEmpty(admin: ReturnType<typeof createAdminClient>, orgId: string): Promise<boolean> {
+  for (const table of ["profiles", "packages", "assets", "layouts", "presets"] as const) {
+    const { count, error } = await admin
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId);
+    if (error || (count ?? 0) > 0) return false;
+  }
+  return true;
 }
 
 export async function adminSetProfileRole(
